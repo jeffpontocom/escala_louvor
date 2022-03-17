@@ -55,6 +55,7 @@ android {
         targetSdkVersion flutter.targetSdkVersion
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
+        multiDexEnabled true // Habilitar para rodar sem shrink
     }
 
     signingConfigs {
@@ -70,6 +71,7 @@ android {
            storeFile file(keystoreProperties['storeFile'])
            storePassword keystoreProperties['storePassword']
        }
+    }
 
 
     buildTypes {
