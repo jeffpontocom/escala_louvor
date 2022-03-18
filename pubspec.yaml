@@ -31,10 +31,12 @@ dependencies:
     sdk: flutter  
   flutter_localizations:
     sdk: flutter
-  flutter_dotenv: ^5.0.2
+  flutter_dotenv: ^5.0.2  
+  flutter_modular: ^4.2.0
   firebase_auth: ^3.3.11
   firebase_core: ^1.13.1  
   cloud_firestore: ^3.1.10
+  easy_mask: ^2.0.1
   intl: ^0.17.0  
   pdf: ^3.7.2
   printing: ^5.7.3
@@ -81,6 +83,7 @@ flutter:
   assets:
     - .env
     - assets/icons/ic_launcher.png
+    - assets/images/login.png # https://icons8.com/illustrations/style--clip
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.
@@ -93,10 +96,10 @@ flutter:
   # "family" key with the font family name, and a "fonts" key with a
   # list giving the asset and other descriptors for the font. For
   # example:
-  # fonts:
-  #   - family: Schyler
-  #     fonts:
-  #       - asset: fonts/Schyler-Regular.ttf
+  fonts:
+    - family: Offside
+      fonts:
+        - asset: assets/fonts/Offside-Regular.ttf
   #       - asset: fonts/Schyler-Italic.ttf
   #         style: italic
   #   - family: Trajan Pro

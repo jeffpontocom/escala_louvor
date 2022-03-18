@@ -24,8 +24,8 @@ class Igreja {
           alias: (json['alias'] ?? '[alias]') as String,
           endereco: (json['endereco'] ?? '') as String,
           responsavel: (json['responsavel'] ?? '') as String,
-          cultos: List<DocumentReference>.from(
-              ((json['cultos']) as List<DocumentReference>)),
+          cultos:
+              List<DocumentReference>.from(((json['cultos']) as List<dynamic>)),
         );
 
   Map<String, Object?> toJson() {

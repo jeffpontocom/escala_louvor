@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "420088880029",
+    "project_id": "escala-louvor-ipbfoz",
+    "storage_bucket": "escala-louvor-ipbfoz.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:420088880029:android:6e8470c1c5095153482d74",
+        "android_client_info": {
+          "package_name": "br.org.ipbfoz.escala_louvor"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "420088880029-rpjo9rstpnasai7a5u6skgab3s7gpuv5.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBpmgjkDtQv1Ca_m8arqTvsKsaqrNnufNo"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "420088880029-rpjo9rstpnasai7a5u6skgab3s7gpuv5.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "420088880029-4c9jkf16av0gin772fdqkpheegdnoipu.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "br.org.ipbfoz.escala-louvor"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

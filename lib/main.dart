@@ -1,18 +1,28 @@
+import 'package:escala_louvor/models/integrante.dart';
+import 'package:escala_louvor/navigation.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:flutter_modular/flutter_modular.dart';
 
 import 'firebase_options.dart';
-import 'home.dart';
 
 FirebaseAuth auth = FirebaseAuth.instance;
+Integrante? integranteLogado;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  runApp(const MyApp());
+  runApp(
+    ModularApp(
+      module: AppNavigation(),
+      child: const MyApp(),
+      debugMode: !kReleaseMode,
+    ),
+  );
 }
 
 class MyApp extends StatelessWidget {
@@ -21,20 +31,37 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
+    return MaterialApp.router(
+      title: 'Escala do Louvor',
       theme: ThemeData(
         primarySwatch: Colors.blue,
+        visualDensity: kIsWeb
+            ? VisualDensity.comfortable
+            : VisualDensity.adaptivePlatformDensity,
       ),
-      home: const MyHomePage(title: 'Escala do Louvor'),
+      scrollBehavior: MyCustomScrollBehavior(),
       // Suporte a lingua portugues nos elementos globais
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
       supportedLocales: const [Locale('pt')],
+      locale: const Locale('pt_BR'),
       // Identificador de tipo de Release
       debugShowCheckedModeBanner: !kReleaseMode,
+      // Navegação
+      routeInformationParser: Modular.routeInformationParser,
+      routerDelegate: Modular.routerDelegate,
     );
   }
+}
+
+/// Classe para emular as ações de gestos do dedo pelo mouse
+class MyCustomScrollBehavior extends MaterialScrollBehavior {
+  // Override behavior methods and getters like dragDevices
+  @override
+  Set<PointerDeviceKind> get dragDevices => {
+        PointerDeviceKind.touch,
+        PointerDeviceKind.mouse,
+      };
 }

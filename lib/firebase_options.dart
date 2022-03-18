@@ -24,7 +24,6 @@ class DefaultFirebaseOptions {
       case TargetPlatform.android:
         return android;
       case TargetPlatform.iOS:
-        return ios;
       case TargetPlatform.macOS:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for macos - '
@@ -52,15 +51,5 @@ class DefaultFirebaseOptions {
     messagingSenderId: '420088880029',
     projectId: 'escala-louvor-ipbfoz',
     storageBucket: 'escala-louvor-ipbfoz.appspot.com',
-  );
-
-  static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyC6_P1jvLUnA0r6k9n9-meO6viqdSxs6KI',
-    appId: '1:420088880029:ios:174af4c7c15c1e81482d74',
-    messagingSenderId: '420088880029',
-    projectId: 'escala-louvor-ipbfoz',
-    storageBucket: 'escala-louvor-ipbfoz.appspot.com',
-    iosClientId: '420088880029-4c9jkf16av0gin772fdqkpheegdnoipu.apps.googleusercontent.com',
-    iosBundleId: 'br.org.ipbfoz.escala-louvor',
   );
 }

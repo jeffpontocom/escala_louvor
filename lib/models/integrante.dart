@@ -11,8 +11,8 @@ enum Funcao {
   leitura,
 }
 
-class Usuario {
-  static const String collection = 'usuarios';
+class Integrante {
+  static const String collection = 'integrantes';
 
   late bool ativo;
   late String nome;
@@ -25,7 +25,7 @@ class Usuario {
   List<Instrumento>? instrumentos;
   List<DocumentReference>? disponibilidades;
 
-  Usuario({
+  Integrante({
     required this.ativo,
     required this.nome,
     required this.email,
@@ -38,15 +38,15 @@ class Usuario {
     this.disponibilidades,
   });
 
-  Usuario.fromJson(Map<String, Object?> json)
+  Integrante.fromJson(Map<String, Object?> json)
       : this(
           ativo: (json['ativo'] ?? true) as bool,
           nome: (json['nome'] ?? '') as String,
           email: (json['email'] ?? '') as String,
           foto: (json['foto'] ?? '') as String,
           fone: (json['telefone'] ?? '') as String,
-          funcoes: List<Funcao>.from(
-              ((json['funcoes']) as List<int>).map((code) => _getFuncao(code))),
+          funcoes: List<Funcao>.from(((json['funcoes']) as List<dynamic>)
+              .map((code) => _getFuncao(code))),
           igrejas: List<Igreja>.from(((json['igrejas']) as List<dynamic>)
               .map((e) => Igreja.fromJson(e))),
           grupos: List<Grupo>.from(((json['grupos']) as List<dynamic>)
@@ -55,7 +55,7 @@ class Usuario {
               ((json['instrumentos']) as List<dynamic>)
                   .map((e) => Instrumento.fromJson(e))),
           disponibilidades: List<DocumentReference>.from(
-              ((json['disponibilidades']) as List<DocumentReference>)),
+              ((json['disponibilidades']) as List<dynamic>)),
         );
 
   Map<String, Object?> toJson() {

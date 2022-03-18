@@ -3,26 +3,27 @@ import 'package:escala_louvor/screens/tela_chat.dart';
 import 'package:escala_louvor/screens/tela_disponbilidade.dart';
 import 'package:escala_louvor/screens/tela_escala.dart';
 import 'package:flutter/material.dart';
-import 'package:intl/date_symbol_data_local.dart';
+import 'package:flutter_modular/flutter_modular.dart';
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key, required this.title}) : super(key: key);
-  final String title;
+import 'main.dart';
+
+class HomePage extends StatefulWidget {
+  const HomePage({Key? key}) : super(key: key);
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  State<HomePage> createState() => _HomePageState();
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class _HomePageState extends State<HomePage> {
   /* VARIAVEIS */
   int _telaSelecionada = 0;
 
   /// Lista de Telas
   final List _telas = [
-    {'titulo': 'Escalas', 'tela': const TelaEscala()},
-    {'titulo': 'Agenda', 'tela': const TelaAgenda()},
-    {'titulo': 'Chat', 'tela': const TelaChat()},
-    {'titulo': 'Canticos', 'tela': const TelaCanticos()},
+    {'titulo': 'Escala do Louvor', 'tela': const TelaEscala()},
+    {'titulo': 'Minhas escalas', 'tela': const TelaAgenda()},
+    {'titulo': 'Chat dos eventos', 'tela': const TelaChat()},
+    {'titulo': 'Todos os cânticos', 'tela': const TelaCanticos()},
   ];
 
   /* WIDGETS */
@@ -68,7 +69,14 @@ class _MyHomePageState extends State<MyHomePage> {
           padding: const EdgeInsets.all(12),
           child: Image.asset('assets/icons/ic_launcher.png'),
         ),
-        title: Text(_telas[_telaSelecionada]['titulo']),
+        title: Text(
+          _telas[_telaSelecionada]['titulo'],
+          style: const TextStyle(
+            fontFamily: 'Offside',
+            fontSize: 22,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         titleSpacing: 0,
         actions: [
           IconButton(
@@ -76,7 +84,10 @@ class _MyHomePageState extends State<MyHomePage> {
             icon: const Icon(Icons.change_circle),
           ),
           IconButton(
-            onPressed: () {},
+            onPressed: () => Modular.to
+                .pushNamed('/integrante?id=${auth.currentUser?.uid ?? ''}'),
+            /* Modular.to
+                .navigate('/integrante?id=${auth.currentUser?.uid ?? ''}'), */
             icon: const Icon(Icons.person),
           ),
         ],
