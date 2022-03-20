@@ -1,9 +1,10 @@
-import 'package:escala_louvor/home.dart';
-import 'package:escala_louvor/perfil.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 
+import 'admin.dart';
+import 'global.dart';
+import 'home.dart';
 import 'login.dart';
-import 'main.dart';
+import 'perfil.dart';
 
 class AppNavigation extends Module {
   @override
@@ -19,20 +20,20 @@ class AppNavigation extends Module {
     ChildRoute(
       '/login',
       child: (_, __) => const LoginPage(),
-      transition: TransitionType.fadeIn,
+      //transition: TransitionType.fadeIn,
     ),
     ChildRoute(
-      '/integrante',
-      child: (_, args) => IntegrantePage(id: args.queryParams['id'] ?? ''),
-      transition: TransitionType.rightToLeftWithFade,
+      '/perfil',
+      child: (_, args) => PerfilPage(id: args.queryParams['id'] ?? ''),
+      //transition: TransitionType.rightToLeftWithFade,
       guards: [AuthGuard(), HasQueryGuard()],
     ),
-    /* ChildRoute(
+    ChildRoute(
       '/admin',
       child: (_, __) => const AdminPage(),
-      transition: TransitionType.downToUp,
+      //transition: TransitionType.downToUp,
       guards: [AuthGuard()],
-    ), */
+    ),
     /* ChildRoute(
       '/familia',
       child: (_, args) => FamiliaPage(id: args.queryParams['id'] ?? ''),
@@ -49,7 +50,7 @@ class AuthGuard extends RouteGuard {
   @override
   // ignore: avoid_renaming_method_parameters
   Future<bool> canActivate(String path, ModularRoute router) async {
-    return auth.currentUser != null;
+    return Global.auth.currentUser != null;
   }
 }
 

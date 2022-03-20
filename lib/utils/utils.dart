@@ -5,8 +5,8 @@ import 'package:intl/intl.dart';
 /// Classe para mascaras de texto
 class Input {
   /// Para Telefones (formato (##) _####-####)
-  static var textoFone =
-      TextInputMask(mask: ['(99) 9999-9999', '(99) 99999-9999']);
+  static var textoFone = TextInputMask(
+      mask: ['(99) 9999-9999', '(99) 99999-9999'], reverse: false);
   static var mascaraFone = MagicMask.buildMask(textoFone.mask);
 
   /// Para CEPs (formato #####-###)

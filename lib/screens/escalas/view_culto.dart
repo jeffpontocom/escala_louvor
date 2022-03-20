@@ -1,11 +1,10 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import '../../models/integrante.dart';
-import '/main.dart';
+import '/global.dart';
 import '/models/culto.dart';
 import '/models/instrumento.dart';
+import '/models/integrante.dart';
 
 class ViewCulto extends StatefulWidget {
   const ViewCulto({Key? key, required this.culto}) : super(key: key);
@@ -27,7 +26,7 @@ class _ViewCultoState extends State<ViewCulto> {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Icone dia/noite
+        // Ícone dia/noite
         Icon(
           data.hour >= 6 && data.hour < 18 ? Icons.sunny : Icons.dark_mode,
           size: 20,
@@ -78,7 +77,7 @@ class _ViewCultoState extends State<ViewCulto> {
               .copyWith(fontWeight: FontWeight.bold),
         )),
         const SizedBox(width: 8),
-        // Botão de acão para dirigentes
+        // Botão de ação para dirigentes
         IconButton(onPressed: () {}, icon: const Icon(Icons.more_time)),
         const SizedBox(width: 12),
       ],
@@ -106,7 +105,7 @@ class _ViewCultoState extends State<ViewCulto> {
         const Expanded(
           child: SizedBox(),
         ),
-        // Botão de acão para dirigentes
+        // Botão de ação para dirigentes
         IconButton(onPressed: () {}, icon: const Icon(Icons.upload_file)),
         const SizedBox(width: 12),
       ],
@@ -144,7 +143,7 @@ class _ViewCultoState extends State<ViewCulto> {
     );
   }
 
-  Widget _secaoIntegrante(String titulo, Map<Instrumento, User?> dados) {
+  Widget _secaoIntegrante(String titulo, Map<Instrumento, Integrante?> dados) {
     return Padding(
       padding: const EdgeInsets.only(left: 12, right: 12, top: 16, bottom: 4),
       child: Column(
@@ -162,17 +161,16 @@ class _ViewCultoState extends State<ViewCulto> {
                     .titleMedium!
                     .copyWith(fontWeight: FontWeight.bold),
               ),
-              const SizedBox(),
               IconButton(
                 onPressed: () {},
                 icon: const Icon(
-                  Icons.draw,
+                  Icons.more_horiz,
+                  color: Colors.grey,
                   size: 18,
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 8),
           // Integrantes
           Wrap(
             spacing: 8,
@@ -180,13 +178,9 @@ class _ViewCultoState extends State<ViewCulto> {
             children: List.generate(
               dados.length,
               (index) {
-                var fotoUrl =
-                    //dados.entries.elementAt(index).value?.photoURL ?? '';
-                    'https://lh3.googleusercontent.com/a-/AOh14Gj4AlBh66tJ4gc9muXNPxJeg1PFm5v5uFXkgW_1CPg=s288-p-rw-no';
-                var nome = dados.entries.elementAt(index).value?.displayName ??
-                    'Fulano de tal';
+                var integrante = dados.values.elementAt(index);
                 var instrumento = dados.entries.elementAt(index).key;
-                return _pessoaInstrumento(fotoUrl, nome, instrumento);
+                return _pessoaInstrumento(integrante, instrumento);
               },
             ),
           ),
@@ -195,14 +189,24 @@ class _ViewCultoState extends State<ViewCulto> {
     );
   }
 
-  Widget _pessoaInstrumento(
-      String fotoUrl, String nome, Instrumento instrumento) {
+  Widget _pessoaInstrumento(Integrante? integrante, Instrumento instrumento) {
+    var nomeIntegrante = integrante?.nome ?? '[Sem nome]';
+    var nomePrimeiro = nomeIntegrante.split(' ').first;
+    var nomeSegundo = nomeIntegrante.split(' ').last;
+    nomeIntegrante = nomePrimeiro == nomeSegundo
+        ? nomePrimeiro
+        : nomePrimeiro + ' ' + nomeSegundo;
     return Container(
-      width: 128,
+      width: 112,
       height: 128,
+      padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-          border: Border.all(width: 1, color: Colors.grey.shade300),
-          borderRadius: BorderRadius.circular(12)),
+        border: Border.all(width: 1, color: Colors.grey.shade300),
+        borderRadius: BorderRadius.circular(12),
+        color: integrante == Global.integranteLogado
+            ? Colors.amber.shade100
+            : null,
+      ),
       child: Stack(
         alignment: Alignment.topRight,
         children: [
@@ -214,14 +218,15 @@ class _ViewCultoState extends State<ViewCulto> {
               // Foto da pessoa
               CircleAvatar(
                 child: const Icon(Icons.co_present),
-                foregroundImage: NetworkImage(fotoUrl),
+                foregroundImage: NetworkImage(integrante?.foto ?? ''),
                 backgroundColor: Colors.grey.shade200,
-                radius: 24,
+                radius: 28,
               ),
               const SizedBox(height: 8),
               Text(
-                nome,
+                nomeIntegrante,
                 textAlign: TextAlign.center,
+                maxLines: 2,
                 style: Theme.of(context)
                     .textTheme
                     .bodyLarge!
@@ -235,28 +240,24 @@ class _ViewCultoState extends State<ViewCulto> {
             ],
           ),
           // Instrumento
-          Padding(
-            padding: const EdgeInsets.all(8),
-            child: Icon(
-              instrumento.icone,
-              size: 24,
-            ),
+          Icon(
+            instrumento.icone,
+            size: 24,
           ),
         ],
       ),
     );
   }
 
-  /* FUNCOES */
+  /* FUNÇÕES */
 
   /// Verifica se usuário está escalado
   bool get _usuarioEscalado {
-    if (auth.currentUser == null) return false;
-    if (mCulto.dirigente == auth.currentUser ||
-        mCulto.coordenador == auth.currentUser) return true;
+    if (mCulto.dirigente == Global.integranteLogado ||
+        mCulto.coordenador == Global.integranteLogado) return true;
     if (mCulto.equipe == null || mCulto.equipe!.isEmpty) return false;
     for (var integrante in mCulto.equipe!.values) {
-      if (integrante == auth.currentUser) return true;
+      if (integrante == Global.integranteLogado) return true;
     }
     return false;
   }
@@ -294,96 +295,105 @@ class _ViewCultoState extends State<ViewCulto> {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      color: _usuarioEscalado ? Colors.yellow.withOpacity(0.5) : null,
-      child: Column(
-        children: [
-          // Cabeçalho
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            child: Row(
-              children: [
-                Expanded(child: _cultoData),
-                OutlinedButton(
-                  onPressed: () {},
-                  //icon: const Icon(Icons.hail_rounded),
-                  //label: const Text('Estou disponível'),
-                  child: Wrap(
-                    direction: Axis.vertical,
-                    crossAxisAlignment: WrapCrossAlignment.center,
-                    spacing: 4,
-                    children: const [
-                      Icon(Icons.hail_rounded),
-                      Text('Estou disponível'),
-                    ],
-                  ),
-                  style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.all(12),
-                    backgroundColor: Colors.blue,
-                    primary: Colors.grey.shade100,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const Divider(height: 1),
-          Expanded(
-            child: ListView(
-              shrinkWrap: true,
-              children: [
-                _rowEnsaio,
-                const Divider(height: 1),
-                _rowLiturgia,
-                const Divider(height: 1),
-                _rowOqueFalta,
-                const Divider(height: 1),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.max,
+    return Column(
+      children: [
+        // Cabeçalho
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          child: Row(
+            children: [
+              // Dados sobre o culto
+              Expanded(child: _cultoData),
+              // Botão de disponibilidade
+              OutlinedButton(
+                onPressed: () {},
+                child: Wrap(
+                  direction: Axis.vertical,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  spacing: 4,
                   children: [
-                    // Dirigente
-                    _secaoIntegrante('Dirigente', {
-                      Instrumento(ativo: true, nome: 'Voz', icone: Icons.mic):
-                          mCulto.dirigente
-                    }),
-                    // Coordenador
-                    _secaoIntegrante('Coordenador técnico', {
-                      Instrumento(
-                          ativo: true,
-                          nome: 'Violão',
-                          icone: Icons.music_note): mCulto.coordenador
-                    }),
+                    const Icon(Icons.hail_rounded),
+                    Text(_usuarioEscalado ? 'Escalado!' : 'disponível?'),
                   ],
                 ),
-                // Equipe
-                _secaoIntegrante('Equipe', mCulto.equipe ?? {}),
-                const Divider(),
-                Padding(
+                style: OutlinedButton.styleFrom(
                   padding: const EdgeInsets.all(12),
-                  child: Text(
-                    'Cânticos',
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleMedium!
-                        .copyWith(fontWeight: FontWeight.bold),
-                  ),
+                  backgroundColor: _usuarioEscalado ? Colors.blue : null,
+                  primary: _usuarioEscalado ? Colors.grey.shade100 : null,
                 ),
-                const Divider(),
-                _observacoes,
-                Padding(
-                  padding: const EdgeInsets.all(12),
-                  child: ElevatedButton.icon(
-                    onPressed: null,
-                    label: const Text('Alterar dados do culto'),
-                    icon: const Icon(Icons.edit_calendar),
-                  ),
-                ),
-                const SizedBox(height: 36),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
-      ),
+        ),
+        const Divider(height: 1),
+        Expanded(
+          child: ListView(
+            shrinkWrap: true,
+            children: [
+              _rowEnsaio,
+              const Divider(height: 1),
+              _rowLiturgia,
+              const Divider(height: 1),
+              _rowOqueFalta,
+              const Divider(height: 1),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.max,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  // Dirigente
+                  _secaoIntegrante(
+                      'Dirigente',
+                      mCulto.dirigente == null
+                          ? {}
+                          : {
+                              Instrumento(
+                                      ativo: true,
+                                      nome: '',
+                                      icone: Icons.admin_panel_settings):
+                                  mCulto.dirigente
+                            }),
+                  // Coordenador
+                  _secaoIntegrante(
+                      'Coordenador técnico',
+                      mCulto.coordenador == null
+                          ? {}
+                          : {
+                              Instrumento(
+                                  ativo: true,
+                                  nome: '',
+                                  icone: Icons.music_note): mCulto.coordenador
+                            }),
+                ],
+              ),
+              // Equipe
+              _secaoIntegrante('Equipe', mCulto.equipe ?? {}),
+              const Divider(),
+              Padding(
+                padding: const EdgeInsets.all(12),
+                child: Text(
+                  'Cânticos',
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleMedium!
+                      .copyWith(fontWeight: FontWeight.bold),
+                ),
+              ),
+              const Divider(),
+              _observacoes,
+              Padding(
+                padding: const EdgeInsets.all(12),
+                child: ElevatedButton.icon(
+                  onPressed: null,
+                  label: const Text('Alterar dados do culto'),
+                  icon: const Icon(Icons.edit_calendar),
+                ),
+              ),
+              const SizedBox(height: 36),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

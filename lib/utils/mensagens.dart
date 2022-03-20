@@ -177,7 +177,8 @@ class Mensagem {
                 children: [
                   IconButton(
                     onPressed: null,
-                    icon: Icon(icon ?? Icons.subtitles, color: Colors.teal),
+                    icon: Icon(icon ?? Icons.subtitles,
+                        color: Theme.of(context).colorScheme.primary),
                   ),
                   Expanded(
                     child: Text(

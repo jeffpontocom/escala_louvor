@@ -1,6 +1,3 @@
-import 'package:escala_louvor/models/integrante.dart';
-import 'package:escala_louvor/navigation.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
@@ -9,13 +6,14 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 
 import 'firebase_options.dart';
-
-FirebaseAuth auth = FirebaseAuth.instance;
-Integrante? integranteLogado;
+import 'global.dart';
+import 'navigation.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  //bool needsWeb = Platform.isLinux | Platform.isWindows;
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  Global.escutarLogin();
   runApp(
     ModularApp(
       module: AppNavigation(),
@@ -40,7 +38,7 @@ class MyApp extends StatelessWidget {
             : VisualDensity.adaptivePlatformDensity,
       ),
       scrollBehavior: MyCustomScrollBehavior(),
-      // Suporte a lingua portugues nos elementos globais
+      // Suporte a lingua português nos elementos globais
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,

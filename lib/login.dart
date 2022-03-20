@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 
-import 'main.dart';
+import 'global.dart';
 import 'models/integrante.dart';
 import 'utils/app_data.dart';
 import 'utils/medidas.dart';
@@ -21,7 +21,7 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  /* VARIAVEIS */
+  /* VARIÁVEIS */
   final _formKey = GlobalKey<FormState>();
   final _formUsuario = TextEditingController();
   final _formSenha = TextEditingController();
@@ -69,7 +69,7 @@ class _LoginPageState extends State<LoginPage> {
     Mensagem.aguardar(context: context, mensagem: 'Entrando...');
     // Tenta acessar a conta
     try {
-      final credential = await auth.signInWithEmailAndPassword(
+      final credential = await Global.auth.signInWithEmailAndPassword(
           email: _formUsuario.text, password: _formSenha.text);
 
       if (credential.user != null) {
@@ -87,10 +87,10 @@ class _LoginPageState extends State<LoginPage> {
           Navigator.pop(context);
           // Diacono registrado vai para home page
           if (documentSnapshot.exists) {
-            integranteLogado = documentSnapshot.data();
+            //integranteLogado = documentSnapshot.data();
             Modular.to.navigate('/');
           }
-          // Diacono novo cria registro
+          // Cria novo registro
           else {
             // Abre circulo de progresso
             Mensagem.aguardar(
@@ -154,7 +154,7 @@ class _LoginPageState extends State<LoginPage> {
     Mensagem.aguardar(
         context: context, titulo: 'Aguarde', mensagem: 'Verificando e-mail...');
     try {
-      await auth.sendPasswordResetEmail(email: _formUsuario.text);
+      await Global.auth.sendPasswordResetEmail(email: _formUsuario.text);
       Navigator.pop(context); // fecha progresso
       // Abre mensagem de sucesso
       Mensagem.simples(
@@ -173,7 +173,7 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
-  /* METODOS DO SISTEMA */
+  /* MÉTODOS DO SISTEMA */
   @override
   void dispose() {
     _formUsuario.dispose();

@@ -1,8 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:escala_louvor/screens/escalas/view_culto.dart';
+import 'package:escala_louvor/models/igreja.dart';
 import 'package:flutter/material.dart';
 
-import '../models/culto.dart';
+import '/global.dart';
+import '/models/culto.dart';
+import '/models/instrumento.dart';
+import '/models/integrante.dart';
+import '/screens/escalas/view_culto.dart';
 
 class TelaEscala extends StatefulWidget {
   const TelaEscala({Key? key}) : super(key: key);
@@ -15,23 +19,59 @@ class _TelaEscalaState extends State<TelaEscala> with TickerProviderStateMixin {
   /// PARA PROPOSITO DE TESTES
   final List<Culto> _listaCultos = [
     Culto(
-      dataCulto: Timestamp.fromDate(DateTime(2022, 3, 13, 9, 0)),
-      dataEnsaio: Timestamp.fromDate(DateTime(2022, 3, 13, 8, 15)),
-      ocasiao: 'EBD',
-    ),
+        dataCulto: Timestamp.fromDate(DateTime(2022, 3, 13, 9, 0)),
+        dataEnsaio: Timestamp.fromDate(DateTime(2022, 3, 13, 8, 15)),
+        igreja: Igreja(ativa: true, nome: '', alias: ''),
+        ocasiao: 'EBD',
+        dirigente: Integrante(ativo: true, nome: 'Jimmy Stauffer', email: ''),
+        coordenador:
+            Integrante(ativo: true, nome: 'Luciana Verdolin', email: ''),
+        equipe: {
+          Instrumento(
+            ativo: true,
+            nome: 'Violão',
+            icone: Icons.abc,
+          ): Global.integranteLogado ??
+              Integrante(
+                  ativo: true, nome: 'Jefferson Rodrigo de Melo', email: ''),
+          Instrumento(
+            ativo: true,
+            nome: 'Baixo',
+            icone: Icons.access_time,
+          ): Integrante(ativo: true, nome: 'André', email: ''),
+          Instrumento(
+            ativo: true,
+            nome: 'Teclado',
+            icone: Icons.keyboard,
+          ): Integrante(
+              ativo: true, nome: 'Juliano Augusto de Souza', email: ''),
+          Instrumento(
+            ativo: true,
+            nome: 'Voz',
+            icone: Icons.mic,
+          ): Integrante(ativo: true, nome: 'Suzani Sottomaior', email: ''),
+          Instrumento(
+                  ativo: true,
+                  nome: 'Sonorização',
+                  icone: Icons.surround_sound):
+              Integrante(ativo: true, nome: 'Jedson Oliveira', email: ''),
+        }),
     Culto(
       dataCulto: Timestamp.fromDate(DateTime(2022, 3, 13, 19, 30)),
       //dataEnsaio: Timestamp.fromDate(DateTime(2022, 3, 12, 17, 0)),
+      igreja: Igreja(ativa: true, nome: '', alias: ''),
       ocasiao: 'culto vespertino',
+      dirigente: Global.integranteLogado,
     ),
     Culto(
       dataCulto: Timestamp.fromDate(DateTime(2022, 3, 18, 19, 0)),
       dataEnsaio: Timestamp.fromDate(DateTime(2022, 3, 15, 14, 0)),
+      igreja: Igreja(ativa: true, nome: '', alias: ''),
       ocasiao: 'Evento especial',
     ),
   ];
 
-  /* VARIAVEIS */
+  /* VARIÁVEIS */
   late TabController _tabController;
 
   /* SISTEMA */

@@ -44,7 +44,7 @@ class Integrante {
           nome: (json['nome'] ?? '') as String,
           email: (json['email'] ?? '') as String,
           foto: (json['foto'] ?? '') as String,
-          fone: (json['telefone'] ?? '') as String,
+          fone: (json['fone'] ?? '') as String,
           funcoes: List<Funcao>.from(((json['funcoes']) as List<dynamic>)
               .map((code) => _getFuncao(code))),
           igrejas: List<Igreja>.from(((json['igrejas']) as List<dynamic>)

@@ -1,11 +1,11 @@
 import 'package:escala_louvor/screens/tela_canticos.dart';
 import 'package:escala_louvor/screens/tela_chat.dart';
-import 'package:escala_louvor/screens/tela_disponbilidade.dart';
+import 'package:escala_louvor/screens/tela_disponibilidade.dart';
 import 'package:escala_louvor/screens/tela_escala.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 
-import 'main.dart';
+import 'global.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -15,7 +15,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  /* VARIAVEIS */
+  /* VARIÁVEIS */
   int _telaSelecionada = 0;
 
   /// Lista de Telas
@@ -44,7 +44,7 @@ class _HomePageState extends State<HomePage> {
     ),
     const BottomNavigationBarItem(
       icon: Icon(Icons.music_note),
-      label: 'Canticos',
+      label: 'Cânticos',
     ),
     const BottomNavigationBarItem(
       icon: SizedBox(),
@@ -63,7 +63,7 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // APPBAR
+      // AppBar
       appBar: AppBar(
         leading: Padding(
           padding: const EdgeInsets.all(12),
@@ -85,9 +85,7 @@ class _HomePageState extends State<HomePage> {
           ),
           IconButton(
             onPressed: () => Modular.to
-                .pushNamed('/integrante?id=${auth.currentUser?.uid ?? ''}'),
-            /* Modular.to
-                .navigate('/integrante?id=${auth.currentUser?.uid ?? ''}'), */
+                .pushNamed('/perfil?id=${Global.auth.currentUser?.uid ?? ''}'),
             icon: const Icon(Icons.person),
           ),
         ],
@@ -110,7 +108,7 @@ class _HomePageState extends State<HomePage> {
       ),
       // FLOAT ACTION
       floatingActionButton: FloatingActionButton(
-        onPressed: () {},
+        onPressed: () => Modular.to.pushNamed('/admin'),
         child: const Icon(Icons.admin_panel_settings),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
