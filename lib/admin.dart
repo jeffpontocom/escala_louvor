@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:escala_louvor/functions/metodos.dart';
 import 'package:escala_louvor/models/igreja.dart';
 import 'package:escala_louvor/utils/mensagens.dart';
 import 'package:flutter/material.dart';
@@ -22,16 +23,10 @@ class AdminPage extends StatelessWidget {
   void _verIgrejas(BuildContext context) {
     Mensagem.bottomDialog(
       context: context,
-      titulo: 'Igrejas',
+      titulo: 'Igrejas / Locais de Culto',
       icon: Icons.business,
       conteudo: StreamBuilder<QuerySnapshot<Igreja>>(
-        stream: FirebaseFirestore.instance
-            .collection('igrejas')
-            .withConverter<Igreja>(
-              fromFirestore: (snapshot, _) => Igreja.fromJson(snapshot.data()!),
-              toFirestore: (model, _) => model.toJson(),
-            )
-            .snapshots(),
+        stream: Metodo.escutarIgrejas(),
         builder: ((context, snapshot) {
           if (!snapshot.hasData) {
             return Column(mainAxisSize: MainAxisSize.min, children: const [
@@ -48,25 +43,35 @@ class AdminPage extends StatelessWidget {
                 child: ActionChip(
                     label: const Text('Nova igreja'),
                     onPressed: () {
-                      _addIgreja(context);
+                      _abrirIgreja(
+                        context,
+                        igreja: Igreja(ativa: true, nome: '', sigla: ''),
+                      );
                     }),
               ),
               snapshot.data!.docs.isEmpty
                   ? const Text('Nenhuma igreja cadastrada')
                   : ListView(
                       shrinkWrap: true,
-                      children: List.generate(
-                        snapshot.data!.size,
-                        (index) => ListTile(
-                          title: Text(snapshot.data!.docs[index].data().alias),
-                          subtitle:
-                              Text(snapshot.data!.docs[index].data().nome),
+                      children: List.generate(snapshot.data!.size, (index) {
+                        Igreja igreja = snapshot.data!.docs[index].data();
+                        DocumentReference reference =
+                            snapshot.data!.docs[index].reference;
+                        return ListTile(
+                          leading: CircleAvatar(
+                            child: const Icon(Icons.church),
+                            foregroundImage: NetworkImage(igreja.fotoUrl ?? ''),
+                          ),
+                          title: Text(igreja.sigla),
+                          subtitle: Text(igreja.nome),
                           trailing: const IconButton(
                             onPressed: null,
                             icon: Icon(Icons.map),
                           ),
-                        ),
-                      ),
+                          onTap: () => _abrirIgreja(context,
+                              igreja: igreja, id: reference.id),
+                        );
+                      }),
                     ),
               const SizedBox(height: 24),
             ],
@@ -76,54 +81,73 @@ class AdminPage extends StatelessWidget {
     );
   }
 
-  void _addIgreja(BuildContext context) {
-    Igreja novaIgreja = Igreja(ativa: true, nome: '', alias: '');
+  void _abrirIgreja(BuildContext context,
+      {required Igreja igreja, String? id}) {
     Mensagem.bottomDialog(
       context: context,
-      titulo: 'Nova Igreja/Local de Culto',
+      titulo: 'Cadastro da Igreja',
       conteudo: ListView(
         shrinkWrap: true,
         padding: const EdgeInsets.symmetric(horizontal: 24),
         children: [
-          // Sigla
-          TextFormField(
-            decoration: const InputDecoration(labelText: 'Sigla'),
-            onChanged: (value) {
-              novaIgreja.alias = value;
-            },
+          Row(
+            children: [
+              // Foto
+              StatefulBuilder(builder: (innerContext, StateSetter innerState) {
+                return CircleAvatar(
+                  child: IconButton(
+                      onPressed: () async {
+                        var url = await Metodo.carregarFoto();
+                        if (url != null && url.isNotEmpty) {
+                          innerState(() {
+                            igreja.fotoUrl = url;
+                          });
+                        }
+                      },
+                      icon: const Icon(Icons.church)),
+                  foregroundImage: NetworkImage(igreja.fotoUrl ?? ''),
+                  radius: 48,
+                );
+              }),
+              const SizedBox(width: 12),
+              // Sigla
+              Expanded(
+                child: TextFormField(
+                  initialValue: igreja.sigla,
+                  decoration: const InputDecoration(labelText: 'Sigla'),
+                  onChanged: (value) {
+                    igreja.sigla = value;
+                  },
+                ),
+              ),
+            ],
           ),
           // Nome
           TextFormField(
+            initialValue: igreja.nome,
             decoration: const InputDecoration(labelText: 'Nome completo'),
             onChanged: (value) {
-              novaIgreja.nome = value;
+              igreja.nome = value;
             },
           ),
-          // Nome
+          // Endereço
           TextFormField(
+            initialValue: igreja.endereco,
             decoration: const InputDecoration(labelText: 'Endereço'),
             onChanged: (value) {
-              novaIgreja.endereco = value;
+              igreja.endereco = value;
             },
           ),
           const SizedBox(height: 48),
           // Botão criar
           ElevatedButton.icon(
             icon: const Icon(Icons.save),
-            label: const Text('CRIAR'),
+            label: const Text('SALVAR'),
             onPressed: () async {
               // Abre progresso
               Mensagem.aguardar(context: context);
               // Salva os dados no firebase
-              await FirebaseFirestore.instance
-                  .collection('igrejas')
-                  .withConverter<Igreja>(
-                    fromFirestore: (snapshot, _) =>
-                        Igreja.fromJson(snapshot.data()!),
-                    toFirestore: (model, _) => model.toJson(),
-                  )
-                  .doc()
-                  .set(novaIgreja);
+              await Metodo.salvarIgreja(igreja, id: id);
               Modular.to.pop(); // Fecha progresso
               Modular.to.pop(); // Fecha dialog
             },
@@ -156,7 +180,10 @@ class AdminPage extends StatelessWidget {
               trailing: IconButton(
                 icon: const Icon(Icons.add_business),
                 color: Theme.of(context).colorScheme.primary,
-                onPressed: () => _addIgreja(context),
+                onPressed: () => _abrirIgreja(
+                  context,
+                  igreja: Igreja(ativa: true, nome: '', sigla: ''),
+                ),
               ),
               onTap: () => _verIgrejas(context),
             ),

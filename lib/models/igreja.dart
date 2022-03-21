@@ -3,39 +3,38 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class Igreja {
   late bool ativa;
   late String nome;
-  late String alias;
+  late String sigla;
+  String? fotoUrl;
   String? endereco;
   String? responsavel;
-  List<DocumentReference>? cultos;
 
   Igreja({
     required this.ativa,
     required this.nome,
-    required this.alias,
+    required this.sigla,
+    this.fotoUrl,
     this.endereco,
     this.responsavel,
-    this.cultos,
   });
 
   Igreja.fromJson(Map<String, Object?> json)
       : this(
           ativa: (json['ativa'] ?? true) as bool,
-          nome: (json['nome'] ?? '[nova igreja]') as String,
-          alias: (json['alias'] ?? '[alias]') as String,
+          nome: (json['nome'] ?? '[Nova Igreja]') as String,
+          sigla: (json['sigla'] ?? '[NOVA]') as String,
+          fotoUrl: (json['fotoUrl'] ?? '') as String,
           endereco: (json['endereco'] ?? '') as String,
           responsavel: (json['responsavel'] ?? '') as String,
-          cultos:
-              List<DocumentReference>.from(((json['cultos']) as List<dynamic>)),
         );
 
   Map<String, Object?> toJson() {
     return {
       'ativa': ativa,
       'nome': nome,
-      'alias': alias,
+      'sigla': sigla,
+      'fotoUrl': fotoUrl,
       'endereco': endereco ?? '',
       'responsavel': responsavel ?? '',
-      'cultos': cultos ?? [],
     };
   }
 }

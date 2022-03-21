@@ -21,7 +21,7 @@ class _TelaEscalaState extends State<TelaEscala> with TickerProviderStateMixin {
     Culto(
         dataCulto: Timestamp.fromDate(DateTime(2022, 3, 13, 9, 0)),
         dataEnsaio: Timestamp.fromDate(DateTime(2022, 3, 13, 8, 15)),
-        igreja: Igreja(ativa: true, nome: '', alias: ''),
+        igreja: Igreja(ativa: true, nome: '', sigla: ''),
         ocasiao: 'EBD',
         dirigente: Integrante(ativo: true, nome: 'Jimmy Stauffer', email: ''),
         coordenador:
@@ -59,14 +59,14 @@ class _TelaEscalaState extends State<TelaEscala> with TickerProviderStateMixin {
     Culto(
       dataCulto: Timestamp.fromDate(DateTime(2022, 3, 13, 19, 30)),
       //dataEnsaio: Timestamp.fromDate(DateTime(2022, 3, 12, 17, 0)),
-      igreja: Igreja(ativa: true, nome: '', alias: ''),
+      igreja: Igreja(ativa: true, nome: '', sigla: ''),
       ocasiao: 'culto vespertino',
       dirigente: Global.integranteLogado,
     ),
     Culto(
       dataCulto: Timestamp.fromDate(DateTime(2022, 3, 18, 19, 0)),
       dataEnsaio: Timestamp.fromDate(DateTime(2022, 3, 15, 14, 0)),
-      igreja: Igreja(ativa: true, nome: '', alias: ''),
+      igreja: Igreja(ativa: true, nome: '', sigla: ''),
       ocasiao: 'Evento especial',
     ),
   ];
