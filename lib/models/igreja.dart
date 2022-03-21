@@ -1,40 +1,51 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:escala_louvor/models/integrante.dart';
 
 class Igreja {
-  late bool ativa;
-  late String nome;
+  static const String collection = 'igrejas';
+
   late String sigla;
+  late String nome;
   String? fotoUrl;
   String? endereco;
-  String? responsavel;
+  DocumentReference<Integrante>? responsavel;
+  late bool ativo;
 
   Igreja({
-    required this.ativa,
-    required this.nome,
     required this.sigla,
+    required this.nome,
     this.fotoUrl,
     this.endereco,
     this.responsavel,
+    this.ativo = true,
   });
 
   Igreja.fromJson(Map<String, Object?> json)
       : this(
-          ativa: (json['ativa'] ?? true) as bool,
-          nome: (json['nome'] ?? '[Nova Igreja]') as String,
           sigla: (json['sigla'] ?? '[NOVA]') as String,
-          fotoUrl: (json['fotoUrl'] ?? '') as String,
-          endereco: (json['endereco'] ?? '') as String,
-          responsavel: (json['responsavel'] ?? '') as String,
+          nome: (json['nome'] ?? '[Nova Igreja]') as String,
+          fotoUrl: (json['fotoUrl']) as String?,
+          endereco: (json['endereco']) as String?,
+          responsavel: _getIntegrante(json['responsavel']),
+          ativo: (json['ativo'] ?? true) as bool,
         );
 
   Map<String, Object?> toJson() {
     return {
-      'ativa': ativa,
-      'nome': nome,
       'sigla': sigla,
+      'nome': nome,
       'fotoUrl': fotoUrl,
-      'endereco': endereco ?? '',
-      'responsavel': responsavel ?? '',
+      'endereco': endereco,
+      'responsavel': responsavel,
+      'ativo': ativo,
     };
+  }
+
+  static DocumentReference<Integrante>? _getIntegrante(var json) {
+    if (json == null) return null;
+    return (json as DocumentReference).withConverter<Integrante>(
+      fromFirestore: (snapshot, _) => Integrante.fromJson(snapshot.data()!),
+      toFirestore: (model, _) => model.toJson(),
+    );
   }
 }

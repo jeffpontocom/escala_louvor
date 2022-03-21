@@ -2,6 +2,7 @@ import 'package:escala_louvor/screens/tela_canticos.dart';
 import 'package:escala_louvor/screens/tela_chat.dart';
 import 'package:escala_louvor/screens/tela_disponibilidade.dart';
 import 'package:escala_louvor/screens/tela_escala.dart';
+import 'package:escala_louvor/utils/estilos.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 
@@ -71,11 +72,7 @@ class _HomePageState extends State<HomePage> {
         ),
         title: Text(
           _telas[_telaSelecionada]['titulo'],
-          style: const TextStyle(
-            fontFamily: 'Offside',
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
-          ),
+          style: Estilo.appBarTitulo,
         ),
         titleSpacing: 0,
         actions: [

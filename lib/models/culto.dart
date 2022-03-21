@@ -6,28 +6,32 @@ import 'instrumento.dart';
 import 'integrante.dart';
 
 class Culto {
+  static const String collection = 'cultos';
+
   late Timestamp dataCulto;
   late Igreja igreja;
   String? ocasiao;
+  List<DocumentReference>? disponiveis;
   Integrante? dirigente;
   Integrante? coordenador;
   Map<Instrumento, Integrante>? equipe;
   Timestamp? dataEnsaio;
   List<Cantico>? canticos;
   String? liturgiaUrl;
-  String? observacoes;
+  String? obs;
 
   Culto({
     required this.dataCulto,
     required this.igreja,
     this.ocasiao,
+    this.disponiveis,
     this.dirigente,
     this.coordenador,
     this.equipe,
     this.dataEnsaio,
     this.canticos,
     this.liturgiaUrl,
-    this.observacoes,
+    this.obs,
   });
 
   Culto.fromJson(Map<String, Object?> json)
@@ -35,6 +39,7 @@ class Culto {
           dataCulto: (json['dataCulto'] ?? Timestamp.now()) as Timestamp,
           igreja: json['igreja'] as Igreja,
           ocasiao: (json['ocasiao'] ?? '') as String,
+          disponiveis: (json['disponiveis'] ?? []) as List<DocumentReference>,
           dirigente: json['dirigente'] as Integrante,
           coordenador: json['coordenador'] as Integrante,
           equipe: Map<Instrumento, Integrante>.from(
@@ -45,7 +50,7 @@ class Culto {
               ((json['canticos'] ?? []) as List<dynamic>)
                   .map((e) => Cantico.fromJson(e))),
           liturgiaUrl: (json['liturgiaUrl'] ?? '') as String,
-          observacoes: (json['observacoes'] ?? '') as String,
+          obs: (json['obs'] ?? '') as String,
         );
 
   Map<String, Object?> toJson() {
@@ -53,13 +58,14 @@ class Culto {
       'dataCulto': dataCulto,
       'igreja': igreja,
       'ocasiao': ocasiao ?? '',
+      'disponiveis': disponiveis ?? [],
       'dirigente': dirigente,
       'coordenador': coordenador,
       'equipe': equipe,
       'dataEnsaio': dataEnsaio,
       'canticos': canticos ?? [],
       'liturgiaUrl': liturgiaUrl ?? '',
-      'observacoes': observacoes ?? '',
+      'obs': obs ?? '',
     };
   }
 }

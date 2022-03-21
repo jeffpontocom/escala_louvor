@@ -82,6 +82,19 @@ flutter:
     - .env
     - assets/icons/ic_launcher.png
     - assets/images/login.png # https://icons8.com/illustrations/style--clip
+    # https://www.flaticon.com/packs/music-icons-7?word=music%20instruments
+    - assets/icons/music_baixo.png
+    - assets/icons/music_bateria.png
+    - assets/icons/music_coordenador.png
+    - assets/icons/music_dirigente.png
+    - assets/icons/music_guitarra.png
+    - assets/icons/music_percussao.png
+    - assets/icons/music_sonorizacao.png
+    - assets/icons/music_sopro.png
+    - assets/icons/music_teclado.png
+    - assets/icons/music_transmissao.png
+    - assets/icons/music_violao.png
+    - assets/icons/music_voz.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

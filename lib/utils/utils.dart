@@ -2,6 +2,12 @@ import 'package:easy_mask/easy_mask.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
+class Texto {
+  static String isPlural(int valor) {
+    return valor <= 1 ? '' : 's';
+  }
+}
+
 /// Classe para mascaras de texto
 class Input {
   /// Para Telefones (formato (##) _####-####)

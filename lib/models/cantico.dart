@@ -1,25 +1,27 @@
 class Cantico {
+  static const String collection = 'canticos';
+
   late String nome;
   late String cifraUrl;
-  late String youtubeUrl;
+  String? youTubeUrl;
   String? letra;
-  bool? isHino;
+  late bool isHino;
   late bool ativo;
 
-  Cantico(
-    this.nome, {
+  Cantico({
+    required this.nome,
     required this.cifraUrl,
-    required this.youtubeUrl,
+    this.youTubeUrl,
     this.letra,
-    this.isHino,
+    required this.isHino,
     required this.ativo,
   });
 
   Cantico.fromJson(Map<String, Object?> json)
       : this(
-          (json['nome'] ?? '[novo cantico]') as String,
-          cifraUrl: (json['cifraurl'] ?? '') as String,
-          youtubeUrl: (json['youtubeUrl'] ?? '') as String,
+          nome: (json['nome'] ?? '[novo cantico]') as String,
+          cifraUrl: (json['cifraUrl'] ?? '') as String,
+          youTubeUrl: (json['youTubeUrl'] ?? '') as String,
           letra: (json['letra'] ?? '') as String,
           isHino: (json['isHino'] ?? false) as bool,
           ativo: (json['ativo'] ?? true) as bool,
@@ -29,9 +31,9 @@ class Cantico {
     return {
       'nome': nome,
       'cifraUrl': cifraUrl,
-      'youtubeUrl': youtubeUrl,
+      'youTubeUrl': youTubeUrl ?? '',
       'letra': letra ?? '',
-      'isHino': isHino ?? false,
+      'isHino': isHino,
       'ativo': ativo,
     };
   }

@@ -1,5 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-
 import 'grupo.dart';
 import 'igreja.dart';
 import 'instrumento.dart';
@@ -14,37 +12,36 @@ enum Funcao {
 class Integrante {
   static const String collection = 'integrantes';
 
-  late bool ativo;
   late String nome;
   late String email;
-  String? foto;
-  String? fone;
+  String? fotoUrl;
+  String? telefone;
   List<Funcao>? funcoes;
   List<Igreja>? igrejas;
   List<Grupo>? grupos;
   List<Instrumento>? instrumentos;
-  List<DocumentReference>? disponibilidades;
+  String? obs;
+  late bool ativo;
 
   Integrante({
-    required this.ativo,
     required this.nome,
     required this.email,
-    this.foto,
-    this.fone,
+    this.fotoUrl,
+    this.telefone,
     this.funcoes,
     this.igrejas,
     this.grupos,
     this.instrumentos,
-    this.disponibilidades,
+    this.obs,
+    this.ativo = true,
   });
 
   Integrante.fromJson(Map<String, Object?> json)
       : this(
-          ativo: (json['ativo'] ?? true) as bool,
           nome: (json['nome'] ?? '') as String,
           email: (json['email'] ?? '') as String,
-          foto: (json['foto'] ?? '') as String,
-          fone: (json['fone'] ?? '') as String,
+          fotoUrl: (json['fotoUrl']) as String?,
+          telefone: (json['telefone']) as String?,
           funcoes: List<Funcao>.from(((json['funcoes']) as List<dynamic>)
               .map((code) => _getFuncao(code))),
           igrejas: List<Igreja>.from(((json['igrejas']) as List<dynamic>)
@@ -54,22 +51,22 @@ class Integrante {
           instrumentos: List<Instrumento>.from(
               ((json['instrumentos']) as List<dynamic>)
                   .map((e) => Instrumento.fromJson(e))),
-          disponibilidades: List<DocumentReference>.from(
-              ((json['disponibilidades']) as List<dynamic>)),
+          obs: (json['obs']) as String?,
+          ativo: (json['ativo'] ?? true) as bool,
         );
 
   Map<String, Object?> toJson() {
     return {
-      'ativo': ativo,
       'nome': nome,
       'email': email,
-      'foto': foto ?? '',
-      'fone': fone ?? '',
-      'funcoes': _parseFuncoes(funcoes),
-      'igrejas': igrejas ?? [],
-      'grupos': grupos ?? [],
-      'instrumentos': instrumentos ?? [],
-      'disponibilidades': disponibilidades ?? [],
+      'fotoUrl': fotoUrl,
+      'telefone': telefone,
+      'funcoes': _parseListaFuncao(funcoes),
+      'igrejas': igrejas,
+      'grupos': grupos,
+      'instrumentos': instrumentos,
+      'obs': obs,
+      'ativo': ativo,
     };
   }
 
@@ -86,12 +83,12 @@ class Integrante {
     }
   }
 
-  static List<int> _parseFuncoes(List<Funcao>? funcoes) {
+  static List<int> _parseListaFuncao(List<Funcao>? funcoes) {
     if (funcoes == null) return [];
-    List<int> parseable = [];
+    List<int> parsable = [];
     for (var funcao in funcoes) {
-      parseable.add(funcao.index);
+      parsable.add(funcao.index);
     }
-    return parseable;
+    return parsable;
   }
 }

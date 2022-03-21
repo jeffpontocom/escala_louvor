@@ -21,52 +21,49 @@ class _TelaEscalaState extends State<TelaEscala> with TickerProviderStateMixin {
     Culto(
         dataCulto: Timestamp.fromDate(DateTime(2022, 3, 13, 9, 0)),
         dataEnsaio: Timestamp.fromDate(DateTime(2022, 3, 13, 8, 15)),
-        igreja: Igreja(ativa: true, nome: '', sigla: ''),
+        igreja: Igreja(ativo: true, nome: '', sigla: ''),
         ocasiao: 'EBD',
         dirigente: Integrante(ativo: true, nome: 'Jimmy Stauffer', email: ''),
         coordenador:
             Integrante(ativo: true, nome: 'Luciana Verdolin', email: ''),
         equipe: {
           Instrumento(
-            ativo: true,
             nome: 'Violão',
-            icone: Icons.abc,
+            iconAsset: 'assets/icons/music_violao.png',
           ): Global.integranteLogado ??
               Integrante(
                   ativo: true, nome: 'Jefferson Rodrigo de Melo', email: ''),
           Instrumento(
-            ativo: true,
             nome: 'Baixo',
-            icone: Icons.access_time,
+            iconAsset: 'assets/icons/music_baixo.png',
           ): Integrante(ativo: true, nome: 'André', email: ''),
           Instrumento(
-            ativo: true,
             nome: 'Teclado',
-            icone: Icons.keyboard,
+            iconAsset: 'assets/icons/music_teclado.png',
           ): Integrante(
               ativo: true, nome: 'Juliano Augusto de Souza', email: ''),
           Instrumento(
-            ativo: true,
             nome: 'Voz',
-            icone: Icons.mic,
+            composMin: 0,
+            composMax: 1,
+            iconAsset: 'assets/icons/music_voz.png',
           ): Integrante(ativo: true, nome: 'Suzani Sottomaior', email: ''),
           Instrumento(
-                  ativo: true,
-                  nome: 'Sonorização',
-                  icone: Icons.surround_sound):
-              Integrante(ativo: true, nome: 'Jedson Oliveira', email: ''),
+            nome: 'Sonorização',
+            iconAsset: 'assets/icons/music_sonorizacao.png',
+          ): Integrante(ativo: true, nome: 'Jedson Oliveira', email: ''),
         }),
     Culto(
       dataCulto: Timestamp.fromDate(DateTime(2022, 3, 13, 19, 30)),
       //dataEnsaio: Timestamp.fromDate(DateTime(2022, 3, 12, 17, 0)),
-      igreja: Igreja(ativa: true, nome: '', sigla: ''),
+      igreja: Igreja(ativo: true, nome: '', sigla: ''),
       ocasiao: 'culto vespertino',
       dirigente: Global.integranteLogado,
     ),
     Culto(
       dataCulto: Timestamp.fromDate(DateTime(2022, 3, 18, 19, 0)),
       dataEnsaio: Timestamp.fromDate(DateTime(2022, 3, 15, 14, 0)),
-      igreja: Igreja(ativa: true, nome: '', sigla: ''),
+      igreja: Igreja(ativo: true, nome: '', sigla: ''),
       ocasiao: 'Evento especial',
     ),
   ];

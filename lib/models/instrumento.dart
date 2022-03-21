@@ -1,24 +1,36 @@
-import 'package:flutter/material.dart';
-
 class Instrumento {
-  late bool ativo;
-  late String nome;
-  late IconData icone;
+  static const String collection = 'instrumentos';
 
-  Instrumento({required this.ativo, required this.nome, required this.icone});
+  late String nome;
+  late String iconAsset;
+  late int composMin;
+  late int composMax;
+  late bool ativo;
+
+  Instrumento({
+    required this.nome,
+    required this.iconAsset,
+    this.composMin = 0,
+    this.composMax = 2,
+    this.ativo = true,
+  });
 
   Instrumento.fromJson(Map<String, Object?> json)
       : this(
-          ativo: (json['ativo'] ?? true) as bool,
           nome: (json['nome'] ?? '[novo instrumento]') as String,
-          icone: IconData((json['icone'] ?? '') as int),
+          iconAsset: (json['iconAsset'] ?? '') as String,
+          composMin: (json['composMin'] ?? 0) as int,
+          composMax: (json['composMax'] ?? 2) as int,
+          ativo: (json['ativo'] ?? true) as bool,
         );
 
   Map<String, Object?> toJson() {
     return {
-      'ativo': ativo,
       'nome': nome,
-      'icone': icone.codePoint,
+      'iconAsset': iconAsset,
+      'composMin': composMin,
+      'composMax': composMax,
+      'ativo': ativo,
     };
   }
 }

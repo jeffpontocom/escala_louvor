@@ -178,12 +178,13 @@ class _PerfilPageState extends State<PerfilPage> {
                                 TextFormField(
                                   enabled: editMode,
                                   initialValue: Input.mascaraFone
-                                      .getMaskedString(_integrante.fone ?? ''),
+                                      .getMaskedString(
+                                          _integrante.telefone ?? ''),
                                   inputFormatters: [Input.textoFone],
                                   keyboardType: TextInputType.phone,
                                   textInputAction: TextInputAction.next,
                                   onSaved: (value) {
-                                    _integrante.fone = Input.mascaraFone
+                                    _integrante.telefone = Input.mascaraFone
                                         .clearMask(value ?? '');
                                   },
                                   decoration: Estilo.mInputDecoration

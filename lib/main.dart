@@ -46,7 +46,7 @@ class MyApp extends StatelessWidget {
       supportedLocales: const [Locale('pt')],
       locale: const Locale('pt_BR'),
       // Identificador de tipo de Release
-      debugShowCheckedModeBanner: !kReleaseMode,
+      //debugShowCheckedModeBanner: !kReleaseMode,
       // Navegação
       routeInformationParser: Modular.routeInformationParser,
       routerDelegate: Modular.routerDelegate,

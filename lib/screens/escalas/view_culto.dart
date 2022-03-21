@@ -128,7 +128,7 @@ class _ViewCultoState extends State<ViewCulto> {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       child: TextFormField(
-        initialValue: mCulto.observacoes,
+        initialValue: mCulto.obs,
         enabled: false,
         minLines: 5,
         maxLines: 15,
@@ -137,7 +137,7 @@ class _ViewCultoState extends State<ViewCulto> {
           floatingLabelBehavior: FloatingLabelBehavior.always,
         ),
         onChanged: (value) {
-          mCulto.observacoes = value;
+          mCulto.obs = value;
         },
       ),
     );
@@ -218,7 +218,7 @@ class _ViewCultoState extends State<ViewCulto> {
               // Foto da pessoa
               CircleAvatar(
                 child: const Icon(Icons.co_present),
-                foregroundImage: NetworkImage(integrante?.foto ?? ''),
+                foregroundImage: NetworkImage(integrante?.fotoUrl ?? ''),
                 backgroundColor: Colors.grey.shade200,
                 radius: 28,
               ),
@@ -240,9 +240,9 @@ class _ViewCultoState extends State<ViewCulto> {
             ],
           ),
           // Instrumento
-          Icon(
-            instrumento.icone,
-            size: 24,
+          Image.asset(
+            instrumento.iconAsset,
+            width: 24,
           ),
         ],
       ),
@@ -348,10 +348,9 @@ class _ViewCultoState extends State<ViewCulto> {
                           ? {}
                           : {
                               Instrumento(
-                                      ativo: true,
-                                      nome: '',
-                                      icone: Icons.admin_panel_settings):
-                                  mCulto.dirigente
+                                nome: '',
+                                iconAsset: 'assets/icons/music_dirigente.png',
+                              ): mCulto.dirigente
                             }),
                   // Coordenador
                   _secaoIntegrante(
@@ -360,9 +359,9 @@ class _ViewCultoState extends State<ViewCulto> {
                           ? {}
                           : {
                               Instrumento(
-                                  ativo: true,
-                                  nome: '',
-                                  icone: Icons.music_note): mCulto.coordenador
+                                nome: '',
+                                iconAsset: 'assets/icons/music_coordenador.png',
+                              ): mCulto.coordenador
                             }),
                 ],
               ),
