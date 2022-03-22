@@ -10,6 +10,7 @@ import 'package:firebase_core/firebase_core.dart' as firebase_core;
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/services.dart';
 
+import '../models/culto.dart';
 import '/models/igreja.dart';
 
 class Metodo {
@@ -49,6 +50,25 @@ class Metodo {
         .orderBy('nome')
         .withConverter<Integrante>(
           fromFirestore: (snapshot, _) => Integrante.fromJson(snapshot.data()!),
+          toFirestore: (model, _) => model.toJson(),
+        )
+        .snapshots();
+  }
+
+  /// Stream para escutar base de dados das Igrejas
+  static Stream<QuerySnapshot<Culto>> escutarCultos({
+    Timestamp? dataMinima,
+    Timestamp? dataMaxima,
+    DocumentReference? integrante,
+  }) {
+    return FirebaseFirestore.instance
+        .collection(Culto.collection)
+        .where('dataCulto', isGreaterThanOrEqualTo: dataMinima)
+        .where('dataCulto', isLessThanOrEqualTo: dataMaxima)
+        .where('equipe', arrayContains: integrante)
+        .orderBy('dataCulto')
+        .withConverter<Culto>(
+          fromFirestore: (snapshot, _) => Culto.fromJson(snapshot.data()!),
           toFirestore: (model, _) => model.toJson(),
         )
         .snapshots();

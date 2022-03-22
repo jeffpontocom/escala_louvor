@@ -26,7 +26,7 @@ class Igreja {
           nome: (json['nome'] ?? '[Nova Igreja]') as String,
           fotoUrl: (json['fotoUrl']) as String?,
           endereco: (json['endereco']) as String?,
-          responsavel: _getIntegrante(json['responsavel']),
+          responsavel: _getResponsavel(json['responsavel']),
           ativo: (json['ativo'] ?? true) as bool,
         );
 
@@ -41,7 +41,7 @@ class Igreja {
     };
   }
 
-  static DocumentReference<Integrante>? _getIntegrante(var json) {
+  static DocumentReference<Integrante>? _getResponsavel(var json) {
     if (json == null) return null;
     return (json as DocumentReference).withConverter<Integrante>(
       fromFirestore: (snapshot, _) => Integrante.fromJson(snapshot.data()!),

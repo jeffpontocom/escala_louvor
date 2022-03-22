@@ -1,3 +1,4 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -143,9 +144,13 @@ class _ViewCultoState extends State<ViewCulto> {
     );
   }
 
-  Widget _secaoIntegrante(String titulo, Map<Instrumento, Integrante?> dados) {
+  Widget _secaoIntegrante(
+      String titulo,
+      Funcao funcao,
+      Map<DocumentReference<Instrumento>?, DocumentReference<Integrante>?>
+          dados) {
     return Padding(
-      padding: const EdgeInsets.only(left: 12, right: 12, top: 16, bottom: 4),
+      padding: const EdgeInsets.only(left: 12, right: 12, top: 0, bottom: 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -154,13 +159,7 @@ class _ViewCultoState extends State<ViewCulto> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               // Título
-              Text(
-                titulo,
-                style: Theme.of(context)
-                    .textTheme
-                    .titleMedium!
-                    .copyWith(fontWeight: FontWeight.bold),
-              ),
+              Text(titulo.toUpperCase()),
               IconButton(
                 onPressed: () {},
                 icon: const Icon(
@@ -179,8 +178,8 @@ class _ViewCultoState extends State<ViewCulto> {
               dados.length,
               (index) {
                 var integrante = dados.values.elementAt(index);
-                var instrumento = dados.entries.elementAt(index).key;
-                return _pessoaInstrumento(integrante, instrumento);
+                var instrumento = dados.keys.elementAt(index);
+                return _pessoaInstrumento(integrante, instrumento, funcao);
               },
             ),
           ),
@@ -189,64 +188,84 @@ class _ViewCultoState extends State<ViewCulto> {
     );
   }
 
-  Widget _pessoaInstrumento(Integrante? integrante, Instrumento instrumento) {
-    var nomeIntegrante = integrante?.nome ?? '[Sem nome]';
-    var nomePrimeiro = nomeIntegrante.split(' ').first;
-    var nomeSegundo = nomeIntegrante.split(' ').last;
-    nomeIntegrante = nomePrimeiro == nomeSegundo
-        ? nomePrimeiro
-        : nomePrimeiro + ' ' + nomeSegundo;
-    return Container(
-      width: 112,
-      height: 128,
-      padding: const EdgeInsets.all(8),
-      decoration: BoxDecoration(
-        border: Border.all(width: 1, color: Colors.grey.shade300),
-        borderRadius: BorderRadius.circular(12),
-        color: integrante == Global.integranteLogado
-            ? Colors.amber.shade100
-            : null,
-      ),
-      child: Stack(
-        alignment: Alignment.topRight,
-        children: [
-          Column(
-            mainAxisSize: MainAxisSize.max,
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Foto da pessoa
-              CircleAvatar(
-                child: const Icon(Icons.co_present),
-                foregroundImage: NetworkImage(integrante?.fotoUrl ?? ''),
-                backgroundColor: Colors.grey.shade200,
-                radius: 28,
-              ),
-              const SizedBox(height: 8),
-              Text(
-                nomeIntegrante,
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                style: Theme.of(context)
-                    .textTheme
-                    .bodyLarge!
-                    .copyWith(fontWeight: FontWeight.bold),
-              ),
-              Text(
-                instrumento.nome,
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-            ],
-          ),
-          // Instrumento
-          Image.asset(
-            instrumento.iconAsset,
-            width: 20,
-          ),
-        ],
-      ),
-    );
+  Widget _pessoaInstrumento(
+    DocumentReference<Integrante>? refIntegrante,
+    DocumentReference<Instrumento>? refInstrumento,
+    Funcao funcao,
+  ) {
+    return FutureBuilder<DocumentSnapshot<Integrante>>(
+        future: refIntegrante?.get(),
+        builder: (_, integ) {
+          var integrante = integ.data?.data();
+          var nomeIntegrante = integrante?.nome ?? '[Sem nome]';
+          var nomePrimeiro = nomeIntegrante.split(' ').first;
+          var nomeSegundo = nomeIntegrante.split(' ').last;
+          nomeIntegrante = nomePrimeiro == nomeSegundo
+              ? nomePrimeiro
+              : nomePrimeiro + ' ' + nomeSegundo;
+          return FutureBuilder<DocumentSnapshot<Instrumento>>(
+              future: refInstrumento?.get(),
+              builder: (_, instr) {
+                var instrumento = instr.data?.data();
+                return Container(
+                  width: 112,
+                  height: 128,
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    border: Border.all(width: 1, color: Colors.grey.shade300),
+                    borderRadius: BorderRadius.circular(12),
+                    color: integrante == Global.integranteLogado
+                        ? Colors.amber.shade100
+                        : null,
+                  ),
+                  child: Stack(
+                    alignment: Alignment.topRight,
+                    children: [
+                      Column(
+                        mainAxisSize: MainAxisSize.max,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          // Foto da pessoa
+                          CircleAvatar(
+                            child: const Icon(Icons.co_present),
+                            foregroundImage:
+                                NetworkImage(integrante?.fotoUrl ?? ''),
+                            backgroundColor: Colors.grey.shade200,
+                            radius: 28,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(
+                            nomeIntegrante,
+                            textAlign: TextAlign.center,
+                            maxLines: 2,
+                            style: Theme.of(context)
+                                .textTheme
+                                .bodyLarge!
+                                .copyWith(fontWeight: FontWeight.bold),
+                          ),
+                          Text(
+                            instrumento?.nome ?? '[Instrumento]',
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context).textTheme.bodySmall,
+                          ),
+                        ],
+                      ),
+                      // Instrumento
+                      Image.asset(
+                        instrumento?.iconAsset ??
+                            (funcao == Funcao.dirigente
+                                ? 'assets/icons/music_dirigente.png'
+                                : funcao == Funcao.administrador
+                                    ? 'assets/icons/music_coordenador.png'
+                                    : 'assets/icons/ic_launcher.png'),
+                        width: 20,
+                      ),
+                    ],
+                  ),
+                );
+              });
+        });
   }
 
   /* FUNÇÕES */
@@ -274,7 +293,7 @@ class _ViewCultoState extends State<ViewCulto> {
     if (mCulto.equipe == null || mCulto.equipe!.isEmpty) {
       return 'Escalar equipe!';
     }
-    List<Instrumento> lista = [];
+    List<DocumentReference<Instrumento>> lista = [];
     for (var instrumento in mCulto.equipe!.keys) {
       lista.add(instrumento);
     }
@@ -343,30 +362,21 @@ class _ViewCultoState extends State<ViewCulto> {
                 children: [
                   // Dirigente
                   _secaoIntegrante(
-                      'Dirigente',
-                      mCulto.dirigente == null
-                          ? {}
-                          : {
-                              Instrumento(
-                                nome: '',
-                                iconAsset: 'assets/icons/music_dirigente.png',
-                              ): mCulto.dirigente
-                            }),
+                    'Dirigente',
+                    Funcao.dirigente,
+                    {null: mCulto.dirigente},
+                  ),
                   // Coordenador
                   _secaoIntegrante(
-                      'Coordenador técnico',
-                      mCulto.coordenador == null
-                          ? {}
-                          : {
-                              Instrumento(
-                                nome: '',
-                                iconAsset: 'assets/icons/music_coordenador.png',
-                              ): mCulto.coordenador
-                            }),
+                    'Coord. técnico',
+                    Funcao.leitor,
+                    {null: mCulto.coordenador},
+                  ),
                 ],
               ),
               // Equipe
-              _secaoIntegrante('Equipe', mCulto.equipe ?? {}),
+              _secaoIntegrante(
+                  'Equipe', Funcao.integrante, mCulto.equipe ?? {}),
               const Divider(),
               Padding(
                 padding: const EdgeInsets.all(12),
