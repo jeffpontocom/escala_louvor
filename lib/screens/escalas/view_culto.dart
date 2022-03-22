@@ -242,7 +242,7 @@ class _ViewCultoState extends State<ViewCulto> {
           // Instrumento
           Image.asset(
             instrumento.iconAsset,
-            width: 24,
+            width: 20,
           ),
         ],
       ),

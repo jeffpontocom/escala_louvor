@@ -3,6 +3,8 @@ import 'dart:developer' as dev;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:escala_louvor/models/instrumento.dart';
 import 'package:escala_louvor/models/integrante.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_core/firebase_core.dart' as firebase_core;
 import 'package:file_picker/file_picker.dart';
@@ -52,15 +54,6 @@ class Metodo {
         .snapshots();
   }
 
-  /// Identifica o total de cadastros de determinada coleção, conforme filtro de cadastros ativo ou não
-  static Future<int> totalCadastros(String colecao, {bool? ativo}) async {
-    var snap = await FirebaseFirestore.instance
-        .collection(colecao)
-        .where('ativo', isEqualTo: ativo)
-        .get();
-    return snap.docs.length;
-  }
-
   /// Atualizar ou Criar nova igreja
   static Future salvarIgreja(Igreja igreja, {String? id}) async {
     FirebaseFirestore.instance
@@ -84,6 +77,47 @@ class Metodo {
         )
         .doc(id)
         .set(instrumento);
+  }
+
+  /// Atualizar ou Criar no Instrumento
+  static Future salvarIntegrante(Integrante integrante, {String? id}) async {
+    FirebaseFirestore.instance
+        .collection(Integrante.collection)
+        .withConverter<Integrante>(
+          fromFirestore: (snapshot, _) => Integrante.fromJson(snapshot.data()!),
+          toFirestore: (model, _) => model.toJson(),
+        )
+        .doc(id)
+        .set(integrante);
+  }
+
+  /// Criar novo usuário
+  static Future<UserCredential?> criarUsuario(
+      {required String email, required String senha}) async {
+    FirebaseApp tempApp = await Firebase.initializeApp(
+        name: 'AppTemporario', options: Firebase.app().options);
+    UserCredential? userCredential;
+    try {
+      userCredential = await FirebaseAuth.instanceFor(app: tempApp)
+          .createUserWithEmailAndPassword(email: email, password: senha);
+      userCredential.user?.sendEmailVerification();
+    } on FirebaseAuthException catch (e) {
+      // Do something with exception. This try/catch is here to make sure
+      // that even if the user creation fails, app.delete() runs, if is not,
+      // next time Firebase.initializeApp() will fail as the previous one was
+      // not deleted.
+    }
+    await tempApp.delete();
+    return Future.sync(() => userCredential);
+  }
+
+  /// Identifica o total de cadastros de determinada coleção, conforme filtro de cadastros ativo ou não
+  static Future<int> totalCadastros(String colecao, {bool? ativo}) async {
+    var snap = await FirebaseFirestore.instance
+        .collection(colecao)
+        .where('ativo', isEqualTo: ativo)
+        .get();
+    return snap.docs.length;
   }
 
   /// Lista de Integrantes

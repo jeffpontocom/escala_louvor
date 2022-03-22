@@ -136,6 +136,7 @@ class Mensagem {
     required BuildContext context,
     required String titulo,
     required Widget conteudo,
+    Widget? rodape,
     IconData? icon,
     ScrollController? scrollController,
     VoidCallback? onPressed,
@@ -192,6 +193,15 @@ class Mensagem {
               ),
               // Conteúdo
               Flexible(child: conteudo),
+              // Rodapé
+              const Divider(height: 1),
+              rodape == null
+                  ? const SizedBox()
+                  : Padding(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 12, vertical: 12),
+                      child: rodape,
+                    ),
             ],
           ),
         );

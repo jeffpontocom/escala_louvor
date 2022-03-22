@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:easy_mask/easy_mask.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
@@ -47,6 +49,14 @@ class Input {
       return 'A senha deve ter no mínimo 5 caracteres';
     }
     return null;
+  }
+
+  /// Gerar string aleatória
+  static String stringAleatoria(int length) {
+    const ch = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz';
+    Random r = Random();
+    return String.fromCharCodes(
+        Iterable.generate(length, (_) => ch.codeUnitAt(r.nextInt(ch.length))));
   }
 }
 
