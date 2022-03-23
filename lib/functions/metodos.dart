@@ -1,17 +1,19 @@
 import 'dart:developer' as dev;
+import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:escala_louvor/models/instrumento.dart';
-import 'package:escala_louvor/models/integrante.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_core/firebase_core.dart' as firebase_core;
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
-import '../models/culto.dart';
+import '/models/culto.dart';
 import '/models/igreja.dart';
+import '/models/instrumento.dart';
+import '/models/integrante.dart';
 
 class Metodo {
   /// Stream para escutar base de dados das Igrejas
@@ -86,7 +88,7 @@ class Metodo {
         .set(igreja);
   }
 
-  /// Atualizar ou Criar no Instrumento
+  /// Atualizar ou Criar Instrumento
   static Future salvarInstrumento(Instrumento instrumento, {String? id}) async {
     FirebaseFirestore.instance
         .collection(Instrumento.collection)
@@ -99,7 +101,7 @@ class Metodo {
         .set(instrumento);
   }
 
-  /// Atualizar ou Criar no Instrumento
+  /// Atualizar ou Criar Integrante
   static Future salvarIntegrante(Integrante integrante, {String? id}) async {
     FirebaseFirestore.instance
         .collection(Integrante.collection)
@@ -109,6 +111,18 @@ class Metodo {
         )
         .doc(id)
         .set(integrante);
+  }
+
+  /// Atualizar ou Criar Culto
+  static Future salvarCulto(Culto culto, {String? id}) async {
+    FirebaseFirestore.instance
+        .collection(Culto.collection)
+        .withConverter<Culto>(
+          fromFirestore: (snapshot, _) => Culto.fromJson(snapshot.data()!),
+          toFirestore: (model, _) => model.toJson(),
+        )
+        .doc(id)
+        .set(culto);
   }
 
   /// Criar novo usuário
@@ -122,10 +136,7 @@ class Metodo {
           .createUserWithEmailAndPassword(email: email, password: senha);
       userCredential.user?.sendEmailVerification();
     } on FirebaseAuthException catch (e) {
-      // Do something with exception. This try/catch is here to make sure
-      // that even if the user creation fails, app.delete() runs, if is not,
-      // next time Firebase.initializeApp() will fail as the previous one was
-      // not deleted.
+      dev.log(e.toString());
     }
     await tempApp.delete();
     return Future.sync(() => userCredential);
@@ -154,6 +165,17 @@ class Metodo {
         .get();
   }
 
+  /// Igreja especifica
+  static Future<Igreja?> getIgreja(DocumentReference reference) async {
+    var snap = await reference
+        .withConverter<Igreja>(
+          fromFirestore: (snapshot, _) => Igreja.fromJson(snapshot.data()!),
+          toFirestore: (model, _) => model.toJson(),
+        )
+        .get();
+    return snap.data();
+  }
+
   /// Trocar foto
   static Future<String?> carregarFoto() async {
     String fotoUrl = '';
@@ -173,14 +195,20 @@ class Metodo {
         dev.log(fileName, name: 'CarregarFoto');
         // Salvar na Cloud Firestore
         var ref = FirebaseStorage.instance.ref('fotos/$fileName');
-        await ref.putData(
-            fileBytes!, SettableMetadata(contentType: 'image/$fileExtension'));
+        if (kIsWeb) {
+          await ref.putData(fileBytes!,
+              SettableMetadata(contentType: 'image/$fileExtension'));
+        } else {
+          var file = File(result.files.first.path!);
+          await ref.putFile(file);
+        }
+
         fotoUrl = await ref.getDownloadURL();
       }
     } on PlatformException catch (e) {
       dev.log('Unsupported operation: ' + e.toString(), name: 'CarregarFoto');
     } on firebase_core.FirebaseException catch (e) {
-      dev.log(e.code, name: 'CarregarFoto');
+      dev.log('FirebaseException code: ' + e.code, name: 'CarregarFoto');
     } catch (e) {
       dev.log('Catch Exception: ' + e.toString(), name: 'CarregarFoto');
     }

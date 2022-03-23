@@ -196,8 +196,8 @@ class _ViewCultoState extends State<ViewCulto> {
     return FutureBuilder<DocumentSnapshot<Integrante>>(
         future: refIntegrante?.get(),
         builder: (_, integ) {
-          var integrante = integ.data?.data();
-          var nomeIntegrante = integrante?.nome ?? '[Sem nome]';
+          var integrante = integ.data;
+          var nomeIntegrante = integrante?.data()?.nome ?? '[Sem nome]';
           var nomePrimeiro = nomeIntegrante.split(' ').first;
           var nomeSegundo = nomeIntegrante.split(' ').last;
           nomeIntegrante = nomePrimeiro == nomeSegundo
@@ -230,7 +230,7 @@ class _ViewCultoState extends State<ViewCulto> {
                           CircleAvatar(
                             child: const Icon(Icons.co_present),
                             foregroundImage:
-                                NetworkImage(integrante?.fotoUrl ?? ''),
+                                NetworkImage(integrante?.data()?.fotoUrl ?? ''),
                             backgroundColor: Colors.grey.shade200,
                             radius: 28,
                           ),
@@ -272,11 +272,14 @@ class _ViewCultoState extends State<ViewCulto> {
 
   /// Verifica se usuário está escalado
   bool get _usuarioEscalado {
-    if (mCulto.dirigente == Global.integranteLogado ||
-        mCulto.coordenador == Global.integranteLogado) return true;
+    if (mCulto.dirigente.toString() ==
+            Global.integranteLogado?.reference.toString() ||
+        mCulto.coordenador.toString() ==
+            Global.integranteLogado?.reference.toString()) return true;
     if (mCulto.equipe == null || mCulto.equipe!.isEmpty) return false;
     for (var integrante in mCulto.equipe!.values) {
-      if (integrante == Global.integranteLogado) return true;
+      if (integrante.toString() ==
+          Global.integranteLogado?.reference.toString()) return true;
     }
     return false;
   }

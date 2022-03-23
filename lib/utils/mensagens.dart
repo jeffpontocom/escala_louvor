@@ -194,7 +194,7 @@ class Mensagem {
               // Conteúdo
               Flexible(child: conteudo),
               // Rodapé
-              const Divider(height: 1),
+              rodape == null ? const SizedBox() : const Divider(height: 1),
               rodape == null
                   ? const SizedBox()
                   : Padding(

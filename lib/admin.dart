@@ -210,12 +210,11 @@ class AdminPage extends StatelessWidget {
                 growable: false,
               );
               // Define valor inicial para o campo
-              var initialData;
+              dynamic initialData;
               try {
                 var index = snapshot.data?.docs.indexWhere((element) =>
                     element.id == (igreja?.responsavel?.id ?? 'erro'));
                 initialData = lista[index ?? 0].value;
-                print(initialData?.id ?? 'no Id');
               } catch (e) {
                 dev.log('Exception ' + e.toString(), name: 'CarregarFoto');
               }
@@ -629,6 +628,52 @@ class AdminPage extends StatelessWidget {
         shrinkWrap: true,
         padding: const EdgeInsets.symmetric(horizontal: 24),
         children: [
+          // Funções
+          Padding(
+            padding: const EdgeInsets.only(top: 8, bottom: 16),
+            child: LayoutBuilder(builder: (context, constraints) {
+              return StatefulBuilder(
+                builder: (_, innerState) {
+                  return ToggleButtons(
+                    borderRadius: const BorderRadius.all(Radius.circular(8)),
+                    constraints: BoxConstraints(
+                        minWidth: (constraints.maxWidth - 5) / 4,
+                        minHeight: 56),
+                    color: Colors.grey,
+                    children: [
+                      _iconeComLegenda(
+                          Icons.admin_panel_settings, 'Administrador'),
+                      _iconeComLegenda(Icons.mic, 'Dirigente'),
+                      _iconeComLegenda(Icons.emoji_people, 'Integrante'),
+                      _iconeComLegenda(Icons.chrome_reader_mode, 'Leitor'),
+                    ],
+                    isSelected: [
+                      integrante?.funcoes?.contains(Funcao.administrador) ??
+                          false,
+                      integrante?.funcoes?.contains(Funcao.dirigente) ?? false,
+                      integrante?.funcoes?.contains(Funcao.integrante) ?? false,
+                      integrante?.funcoes?.contains(Funcao.leitor) ?? false,
+                    ],
+                    onPressed: (index) {
+                      innerState(
+                        (() {
+                          var funcao = Funcao.values[index];
+                          integrante?.funcoes == null ||
+                                  integrante!.funcoes!.isEmpty
+                              ? integrante?.funcoes?.add(funcao)
+                              : integrante.funcoes!.contains(funcao)
+                                  ? integrante.funcoes!.remove(funcao)
+                                  : integrante.funcoes!.add(funcao);
+                        }),
+                      );
+                    },
+                  );
+                },
+              );
+            }),
+          ),
+
+          // Informações básicas
           Row(
             children: [
               // Foto
@@ -646,20 +691,20 @@ class AdminPage extends StatelessWidget {
                               });
                             }
                           },
-                          icon: const Icon(Icons.add_a_photo)),
-                      foregroundImage: NetworkImage(integrante!.fotoUrl ?? ''),
+                          icon: integrante?.fotoUrl == null
+                              ? const Icon(Icons.add_a_photo)
+                              : const CircularProgressIndicator()),
+                      foregroundImage:
+                          Image.network(integrante!.fotoUrl ?? '').image,
                       radius: 48,
                     ),
                     const SizedBox(height: 8),
                     // Data de Nascimento
                     ActionChip(
-                        avatar:
-                            const Icon(Icons.cake, color: Colors.deepPurple),
+                        avatar: Icon(Icons.cake, color: Colors.amber.shade800),
                         backgroundColor: Colors.transparent,
                         elevation: 0,
-                        shape: RoundedRectangleBorder(
-                            side: BorderSide(color: Colors.grey.shade300),
-                            borderRadius: BorderRadius.circular(8)),
+                        side: BorderSide(color: Colors.grey.shade300),
                         label: Text(
                           integrante.dataNascimento == null
                               ? 'Selecionar'
@@ -744,8 +789,10 @@ class AdminPage extends StatelessWidget {
                           onSelected: (check) {
                             check
                                 ? integrante!.instrumentos?.add(doc.reference)
-                                : integrante!.instrumentos
-                                    ?.remove(doc.reference);
+                                : integrante!.instrumentos?.removeWhere(
+                                    (element) =>
+                                        element.toString() ==
+                                        doc.reference.toString());
                             innerState(() {});
                           },
                         );
@@ -756,7 +803,7 @@ class AdminPage extends StatelessWidget {
           ),
 
           // Igrejas
-          const Text('IGREJAS (em que está disponível)'),
+          const Text('IGREJAS (em que pode ser escalado)'),
           Padding(
             padding: const EdgeInsets.only(top: 8, bottom: 16),
             child: StatefulBuilder(builder: (_, innerState) {
@@ -768,57 +815,27 @@ class AdminPage extends StatelessWidget {
                   ),
                   Wrap(
                     children: List.generate(
-                        integrante!.igrejas?.length ?? 0,
-                        (index) => RawChip(
-                              label: Text(integrante!.igrejas![index]!.id),
-                              avatar: const Icon(Icons.church),
-                            )).toList(),
+                      integrante!.igrejas?.length ?? 0,
+                      (index) => FutureBuilder<Igreja?>(
+                          future:
+                              Metodo.getIgreja(integrante!.igrejas![index]!),
+                          builder: (_, snap) {
+                            if (snap.hasData) {
+                              if (snap.data == null) {
+                                return const SizedBox();
+                              }
+                              return RawChip(
+                                label: Text(snap.data!.sigla),
+                                avatar: const Icon(Icons.church),
+                              );
+                            }
+                            return const CircularProgressIndicator();
+                          }),
+                    ).toList(),
                   ),
                 ],
               );
             }),
-          ),
-
-          // Funções
-          const Text('FUNÇÕES (relativas ao sistema)'),
-          Padding(
-            padding: const EdgeInsets.only(top: 8, bottom: 16),
-            child: SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: StatefulBuilder(builder: (_, innerState) {
-                return ToggleButtons(
-                  borderRadius: const BorderRadius.all(Radius.circular(8)),
-                  constraints:
-                      const BoxConstraints(minWidth: 84, minHeight: 56),
-                  color: Colors.grey,
-                  children: [
-                    _iconeComLegenda(
-                        Icons.admin_panel_settings, 'Administrador'),
-                    _iconeComLegenda(Icons.mic, 'Dirigente'),
-                    _iconeComLegenda(Icons.emoji_people, 'Integrante'),
-                    _iconeComLegenda(Icons.chrome_reader_mode, 'Leitor'),
-                  ],
-                  isSelected: [
-                    integrante?.funcoes?.contains(Funcao.administrador) ??
-                        false,
-                    integrante?.funcoes?.contains(Funcao.dirigente) ?? false,
-                    integrante?.funcoes?.contains(Funcao.integrante) ?? false,
-                    integrante?.funcoes?.contains(Funcao.leitor) ?? false,
-                  ],
-                  onPressed: (index) {
-                    innerState((() {
-                      var funcao = Funcao.values[index];
-                      integrante?.funcoes == null ||
-                              integrante!.funcoes!.isEmpty
-                          ? integrante?.funcoes?.add(funcao)
-                          : integrante.funcoes!.contains(funcao)
-                              ? integrante.funcoes!.remove(funcao)
-                              : integrante.funcoes!.add(funcao);
-                    }));
-                  },
-                );
-              }),
-            ),
           ),
 
           // Obs

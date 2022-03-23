@@ -80,9 +80,10 @@ class Culto {
   }
 
   static DocumentReference<Igreja> _getIgreja(var json) {
-    if (json == null)
+    if (json == null) {
       return FirebaseFirestore.instance.collection(Igreja.collection).doc()
           as DocumentReference<Igreja>;
+    }
     return (json as DocumentReference).withConverter<Igreja>(
       fromFirestore: (snapshot, _) => Igreja.fromJson(snapshot.data()!),
       toFirestore: (model, _) => model.toJson(),

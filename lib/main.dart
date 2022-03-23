@@ -1,3 +1,4 @@
+import 'package:escala_louvor/preferencias.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
@@ -13,7 +14,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   //bool needsWeb = Platform.isLinux | Platform.isWindows;
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  Global.escutarLogin();
+  await Preferencias.initializePreference();
   runApp(
     ModularApp(
       module: AppNavigation(),
@@ -29,6 +30,7 @@ class MyApp extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
+    Global.escutarLogin();
     return MaterialApp.router(
       title: 'Escala do Louvor',
       theme: ThemeData(

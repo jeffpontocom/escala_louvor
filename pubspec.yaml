@@ -43,6 +43,7 @@ dependencies:
   pdf: ^3.7.2
   printing: ^5.7.3
   table_calendar: ^3.0.4
+  shared_preferences: ^2.0.13
 
 dev_dependencies:
   flutter_test:
