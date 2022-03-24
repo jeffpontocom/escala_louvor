@@ -1,5 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:escala_louvor/functions/notificacoes.dart';
+import 'package:escala_louvor/utils/mensagens.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_modular/flutter_modular.dart';
 import 'package:intl/intl.dart';
 
 import '/global.dart';
@@ -116,7 +119,7 @@ class _ViewCultoState extends State<ViewCulto> {
   Widget get _rowOqueFalta {
     var resultado = _verificaEquipe();
     return Container(
-      color: Colors.yellow.shade200,
+      color: Colors.amber,
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       child: Text(
         resultado,
@@ -395,11 +398,24 @@ class _ViewCultoState extends State<ViewCulto> {
               _observacoes,
               Padding(
                 padding: const EdgeInsets.all(12),
-                child: ElevatedButton.icon(
-                  onPressed: null,
-                  label: const Text('Alterar dados do culto'),
-                  icon: const Icon(Icons.edit_calendar),
-                ),
+                child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      ElevatedButton.icon(
+                        onPressed: null,
+                        label: const Text('Alterar dados do culto'),
+                        icon: const Icon(Icons.edit_calendar),
+                      ),
+                      OutlinedButton.icon(
+                        onPressed: () async {
+                          Mensagem.aguardar(context: context); // abre progresso
+                          Notificacoes.instancia.enviarMensagemPush();
+                          Modular.to.pop(); // fecha progresso
+                        },
+                        label: const Text('Notificar escalados'),
+                        icon: const Icon(Icons.notifications),
+                      ),
+                    ]),
               ),
               const SizedBox(height: 36),
             ],

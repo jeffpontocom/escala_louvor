@@ -1,4 +1,5 @@
-import 'package:escala_louvor/preferencias.dart';
+import 'dart:developer' as dev;
+
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
@@ -7,14 +8,14 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 
 import 'firebase_options.dart';
-import 'global.dart';
-import 'navigation.dart';
+import 'rotas.dart';
+import 'preferencias.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   //bool needsWeb = Platform.isLinux | Platform.isWindows;
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  await Preferencias.initializePreference();
+  await Preferencias.carregarInstancia();
   runApp(
     ModularApp(
       module: AppNavigation(),
@@ -27,14 +28,17 @@ void main() async {
 class MyApp extends StatelessWidget {
   const MyApp({Key? key}) : super(key: key);
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    Global.escutarLogin();
     return MaterialApp.router(
       title: 'Escala do Louvor',
       theme: ThemeData(
         primarySwatch: Colors.blue,
+        visualDensity: kIsWeb
+            ? VisualDensity.comfortable
+            : VisualDensity.adaptivePlatformDensity,
+      ),
+      darkTheme: ThemeData.dark().copyWith(
         visualDensity: kIsWeb
             ? VisualDensity.comfortable
             : VisualDensity.adaptivePlatformDensity,
@@ -47,8 +51,6 @@ class MyApp extends StatelessWidget {
       ],
       supportedLocales: const [Locale('pt')],
       locale: const Locale('pt_BR'),
-      // Identificador de tipo de Release
-      //debugShowCheckedModeBanner: !kReleaseMode,
       // Navegação
       routeInformationParser: Modular.routeInformationParser,
       routerDelegate: Modular.routerDelegate,

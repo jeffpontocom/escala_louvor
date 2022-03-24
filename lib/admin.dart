@@ -816,16 +816,16 @@ class AdminPage extends StatelessWidget {
                   Wrap(
                     children: List.generate(
                       integrante!.igrejas?.length ?? 0,
-                      (index) => FutureBuilder<Igreja?>(
-                          future:
-                              Metodo.getIgreja(integrante!.igrejas![index]!),
+                      (index) => FutureBuilder<DocumentSnapshot<Igreja>?>(
+                          future: Metodo.obterSnapshotIgreja(
+                              integrante!.igrejas![index]!.id),
                           builder: (_, snap) {
                             if (snap.hasData) {
                               if (snap.data == null) {
                                 return const SizedBox();
                               }
                               return RawChip(
-                                label: Text(snap.data!.sigla),
+                                label: Text(snap.data?.data()?.sigla ?? '?'),
                                 avatar: const Icon(Icons.church),
                               );
                             }

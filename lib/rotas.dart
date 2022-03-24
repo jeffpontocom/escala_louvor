@@ -1,3 +1,4 @@
+import 'package:escala_louvor/screens/tela_notificacoes.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 
 import 'admin.dart';
@@ -33,6 +34,11 @@ class AppNavigation extends Module {
       child: (_, __) => const AdminPage(),
       //transition: TransitionType.downToUp,
       guards: [AuthGuard()],
+    ),
+    ChildRoute(
+      '/notificacoes',
+      child: (_, arguments) => const MessageView(),
+      //transition: TransitionType.fadeIn,
     ),
     /* ChildRoute(
       '/familia',

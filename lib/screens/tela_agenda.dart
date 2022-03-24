@@ -30,7 +30,7 @@ class TelaAgenda extends StatelessWidget {
         ValueNotifier(DateTime(_dataCorrente.year, _dataCorrente.month));
 
     void _dialogNovoCulto() async {
-      if (Global.igrejaLogado == null) {
+      if (Global.igrejaAtual == null) {
         // TODO: Utilizar a mesma interface do floatbutton em Home
         Mensagem.bottomDialog(
           context: context,
@@ -82,7 +82,7 @@ class TelaAgenda extends StatelessWidget {
       }
       var novoCulto = Culto(
         dataCulto: Timestamp.fromDate(_dataCorrente),
-        igreja: Global.igrejaLogado!.reference,
+        igreja: Global.igrejaAtual!.reference,
       );
 
       List<String> ocasioes = ['EBD', 'Culto vespertino', 'Evento especial'];
@@ -102,7 +102,7 @@ class TelaAgenda extends StatelessWidget {
                     radius: 24,
                     foregroundImage: Image(
                       image: NetworkImage(
-                          Global.igrejaLogado?.data()?.fotoUrl ?? ''),
+                          Global.igrejaAtual?.data()?.fotoUrl ?? ''),
                       loadingBuilder: (_, child, event) {
                         if (event?.expectedTotalBytes == null ||
                             event!.expectedTotalBytes! <

@@ -1,3 +1,4 @@
+import 'package:escala_louvor/functions/metodos.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'global.dart';
@@ -6,8 +7,10 @@ class Preferencias {
   static SharedPreferences? preferences;
 
   /// Recupera os dados salvos na seção anterior
-  static Future<void> initializePreference() async {
+  static Future<void> carregarInstancia() async {
     preferences = await SharedPreferences.getInstance();
+    Metodo.escutarIntegranteLogado();
+    Global.igrejaAtual = await Metodo.obterSnapshotIgreja(igrejaAtual);
   }
 
   // PREFERENCIAS PRINCIPAIS
@@ -20,6 +23,5 @@ class Preferencias {
     } else {
       preferences?.remove('igreja_atual');
     }
-    Global.escutarIgreja();
   }
 }

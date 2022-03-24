@@ -25,13 +25,15 @@ class _TelaEscalaState extends State<TelaEscala> with TickerProviderStateMixin {
     return StreamBuilder<QuerySnapshot<Culto>>(
         stream: Metodo.escutarCultos(),
         builder: ((context, snapshot) {
-          _tabController =
-              TabController(length: snapshot.data?.size ?? 0, vsync: this);
-          if (snapshot.hasData) {
+          if (!snapshot.hasData) {
+            return const Center(child: CircularProgressIndicator());
+          } else {
             _listaCultos.clear();
             for (var snap in snapshot.data!.docs) {
               _listaCultos.add(snap.data());
             }
+            _tabController =
+                TabController(length: snapshot.data?.size ?? 0, vsync: this);
           }
           return Column(
             children: [

@@ -10,12 +10,39 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 
+import '../global.dart';
 import '/models/culto.dart';
 import '/models/igreja.dart';
 import '/models/instrumento.dart';
 import '/models/integrante.dart';
 
 class Metodo {
+  // Obter Integrante Logado
+  static escutarIntegranteLogado() {
+    FirebaseAuth.instance.userChanges().listen((user) {
+      if (user == null) {
+        Global.integranteLogado = null;
+        dev.log(
+            'ALTERAÇÃO Integrante logado: ${Global.integranteLogado?.data()?.nome ?? ''}');
+      } else {
+        FirebaseFirestore.instance
+            .collection(Integrante.collection)
+            .doc(user.uid)
+            .withConverter<Integrante>(
+                fromFirestore: (snapshot, _) =>
+                    Integrante.fromJson(snapshot.data()!),
+                toFirestore: (pacote, _) => pacote.toJson())
+            .get()
+            .asStream()
+            .listen((snapshot) {
+          Global.integranteLogado = snapshot;
+          dev.log(
+              'ALTERAÇÃO Integrante logado: ${Global.integranteLogado?.data()?.nome ?? ''}');
+        });
+      }
+    });
+  }
+
   /// Stream para escutar base de dados das Igrejas
   static Stream<QuerySnapshot<Igreja>> escutarIgrejas({bool? ativos}) {
     return FirebaseFirestore.instance
@@ -166,14 +193,19 @@ class Metodo {
   }
 
   /// Igreja especifica
-  static Future<Igreja?> getIgreja(DocumentReference reference) async {
-    var snap = await reference
+  static Future<DocumentSnapshot<Igreja>?> obterSnapshotIgreja(
+      String? id) async {
+    if (id == null) {
+      return null;
+    }
+    return await FirebaseFirestore.instance
+        .collection(Igreja.collection)
+        .doc(id)
         .withConverter<Igreja>(
           fromFirestore: (snapshot, _) => Igreja.fromJson(snapshot.data()!),
           toFirestore: (model, _) => model.toJson(),
         )
         .get();
-    return snap.data();
   }
 
   /// Trocar foto

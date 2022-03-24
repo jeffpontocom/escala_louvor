@@ -18,7 +18,7 @@
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
+  <meta name="description" content="Escala do Louvor">
 
   <!-- iOS meta tags & icons -->
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -29,8 +29,11 @@
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
 
-  <title>escala_louvor</title>
+  <title>Escala do Louvor</title>
   <link rel="manifest" href="manifest.json">
+
+  <!-- Firebase Messaging
+  <script src="https://www.gstatic.com/firebasejs/8.4.1/firebase-messaging.js"></script> -->
 </head>
 <body>
   <!-- This script installs service_worker.js to provide PWA functionality to
@@ -51,6 +54,9 @@
     }
 
     if ('serviceWorker' in navigator) {
+      
+        //register firebase-messaging service worker
+        navigator.serviceWorker.register("/firebase-messaging-sw.js");
       // Service workers are supported. Use them.
       window.addEventListener('load', function () {
         // Wait for registration to finish before dropping the <script> tag.
@@ -84,6 +90,9 @@
             }
           });
 
+        // Registro para Firebase Cloud Message
+        //navigator.serviceWorker.register("/firebase-messaging-sw.js"); 
+        
         // If service worker doesn't succeed in a reasonable amount of time,
         // fallback to plaint <script> tag.
         setTimeout(() => {

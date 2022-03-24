@@ -1,17 +1,20 @@
+import 'dart:developer' as dev;
+
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:escala_louvor/screens/tela_canticos.dart';
-import 'package:escala_louvor/screens/tela_chat.dart';
-import 'package:escala_louvor/screens/tela_agenda.dart';
-import 'package:escala_louvor/screens/tela_escala.dart';
-import 'package:escala_louvor/utils/estilos.dart';
-import 'package:escala_louvor/utils/mensagens.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 
 import 'preferencias.dart';
-import 'functions/metodos.dart';
 import 'global.dart';
 import 'models/igreja.dart';
+import 'functions/notificacoes.dart';
+import 'functions/metodos.dart';
+import 'screens/tela_agenda.dart';
+import 'screens/tela_canticos.dart';
+import 'screens/tela_chat.dart';
+import 'screens/tela_escala.dart';
+import 'utils/estilos.dart';
+import 'utils/mensagens.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({Key? key}) : super(key: key);
@@ -62,8 +65,10 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void initState() {
-    //initializeDateFormatting('pt_BR', null);
     super.initState();
+    // Its Important to place this line after runApp() otherwise
+    // FlutterLocalNotificationsPlugin will not be initialize and you will get error
+    Notificacoes.carregarInstancia(context);
   }
 
   @override
@@ -151,7 +156,7 @@ class _HomePageState extends State<HomePage> {
                   child: Card(
                     clipBehavior: Clip.antiAlias,
                     color: igrejas?[index].reference.toString() ==
-                            Global.igrejaLogado?.reference.toString()
+                            Global.igrejaAtual?.reference.toString()
                         ? Colors.amber.shade300
                         : null,
                     shape: const RoundedRectangleBorder(
@@ -168,8 +173,13 @@ class _HomePageState extends State<HomePage> {
                           Radius.circular(16),
                         ),
                       ),
-                      onTap: () {
-                        Preferencias.igrejaAtual = igrejas?[index].reference.id;
+                      onTap: () async {
+                        Mensagem.aguardar(context: context);
+                        String? id = igrejas?[index].reference.id;
+                        Preferencias.igrejaAtual = id;
+                        Global.igrejaAtual =
+                            await Metodo.obterSnapshotIgreja(id);
+                        Modular.to.pop(); // fecha progresso
                         Modular.to.pop(); // fecha dialog
                         setState(() {});
                       },
