@@ -177,14 +177,14 @@ class _PerfilPageState extends State<PerfilPage> {
                                 // Telefone ou WhatsApp do Integrante
                                 TextFormField(
                                   enabled: editMode,
-                                  initialValue: Input.mascaraFone
+                                  initialValue: MyInputs.mascaraFone
                                       .getMaskedString(
                                           _integrante.telefone ?? ''),
-                                  inputFormatters: [Input.textoFone],
+                                  inputFormatters: [MyInputs.textoFone],
                                   keyboardType: TextInputType.phone,
                                   textInputAction: TextInputAction.next,
                                   onSaved: (value) {
-                                    _integrante.telefone = Input.mascaraFone
+                                    _integrante.telefone = MyInputs.mascaraFone
                                         .clearMask(value ?? '');
                                   },
                                   decoration: Estilo.mInputDecoration

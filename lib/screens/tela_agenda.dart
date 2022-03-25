@@ -318,7 +318,7 @@ class TelaAgenda extends StatelessWidget {
 
       // Linha com legenda e botão de criação de culto
       Container(
-        color: Colors.amber.shade100,
+        color: Colors.amber.withOpacity(0.5),
         padding: const EdgeInsets.symmetric(horizontal: 12),
         child: Row(
           children: [
@@ -335,8 +335,9 @@ class TelaAgenda extends StatelessWidget {
             Container(
               margin: const EdgeInsets.only(right: 4),
               decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(12),
-                  color: Colors.amber.shade800),
+                borderRadius: BorderRadius.circular(12),
+                color: Colors.amber,
+              ),
               width: 8,
               height: 8,
             ),
@@ -376,9 +377,9 @@ class TelaAgenda extends StatelessWidget {
                               .putIfAbsent(dn, () => 'aniversario');
                         }
                         return ListTile(
-                          leading: Icon(
+                          leading: const Icon(
                             Icons.cake,
-                            color: Colors.amber.shade800,
+                            color: Colors.amber,
                           ),
                           title: Text(integrantes[index].data().nome),
                           subtitle: Text(data),
@@ -390,7 +391,7 @@ class TelaAgenda extends StatelessWidget {
                 }
                 return const Center(
                   child: CircularProgressIndicator(),
-                  heightFactor: 4,
+                  heightFactor: 2,
                 );
               }),
           const Divider(height: 1),

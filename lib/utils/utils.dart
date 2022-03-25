@@ -1,17 +1,44 @@
 import 'dart:math';
 
 import 'package:easy_mask/easy_mask.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 
-class Texto {
+class MyStrings {
   static String isPlural(int valor) {
     return valor <= 1 ? '' : 's';
   }
 }
 
+class MyNetwork {
+  static Image? getImageFromUrl(String? url, double? progressoWidth) {
+    if (url == null) return null;
+    return Image.network(
+      url,
+      fit: BoxFit.contain,
+      loadingBuilder: (context, child, loading) {
+        if (loading == null) return child;
+        return SizedBox(
+          width: progressoWidth,
+          child: Center(
+            child:
+                CircularProgressIndicator(color: Colors.grey.withOpacity(0.5)),
+          ),
+        );
+      },
+      errorBuilder: (context, error, stackTrace) => const Center(
+        child: Icon(
+          Icons.error,
+          color: Colors.red,
+        ),
+      ),
+    );
+  }
+}
+
 /// Classe para mascaras de texto
-class Input {
+class MyInputs {
   /// Para Telefones (formato (##) _####-####)
   static var textoFone = TextInputMask(
       mask: ['(99) 9999-9999', '(99) 99999-9999'], reverse: false);
@@ -71,7 +98,7 @@ class CurrencyInputFormatter extends TextInputFormatter {
 
     double value = double.parse(newValue.text);
 
-    String newText = Input.mascaraMoeda.format(value / 100);
+    String newText = MyInputs.mascaraMoeda.format(value / 100);
 
     return newValue.copyWith(
         text: newText,

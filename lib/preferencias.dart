@@ -9,7 +9,7 @@ class Preferencias {
   /// Recupera os dados salvos na seção anterior
   static Future<void> carregarInstancia() async {
     preferences = await SharedPreferences.getInstance();
-    Metodo.escutarIntegranteLogado();
+    //Metodo.escutarIntegranteLogado();
     Global.igrejaAtual = await Metodo.obterSnapshotIgreja(igrejaAtual);
   }
 

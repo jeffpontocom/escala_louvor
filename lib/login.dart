@@ -146,7 +146,7 @@ class _LoginPageState extends State<LoginPage> {
   /// Esqueci minha senha
   Future<void> _esqueciSenha() async {
     // Valida string e-mail
-    if (Input.validarEmail(_formUsuario.text) != null) {
+    if (MyInputs.validarEmail(_formUsuario.text) != null) {
       _validarFormulario();
       return;
     }
@@ -222,7 +222,7 @@ class _LoginPageState extends State<LoginPage> {
                               // USUARIO
                               TextFormField(
                                 controller: _formUsuario,
-                                validator: Input.validarEmail,
+                                validator: MyInputs.validarEmail,
                                 keyboardType: TextInputType.emailAddress,
                                 textInputAction: TextInputAction.next,
                                 autofillHints: const [AutofillHints.username],
@@ -238,7 +238,7 @@ class _LoginPageState extends State<LoginPage> {
                               // SENHA
                               TextFormField(
                                 controller: _formSenha,
-                                validator: Input.validarSenha,
+                                validator: MyInputs.validarSenha,
                                 obscureText: true,
                                 keyboardType: TextInputType.visiblePassword,
                                 textInputAction: TextInputAction.done,

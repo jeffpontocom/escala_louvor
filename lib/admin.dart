@@ -406,6 +406,8 @@ class AdminPage extends StatelessWidget {
                       List<String> assets = [
                         'assets/icons/music_baixo.png',
                         'assets/icons/music_bateria.png',
+                        'assets/icons/music_coordenador.png',
+                        'assets/icons/music_dirigente.png',
                         'assets/icons/music_guitarra.png',
                         'assets/icons/music_percussao.png',
                         'assets/icons/music_sonorizacao.png',
@@ -637,13 +639,14 @@ class AdminPage extends StatelessWidget {
                   return ToggleButtons(
                     borderRadius: const BorderRadius.all(Radius.circular(8)),
                     constraints: BoxConstraints(
-                        minWidth: (constraints.maxWidth - 5) / 4,
+                        minWidth: (constraints.maxWidth - 6) / 5,
                         minHeight: 56),
                     color: Colors.grey,
                     children: [
                       _iconeComLegenda(
                           Icons.admin_panel_settings, 'Administrador'),
                       _iconeComLegenda(Icons.mic, 'Dirigente'),
+                      _iconeComLegenda(Icons.music_note, 'Coordenador'),
                       _iconeComLegenda(Icons.emoji_people, 'Integrante'),
                       _iconeComLegenda(Icons.chrome_reader_mode, 'Leitor'),
                     ],
@@ -651,6 +654,8 @@ class AdminPage extends StatelessWidget {
                       integrante?.funcoes?.contains(Funcao.administrador) ??
                           false,
                       integrante?.funcoes?.contains(Funcao.dirigente) ?? false,
+                      integrante?.funcoes?.contains(Funcao.coordenador) ??
+                          false,
                       integrante?.funcoes?.contains(Funcao.integrante) ?? false,
                       integrante?.funcoes?.contains(Funcao.leitor) ?? false,
                     ],
@@ -708,7 +713,7 @@ class AdminPage extends StatelessWidget {
                         label: Text(
                           integrante.dataNascimento == null
                               ? 'Selecionar'
-                              : Input.mascaraData
+                              : MyInputs.mascaraData
                                   .format(integrante.dataNascimento!.toDate()),
                         ),
                         onPressed: () async {
@@ -818,7 +823,7 @@ class AdminPage extends StatelessWidget {
                       integrante!.igrejas?.length ?? 0,
                       (index) => FutureBuilder<DocumentSnapshot<Igreja>?>(
                           future: Metodo.obterSnapshotIgreja(
-                              integrante!.igrejas![index]!.id),
+                              integrante!.igrejas![index].id),
                           builder: (_, snap) {
                             if (snap.hasData) {
                               if (snap.data == null) {
@@ -887,7 +892,8 @@ class AdminPage extends StatelessWidget {
               // Salva os dados no firebase
               if (novoCadastro) {
                 var auth = await Metodo.criarUsuario(
-                    email: integrante!.email, senha: Input.stringAleatoria(10));
+                    email: integrante!.email,
+                    senha: MyInputs.stringAleatoria(10));
                 id = auth?.user?.uid;
               }
               if (id == null) {
@@ -935,7 +941,7 @@ class AdminPage extends StatelessWidget {
                 builder: ((context, snapshot) {
                   if (!snapshot.hasData) return const Text('verificando...');
                   int total = snapshot.data!;
-                  String plural = Texto.isPlural(total);
+                  String plural = MyStrings.isPlural(total);
                   return Text('$total cadastro$plural ativo$plural');
                 }),
               ),
@@ -956,7 +962,7 @@ class AdminPage extends StatelessWidget {
                 builder: ((context, snapshot) {
                   if (!snapshot.hasData) return const Text('verificando...');
                   int total = snapshot.data!;
-                  String plural = Texto.isPlural(total);
+                  String plural = MyStrings.isPlural(total);
                   return Text('$total cadastro$plural ativo$plural');
                 }),
               ),
@@ -977,7 +983,7 @@ class AdminPage extends StatelessWidget {
                 builder: ((context, snapshot) {
                   if (!snapshot.hasData) return const Text('verificando...');
                   int total = snapshot.data!;
-                  String plural = Texto.isPlural(total);
+                  String plural = MyStrings.isPlural(total);
                   return Text('$total cadastro$plural ativo$plural');
                 }),
               ),

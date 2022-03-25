@@ -1,6 +1,7 @@
 import 'dart:developer' as dev;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:escala_louvor/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 
@@ -74,22 +75,27 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // AppBar
+      // APP BAR
       appBar: AppBar(
+        // Ícone da aplicação
         leading: Padding(
           padding: const EdgeInsets.all(12),
           child: Image.asset('assets/icons/ic_launcher.png'),
         ),
+        // Título da aplicação
         title: Text(
           _telas[_telaSelecionada]['titulo'],
           style: Estilo.appBarTitulo,
         ),
         titleSpacing: 0,
+        // Ações
         actions: [
+          // Tela administrador
           IconButton(
             onPressed: () => Modular.to.pushNamed('/admin'),
             icon: const Icon(Icons.admin_panel_settings),
           ),
+          // Tela perfil do usuário
           IconButton(
             onPressed: () => Modular.to
                 .pushNamed('/perfil?id=${Global.auth.currentUser?.uid ?? ''}'),
@@ -157,13 +163,11 @@ class _HomePageState extends State<HomePage> {
                     clipBehavior: Clip.antiAlias,
                     color: igrejas?[index].reference.toString() ==
                             Global.igrejaAtual?.reference.toString()
-                        ? Colors.amber.shade300
+                        ? Colors.amber.withOpacity(0.5)
                         : null,
-                    shape: const RoundedRectangleBorder(
-                      side: BorderSide(color: Colors.grey),
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(16),
-                      ),
+                    shape: RoundedRectangleBorder(
+                      side: BorderSide(color: Colors.grey.withOpacity(0.5)),
+                      borderRadius: const BorderRadius.all(Radius.circular(16)),
                     ),
                     child: InkWell(
                       radius: 16,
@@ -189,15 +193,9 @@ class _HomePageState extends State<HomePage> {
                             // Foto da igreja
                             SizedBox(
                               height: 150,
-                              child: Image(
-                                fit: BoxFit.cover,
-                                image: NetworkImage(
-                                    igrejas?[index].data().fotoUrl ?? ''),
-                                loadingBuilder: (_, child, ___) => child,
-                                errorBuilder: (_, __, ___) => const Center(
-                                  child: Icon(Icons.church),
-                                ),
-                              ),
+                              child: MyNetwork.getImageFromUrl(
+                                      igrejas?[index].data().fotoUrl, null) ??
+                                  const Center(child: Icon(Icons.church)),
                             ),
                             // Sigla
                             const SizedBox(height: 8),

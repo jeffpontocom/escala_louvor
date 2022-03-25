@@ -167,10 +167,10 @@ class Mensagem {
                 width: 48,
                 height: 4,
                 margin: const EdgeInsets.only(top: 12),
-                decoration: const BoxDecoration(
+                decoration: BoxDecoration(
                   shape: BoxShape.rectangle,
-                  borderRadius: BorderRadius.all(Radius.circular(16.0)),
-                  color: Colors.black26,
+                  borderRadius: const BorderRadius.all(Radius.circular(16)),
+                  color: Colors.grey.withOpacity(0.5),
                 ),
               ),
               // Cabeçalho
@@ -179,7 +179,7 @@ class Mensagem {
                   IconButton(
                     onPressed: null,
                     icon: Icon(icon ?? Icons.subtitles,
-                        color: Theme.of(context).colorScheme.primary),
+                        color: Colors.grey.withOpacity(0.5)),
                   ),
                   Expanded(
                     child: Text(
@@ -188,7 +188,7 @@ class Mensagem {
                       style: Theme.of(context).textTheme.titleLarge,
                     ),
                   ),
-                  const CloseButton(color: Colors.black38),
+                  CloseButton(color: Colors.grey.withOpacity(0.5)),
                 ],
               ),
               // Conteúdo

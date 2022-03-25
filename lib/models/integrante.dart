@@ -7,8 +7,29 @@ import 'instrumento.dart';
 enum Funcao {
   administrador,
   dirigente,
+  coordenador,
   integrante,
   leitor,
+  sudo,
+}
+
+String funcaoToString(Funcao funcao) {
+  switch (funcao) {
+    case Funcao.administrador:
+      return 'Administrador';
+    case Funcao.dirigente:
+      return 'Dirigente';
+    case Funcao.coordenador:
+      return 'Coordenador técnico';
+    case Funcao.integrante:
+      return 'Integrante';
+    case Funcao.leitor:
+      return 'Leitor';
+    case Funcao.sudo:
+      return 'SUDO';
+    default:
+      return '[indefinida]';
+  }
 }
 
 class Integrante {
@@ -20,9 +41,9 @@ class Integrante {
   String? telefone;
   Timestamp? dataNascimento;
   List<Funcao>? funcoes;
-  List<DocumentReference<Igreja>?>? igrejas;
-  List<DocumentReference<Grupo>?>? grupos;
-  List<DocumentReference<Instrumento>?>? instrumentos;
+  List<DocumentReference<Igreja>>? igrejas;
+  List<DocumentReference<Grupo>>? grupos;
+  List<DocumentReference<Instrumento>>? instrumentos;
   String? obs;
   late bool ativo;
 
@@ -84,14 +105,20 @@ class Integrante {
       case 1:
         return Funcao.dirigente;
       case 2:
+        return Funcao.coordenador;
+      case 3:
         return Funcao.integrante;
+      case 4:
+        return Funcao.leitor;
+      case 5:
+        return Funcao.sudo;
       default:
         return Funcao.leitor;
     }
   }
 
-  static List<int> _parseListaFuncao(List<Funcao>? funcoes) {
-    if (funcoes == null) return [];
+  static List<int>? _parseListaFuncao(List<Funcao>? funcoes) {
+    if (funcoes == null) return null;
     List<int> parsable = [];
     for (var funcao in funcoes) {
       parsable.add(funcao.index);

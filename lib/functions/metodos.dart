@@ -21,7 +21,7 @@ class Metodo {
   // Obter Integrante Logado
   static StreamSubscription<User?> escutarIntegranteLogado() {
     return FirebaseAuth.instance.userChanges().listen((user) {
-      if (user == null) {
+      if (user == null || user.uid.isEmpty) {
         Global.integranteLogado = null;
         dev.log(
             'ALTERAÇÃO Integrante logado: ${Global.integranteLogado?.data()?.nome ?? ''}');
@@ -185,6 +185,7 @@ class Metodo {
     return FirebaseFirestore.instance
         .collection(Integrante.collection)
         .where('ativo', isEqualTo: ativo)
+        .where('funcoes', arrayContains: funcao)
         .orderBy('nome')
         .withConverter<Integrante>(
           fromFirestore: (snapshot, _) => Integrante.fromJson(snapshot.data()!),
@@ -217,15 +218,14 @@ class Metodo {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.image,
         allowMultiple: false,
-        onFileLoading: (FilePickerStatus status) =>
-            dev.log('$status', name: 'CarregarFoto'),
+        onFileLoading: (FilePickerStatus status) => dev.log('$status'),
         //allowedExtensions: ['xlsx'],
       );
       if (result != null && result.files.isNotEmpty) {
         final fileBytes = result.files.first.bytes;
         final fileName = result.files.first.name;
         final fileExtension = result.files.first.extension;
-        dev.log(fileName, name: 'CarregarFoto');
+        dev.log(fileName);
         // Salvar na Cloud Firestore
         var ref = FirebaseStorage.instance.ref('fotos/$fileName');
         if (kIsWeb) {
@@ -249,6 +249,51 @@ class Metodo {
     return fotoUrl;
   }
 
+  /// Carregar arquivo PDF
+  static Future<String?> carregarArquivoPdf() async {
+    String url = '';
+    // Abrir seleção de foto
+    try {
+      final result = await FilePicker.platform.pickFiles(
+        type: FileType.custom,
+        allowMultiple: false,
+        onFileLoading: (FilePickerStatus status) => dev.log('$status'),
+        allowedExtensions: ['pdf'],
+      );
+      if (result != null && result.files.isNotEmpty) {
+        final fileBytes = result.files.first.bytes;
+        final fileName = result.files.first.name;
+        final fileExtension = result.files.first.extension;
+        dev.log(fileName);
+        // Salvar na Cloud Firestore
+        var ref = FirebaseStorage.instance.ref('liturgias/$fileName');
+        if (kIsWeb) {
+          await ref.putData(fileBytes!,
+              SettableMetadata(contentType: 'application/$fileExtension'));
+        } else {
+          var file = File(result.files.first.path!);
+          await ref.putFile(file);
+        }
+
+        url = await ref.getDownloadURL();
+      }
+    } on PlatformException catch (e) {
+      dev.log('Unsupported operation: ' + e.toString(), name: 'CarregarFoto');
+    } on firebase_core.FirebaseException catch (e) {
+      dev.log('FirebaseException code: ' + e.code, name: 'CarregarFoto');
+    } catch (e) {
+      dev.log('Catch Exception: ' + e.toString(), name: 'CarregarFoto');
+    }
+    // Retorno
+    return url;
+  }
+
+  /// Abrir arquivo PDF
+  static void abrirArquivoPdf(String? url) {
+    if (url == null || url.isEmpty) return;
+    dev.log('TODO: abrir PDF');
+  }
+
   static Future<bool> anunciarDisponibilidade(
       DocumentSnapshot<Culto> culto) async {
     if (Global.integranteLogado == null || culto.data() == null) {
@@ -258,23 +303,72 @@ class Metodo {
     bool exist = culto
             .data()!
             .disponiveis
-            ?.contains(Global.integranteLogado!.reference) ??
+            ?.map((e) => e.toString())
+            .contains(Global.integranteLogado!.reference.toString()) ??
         false;
-    if (!exist) {
-      bool resultado;
+    if (exist) {
+      try {
+        await culto.reference.update({
+          'disponiveis':
+              FieldValue.arrayRemove([Global.integranteLogado!.reference])
+        });
+        dev.log('Removido com Sucesso');
+        return true;
+      } catch (e) {
+        dev.log('Erro: ${e.toString()}');
+        return false;
+      }
+    } else {
       try {
         await culto.reference.update({
           'disponiveis':
               FieldValue.arrayUnion([Global.integranteLogado!.reference])
         });
-        dev.log('Acerto');
+        dev.log('Adicionado com Sucesso');
         return true;
       } catch (e) {
-        dev.log('Erro');
+        dev.log('Erro: ${e.toString()}');
         return false;
       }
     }
-    dev.log('Disponiveis: ${culto.data()?.disponiveis}');
-    return false;
+  }
+
+  static Future<bool> definirDataHoraDoEnsaio(
+      DocumentSnapshot<Culto> culto, Timestamp dataHora) async {
+    try {
+      await culto.reference.update({'dataEnsaio': dataHora});
+      dev.log('Data definida com sucesso');
+      return true;
+    } catch (e) {
+      dev.log('Erro: ${e.toString()}');
+      return false;
+    }
+  }
+
+  static Future<bool> escalarDirigente(DocumentSnapshot<Culto> culto,
+      DocumentReference<Integrante> integrante) async {
+    try {
+      await culto.reference.update({'dirigente': integrante});
+      dev.log('Sucesso!');
+      return true;
+    } catch (e) {
+      dev.log('Erro: ${e.toString()}');
+      return false;
+    }
+  }
+
+  static Future<bool> atualizarCampoDoCulto({
+    required DocumentSnapshot<Culto> culto,
+    required String campo,
+    required dynamic valor,
+  }) async {
+    try {
+      await culto.reference.update({campo: valor});
+      dev.log('Sucesso!');
+      return true;
+    } catch (e) {
+      dev.log('Erro: ${e.toString()}');
+      return false;
+    }
   }
 }
