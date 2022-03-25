@@ -1,4 +1,7 @@
+import 'dart:developer' as dev;
+
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:escala_louvor/functions/metodos.dart';
 import 'package:escala_louvor/functions/notificacoes.dart';
 import 'package:escala_louvor/utils/mensagens.dart';
 import 'package:flutter/material.dart';
@@ -12,7 +15,7 @@ import '/models/integrante.dart';
 
 class ViewCulto extends StatefulWidget {
   const ViewCulto({Key? key, required this.culto}) : super(key: key);
-  final Culto culto;
+  final DocumentSnapshot<Culto> culto;
 
   @override
   State<ViewCulto> createState() => _ViewCultoState();
@@ -55,6 +58,44 @@ class _ViewCultoState extends State<ViewCulto> {
         ),
       ],
     );
+  }
+
+  Widget get _botaoDisponibilidade {
+    return StatefulBuilder(builder: (context, setState) {
+      bool escalado = _usuarioEscalado;
+      bool disponivel = _usuarioDisponivel;
+      dev.log('escaldo: $escalado | disponivel: $disponivel');
+      return OutlinedButton(
+        onPressed: () async {
+          var ok = await Metodo.anunciarDisponibilidade(widget.culto);
+          if (ok) setState(() {});
+        },
+        child: Wrap(
+          direction: Axis.vertical,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          spacing: 4,
+          children: [
+            const Icon(Icons.hail_rounded),
+            Text(escalado
+                ? 'Escalado!'
+                : disponivel
+                    ? 'Disponível!'
+                    : 'Disponível?'),
+          ],
+        ),
+        style: OutlinedButton.styleFrom(
+          padding: const EdgeInsets.all(12),
+          backgroundColor: escalado
+              ? Colors.green
+              : disponivel
+                  ? Colors.blue
+                  : null,
+          primary: escalado || disponivel
+              ? Colors.grey.shade100
+              : Colors.grey.withOpacity(0.5),
+        ),
+      );
+    });
   }
 
   /// Dados sobre data e hora do ensaio
@@ -119,7 +160,7 @@ class _ViewCultoState extends State<ViewCulto> {
   Widget get _rowOqueFalta {
     var resultado = _verificaEquipe();
     return Container(
-      color: Colors.amber,
+      color: Colors.amber.withOpacity(0.5),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       child: Text(
         resultado,
@@ -215,10 +256,11 @@ class _ViewCultoState extends State<ViewCulto> {
                   height: 128,
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    border: Border.all(width: 1, color: Colors.grey.shade300),
+                    border: Border.all(
+                        width: 1, color: Colors.grey.withOpacity(0.5)),
                     borderRadius: BorderRadius.circular(12),
                     color: integrante == Global.integranteLogado
-                        ? Colors.amber.shade100
+                        ? Colors.amber.withOpacity(0.5)
                         : null,
                   ),
                   child: Stack(
@@ -272,6 +314,15 @@ class _ViewCultoState extends State<ViewCulto> {
   }
 
   /* FUNÇÕES */
+  /// Verifica se usuário está disponivel
+  bool get _usuarioDisponivel {
+    dev.log(mCulto.disponiveis?.length.toString() ?? 'sem culto');
+    dev.log(Global.integranteLogado?.reference.toString() ?? 'sem user');
+    return mCulto.disponiveis
+            ?.map((e) => e.toString())
+            .contains(Global.integranteLogado?.reference.toString()) ??
+        false;
+  }
 
   /// Verifica se usuário está escalado
   bool get _usuarioEscalado {
@@ -314,7 +365,7 @@ class _ViewCultoState extends State<ViewCulto> {
   @override
   void initState() {
     // PREENCHIDO A PROPOSITO DE TESTES
-    mCulto = widget.culto;
+    mCulto = widget.culto.data()!;
     super.initState();
   }
 
@@ -330,23 +381,7 @@ class _ViewCultoState extends State<ViewCulto> {
               // Dados sobre o culto
               Expanded(child: _cultoData),
               // Botão de disponibilidade
-              OutlinedButton(
-                onPressed: () {},
-                child: Wrap(
-                  direction: Axis.vertical,
-                  crossAxisAlignment: WrapCrossAlignment.center,
-                  spacing: 4,
-                  children: [
-                    const Icon(Icons.hail_rounded),
-                    Text(_usuarioEscalado ? 'Escalado!' : 'disponível?'),
-                  ],
-                ),
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.all(12),
-                  backgroundColor: _usuarioEscalado ? Colors.blue : null,
-                  primary: _usuarioEscalado ? Colors.grey.shade100 : null,
-                ),
-              ),
+              _botaoDisponibilidade,
             ],
           ),
         ),

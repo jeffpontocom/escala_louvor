@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:developer' as dev;
 import 'dart:io';
 
@@ -18,8 +19,8 @@ import '/models/integrante.dart';
 
 class Metodo {
   // Obter Integrante Logado
-  static escutarIntegranteLogado() {
-    FirebaseAuth.instance.userChanges().listen((user) {
+  static StreamSubscription<User?> escutarIntegranteLogado() {
+    return FirebaseAuth.instance.userChanges().listen((user) {
       if (user == null) {
         Global.integranteLogado = null;
         dev.log(
@@ -246,5 +247,34 @@ class Metodo {
     }
     // Retorno
     return fotoUrl;
+  }
+
+  static Future<bool> anunciarDisponibilidade(
+      DocumentSnapshot<Culto> culto) async {
+    if (Global.integranteLogado == null || culto.data() == null) {
+      dev.log('Valores nulos');
+      return false;
+    }
+    bool exist = culto
+            .data()!
+            .disponiveis
+            ?.contains(Global.integranteLogado!.reference) ??
+        false;
+    if (!exist) {
+      bool resultado;
+      try {
+        await culto.reference.update({
+          'disponiveis':
+              FieldValue.arrayUnion([Global.integranteLogado!.reference])
+        });
+        dev.log('Acerto');
+        return true;
+      } catch (e) {
+        dev.log('Erro');
+        return false;
+      }
+    }
+    dev.log('Disponiveis: ${culto.data()?.disponiveis}');
+    return false;
   }
 }

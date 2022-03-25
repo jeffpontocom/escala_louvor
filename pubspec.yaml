@@ -47,6 +47,7 @@ dependencies:
   printing: ^5.7.3
   table_calendar: ^3.0.4
   shared_preferences: ^2.0.13
+  url_strategy: ^0.2.0 # para remover o hash '#' das URLs (incluir 'setPathUrlStrategy();' em main) 
 
 dev_dependencies:
   flutter_test:

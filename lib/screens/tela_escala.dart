@@ -14,7 +14,7 @@ class TelaEscala extends StatefulWidget {
 
 class _TelaEscalaState extends State<TelaEscala> with TickerProviderStateMixin {
   /// Lista de cultos
-  final List<Culto> _listaCultos = [];
+  final List<DocumentSnapshot<Culto>> _listaCultos = [];
 
   /* VARIÁVEIS */
   late TabController _tabController;
@@ -30,7 +30,7 @@ class _TelaEscalaState extends State<TelaEscala> with TickerProviderStateMixin {
           } else {
             _listaCultos.clear();
             for (var snap in snapshot.data!.docs) {
-              _listaCultos.add(snap.data());
+              _listaCultos.add(snap);
             }
             _tabController =
                 TabController(length: snapshot.data?.size ?? 0, vsync: this);

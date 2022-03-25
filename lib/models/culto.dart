@@ -69,12 +69,10 @@ class Culto {
     if (json == null) return null;
     return List<DocumentReference<Integrante>>.from(
       (json as List<dynamic>).map(
-        (doc) => (doc as DocumentReference)
-          ..withConverter<Integrante>(
-            fromFirestore: (snapshot, _) =>
-                Integrante.fromJson(snapshot.data()!),
-            toFirestore: (model, _) => model.toJson(),
-          ),
+        (doc) => (doc as DocumentReference).withConverter<Integrante>(
+          fromFirestore: (snapshot, _) => Integrante.fromJson(snapshot.data()!),
+          toFirestore: (model, _) => model.toJson(),
+        ),
       ),
     );
   }
@@ -102,11 +100,10 @@ class Culto {
     if (json == null) return null;
     return List<DocumentReference<Cantico>>.from(
       (json as List<dynamic>).map(
-        (doc) => (doc as DocumentReference)
-          ..withConverter<Cantico>(
-            fromFirestore: (snapshot, _) => Cantico.fromJson(snapshot.data()!),
-            toFirestore: (model, _) => model.toJson(),
-          ),
+        (doc) => (doc as DocumentReference).withConverter<Cantico>(
+          fromFirestore: (snapshot, _) => Cantico.fromJson(snapshot.data()!),
+          toFirestore: (model, _) => model.toJson(),
+        ),
       ),
     );
   }
