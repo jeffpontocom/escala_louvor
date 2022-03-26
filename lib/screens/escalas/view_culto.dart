@@ -89,11 +89,11 @@ class _ViewCultoState extends State<ViewCulto> {
                         // Coordenador
                         _secaoEscalados(
                           'Coord. técnico',
-                          Funcao.leitor,
+                          Funcao.coordenador,
                           {
                             null: [mCulto.coordenador]
                           },
-                          null,
+                          () => _escalarCoordenador(),
                         ),
                       ],
                     ),
@@ -353,20 +353,19 @@ class _ViewCultoState extends State<ViewCulto> {
   Widget _secaoEscalados(
     String titulo,
     Funcao funcao,
-    Map<DocumentReference<Instrumento>?, List<DocumentReference<Integrante>?>?>
-        dados,
+    Map<String?, List<DocumentReference<Integrante>?>?> dados,
     Function()? funcaoEditar,
   ) {
     List<Widget> escalados = [];
     for (var entrada in dados.entries) {
-      var instrumento = entrada.key;
+      var instrumentoId = entrada.key;
       var integrantes = entrada.value;
       if (integrantes == null || integrantes.isEmpty) {
         escalados.add(const SizedBox());
       } else {
         for (var integrante in integrantes) {
-          escalados
-              .add(_cardIntegranteInstrumento(integrante, instrumento, funcao));
+          escalados.add(
+              _cardIntegranteInstrumento(integrante, instrumentoId, funcao));
         }
       }
     }
@@ -405,7 +404,7 @@ class _ViewCultoState extends State<ViewCulto> {
 
   Widget _cardIntegranteInstrumento(
     DocumentReference<Integrante>? refIntegrante,
-    DocumentReference<Instrumento>? refInstrumento,
+    String? instrumentoId,
     Funcao funcao,
   ) {
     return FutureBuilder<DocumentSnapshot<Integrante>>(
@@ -420,9 +419,22 @@ class _ViewCultoState extends State<ViewCulto> {
               ? nomePrimeiro
               : nomePrimeiro + ' ' + nomeSegundo;
           return FutureBuilder<DocumentSnapshot<Instrumento>>(
-              future: refInstrumento?.get(),
+              future: instrumentoId == null || instrumentoId.isEmpty
+                  ? null
+                  : FirebaseFirestore.instance
+                      .collection(Instrumento.collection)
+                      .doc(instrumentoId)
+                      .withConverter<Instrumento>(
+                        fromFirestore: (snapshot, _) =>
+                            Instrumento.fromJson(snapshot.data()!),
+                        toFirestore: (model, _) => model.toJson(),
+                      )
+                      .get(),
               builder: (_, instr) {
-                var instrumento = instr.data?.data();
+                var instrumento;
+                if (!instr.hasError) {
+                  instrumento = instr.data?.data();
+                }
                 // Box
                 return Container(
                   width: 112,
@@ -482,10 +494,15 @@ class _ViewCultoState extends State<ViewCulto> {
                         instrumento?.iconAsset ??
                             (funcao == Funcao.dirigente
                                 ? 'assets/icons/music_dirigente.png'
-                                : funcao == Funcao.administrador
+                                : funcao == Funcao.coordenador
                                     ? 'assets/icons/music_coordenador.png'
                                     : 'assets/icons/ic_launcher.png'),
                         width: 20,
+                        color: Theme.of(context)
+                            .colorScheme
+                            .inverseSurface
+                            .withOpacity(0.75),
+                        colorBlendMode: BlendMode.srcATop,
                       ),
                     ],
                   ),
@@ -556,7 +573,7 @@ class _ViewCultoState extends State<ViewCulto> {
     if (mCulto.equipe == null || mCulto.equipe!.isEmpty) {
       return 'Escalar equipe!';
     }
-    List<DocumentReference<Instrumento>> lista = [];
+    List<String> lista = [];
     for (var instrumento in mCulto.equipe!.keys) {
       lista.add(instrumento);
     }
@@ -567,8 +584,7 @@ class _ViewCultoState extends State<ViewCulto> {
 
   void _escalarIntegrante(
     Funcao funcao,
-    Map<DocumentReference<Instrumento>, List<DocumentReference<Integrante>>>?
-        instrumentosIntegrantes,
+    Map<String, List<DocumentReference<Integrante>>>? instrumentosIntegrantes,
   ) {
     Map<Funcao, Map<String, List<String>?>>? selecionados = {};
     switch (funcao) {
@@ -617,22 +633,29 @@ class _ViewCultoState extends State<ViewCulto> {
                           children: snapIntegrantes.hasData
                               ? List.generate(instrumentos?.length ?? 0,
                                   (index) {
-                                  return Column(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: [
-                                        Text(instrumentos?[index].data().nome ??
-                                            'Instrumento'),
-                                        Wrap(
-                                          children:
-                                              _integrantesDisponiveisNoInstrumento(
-                                                  integrantes,
-                                                  instrumentos?[index]
-                                                          .reference
-                                                          .toString() ??
-                                                      ''),
-                                        ),
-                                        const SizedBox(height: 12),
-                                      ]);
+                                  return Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                        horizontal: 12, vertical: 4),
+                                    child: Column(
+                                        mainAxisSize: MainAxisSize.min,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Text(instrumentos?[index]
+                                                  .data()
+                                                  .nome ??
+                                              'Instrumento'),
+                                          Wrap(
+                                            spacing: 4,
+                                            runSpacing: 4,
+                                            children:
+                                                _integrantesDisponiveisNoInstrumento(
+                                                    integrantes,
+                                                    instrumentos![index]),
+                                          ),
+                                          const SizedBox(height: 12),
+                                        ]),
+                                  );
                                 }).toList()
                               : const [
                                   Padding(
@@ -649,8 +672,8 @@ class _ViewCultoState extends State<ViewCulto> {
 
   List<Widget> _integrantesDisponiveisNoInstrumento(
       List<QueryDocumentSnapshot<Integrante>>? integrantes,
-      String instrumentoRef) {
-    dev.log(instrumentoRef);
+      QueryDocumentSnapshot<Instrumento> instrumentoRef) {
+    dev.log(instrumentoRef.reference.id);
     if (integrantes == null || integrantes.isEmpty) {
       return const [Text('Ninguém disponivel!')];
     }
@@ -661,7 +684,7 @@ class _ViewCultoState extends State<ViewCulto> {
         if (instrumentosDoIntegrante != null) {
           if (instrumentosDoIntegrante
               .map((e) => e.toString())
-              .contains(instrumentoRef)) {
+              .contains(instrumentoRef.reference.toString())) {
             integrantesDoInstrumento.add(integrante);
           }
         }
@@ -669,16 +692,42 @@ class _ViewCultoState extends State<ViewCulto> {
       if (integrantesDoInstrumento.isEmpty) {
         return const [Text('Ninguém disponivel!')];
       }
-      return List.generate(
-          integrantesDoInstrumento.length,
-          (index) => RawChip(
+      return List.generate(integrantesDoInstrumento.length, (index) {
+        return StatefulBuilder(builder: (context, setState) {
+          bool selected = mCulto.equipe?[instrumentoRef.reference.id]
+                  ?.map((e) => e.toString())
+                  .contains(
+                      integrantesDoInstrumento[index].reference.toString()) ??
+              false;
+          return ChoiceChip(
+              selected: selected,
+              selectedColor: Theme.of(context).colorScheme.primary,
+              onSelected: (value) {
+                if (value) {
+                  widget.culto.update({
+                    'equipe.${instrumentoRef.reference.id}':
+                        FieldValue.arrayUnion([
+                      integrantesDoInstrumento.toList()[index].reference
+                    ])
+                  }).then((value) => setState(() {}));
+                } else {
+                  widget.culto.update({
+                    'equipe.${instrumentoRef.reference.id}':
+                        FieldValue.arrayRemove([
+                      integrantesDoInstrumento.toList()[index].reference
+                    ])
+                  }).then((value) => setState(() {}));
+                }
+              },
               label: Text(integrantesDoInstrumento[index]
                   .data()
                   .nome
                   .split(' ')
-                  .first))).toList();
+                  .first));
+        });
+      }).toList();
     } catch (e) {
-      return const [Text('Erro: Ninguém disponivel!')];
+      return const [Text('Falha na aquisição dos dados!')];
     }
   }
 
@@ -705,6 +754,48 @@ class _ViewCultoState extends State<ViewCulto> {
                                 innerState(() {
                                   selecionado = value;
                                   Metodo.escalarDirigente(widget.culto,
+                                      snap.data!.docs[index].reference);
+                                });
+                              },
+                              title: Text(snap.data?.docs[index].data().nome ??
+                                  'Sem nome'),
+                            );
+                          }).toList()
+                        : const [
+                            Padding(
+                              padding: EdgeInsets.all(24),
+                              child: Text('Nenhum integrante disponível'),
+                            )
+                          ],
+                  );
+                });
+              });
+        });
+  }
+
+  void _escalarCoordenador() {
+    String? selecionado = mCulto.coordenador.toString();
+    showDialog(
+        context: context,
+        builder: (context) {
+          return FutureBuilder<QuerySnapshot<Integrante>>(
+              future: Metodo.getIntegrantes(
+                  ativo: true, funcao: Funcao.coordenador.index),
+              builder: (context, snap) {
+                return StatefulBuilder(builder: (context, innerState) {
+                  return SimpleDialog(
+                    title: const Text('Selecionar coordenador técnico'),
+                    children: snap.hasData
+                        ? List.generate(snap.data?.size ?? 0, (index) {
+                            String? integrante =
+                                snap.data?.docs[index].reference.toString();
+                            return RadioListTile<String?>(
+                              value: integrante ?? '',
+                              groupValue: selecionado,
+                              onChanged: (value) {
+                                innerState(() {
+                                  selecionado = value;
+                                  Metodo.escalarCoordenador(widget.culto,
                                       snap.data!.docs[index].reference);
                                 });
                               },

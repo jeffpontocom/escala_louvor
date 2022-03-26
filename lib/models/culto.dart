@@ -14,8 +14,8 @@ class Culto {
   List<DocumentReference<Integrante>>? disponiveis;
   DocumentReference<Integrante>? dirigente;
   DocumentReference<Integrante>? coordenador;
-  Map<DocumentReference<Instrumento>, List<DocumentReference<Integrante>>>?
-      equipe;
+  // Esse map entrega: {instrumento id: lista de integrantes}
+  Map<String, List<DocumentReference<Integrante>>>? equipe;
   Timestamp? dataEnsaio;
   List<DocumentReference<Cantico>>? canticos;
   String? liturgiaUrl;
@@ -109,25 +109,22 @@ class Culto {
     );
   }
 
-  static Map<DocumentReference<Instrumento>,
-      List<DocumentReference<Integrante>>>? _getEquipe(var json) {
+  static Map<String, List<DocumentReference<Integrante>>>? _getEquipe(
+      var json) {
     if (json == null) return null;
-    return Map<DocumentReference<Instrumento>,
-        List<DocumentReference<Integrante>>>.from(
+    return Map<String, List<DocumentReference<Integrante>>>.from(
       (json as Map<dynamic, dynamic>).map((key, value) {
         return MapEntry(
-          (key as DocumentReference).withConverter<Instrumento>(
-            fromFirestore: (snapshot, _) =>
-                Instrumento.fromJson(snapshot.data()!),
-            toFirestore: (model, _) => model.toJson(),
-          ),
-          (value as List<dynamic>).map(
-            (doc) => (doc as DocumentReference).withConverter<Integrante>(
-              fromFirestore: (snapshot, _) =>
-                  Integrante.fromJson(snapshot.data()!),
-              toFirestore: (model, _) => model.toJson(),
-            ),
-          ),
+          (key as String),
+          (value as List<dynamic>)
+              .map(
+                (doc) => (doc as DocumentReference).withConverter<Integrante>(
+                  fromFirestore: (snapshot, _) =>
+                      Integrante.fromJson(snapshot.data()!),
+                  toFirestore: (model, _) => model.toJson(),
+                ),
+              )
+              .toList(),
         );
       }),
     );

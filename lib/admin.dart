@@ -792,9 +792,12 @@ class AdminPage extends StatelessWidget {
                                   .contains(doc.reference.toString()) ??
                               false,
                           onSelected: (check) {
+                            if (integrante!.instrumentos == null) {
+                              integrante.instrumentos = [];
+                            }
                             check
-                                ? integrante!.instrumentos?.add(doc.reference)
-                                : integrante!.instrumentos?.removeWhere(
+                                ? integrante.instrumentos?.add(doc.reference)
+                                : integrante.instrumentos?.removeWhere(
                                     (element) =>
                                         element.toString() ==
                                         doc.reference.toString());

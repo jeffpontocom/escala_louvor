@@ -162,7 +162,7 @@ class Metodo {
     try {
       userCredential = await FirebaseAuth.instanceFor(app: tempApp)
           .createUserWithEmailAndPassword(email: email, password: senha);
-      userCredential.user?.sendEmailVerification();
+      //userCredential.user?.sendEmailVerification();
     } on FirebaseAuthException catch (e) {
       dev.log(e.toString());
     }
@@ -380,6 +380,18 @@ class Metodo {
       DocumentReference<Integrante> integrante) async {
     try {
       await reference.update({'dirigente': integrante});
+      dev.log('Sucesso!');
+      return true;
+    } catch (e) {
+      dev.log('Erro: ${e.toString()}');
+      return false;
+    }
+  }
+
+  static Future<bool> escalarCoordenador(DocumentReference<Culto> reference,
+      DocumentReference<Integrante> integrante) async {
+    try {
+      await reference.update({'coordenador': integrante});
       dev.log('Sucesso!');
       return true;
     } catch (e) {

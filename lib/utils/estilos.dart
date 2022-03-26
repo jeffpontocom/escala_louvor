@@ -10,8 +10,7 @@ class Estilo {
   );
 
   /// Títulos de Seção
-  static TextStyle secaoTitulo = TextStyle(
-    color: Colors.grey.shade800,
+  static TextStyle secaoTitulo = const TextStyle(
     fontSize: 20,
     fontWeight: FontWeight.bold,
   );
