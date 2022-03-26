@@ -5,6 +5,7 @@ class Instrumento {
   late String iconAsset;
   late int composMin;
   late int composMax;
+  late bool permiteOutro;
   late bool ativo;
 
   Instrumento({
@@ -12,6 +13,7 @@ class Instrumento {
     required this.iconAsset,
     this.composMin = 0,
     this.composMax = 2,
+    this.permiteOutro = false,
     this.ativo = true,
   });
 
@@ -21,6 +23,7 @@ class Instrumento {
           iconAsset: (json['iconAsset'] ?? '') as String,
           composMin: (json['composMin'] ?? 0) as int,
           composMax: (json['composMax'] ?? 2) as int,
+          permiteOutro: (json['permiteOutro'] ?? false) as bool,
           ativo: (json['ativo'] ?? true) as bool,
         );
 
@@ -30,6 +33,7 @@ class Instrumento {
       'iconAsset': iconAsset,
       'composMin': composMin,
       'composMax': composMax,
+      'permiteOutro': permiteOutro,
       'ativo': ativo,
     };
   }

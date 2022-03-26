@@ -194,6 +194,20 @@ class Metodo {
         .get();
   }
 
+  /// Lista de Instrumento
+  static Future<QuerySnapshot<Instrumento>> getInstrumentos(
+      {required bool ativo}) async {
+    return FirebaseFirestore.instance
+        .collection(Instrumento.collection)
+        .where('ativo', isEqualTo: ativo)
+        .withConverter<Instrumento>(
+          fromFirestore: (snapshot, _) =>
+              Instrumento.fromJson(snapshot.data()!),
+          toFirestore: (model, _) => model.toJson(),
+        )
+        .get();
+  }
+
   /// Igreja especifica
   static Future<DocumentSnapshot<Igreja>?> obterSnapshotIgreja(
       String? id) async {
@@ -205,6 +219,21 @@ class Metodo {
         .doc(id)
         .withConverter<Igreja>(
           fromFirestore: (snapshot, _) => Igreja.fromJson(snapshot.data()!),
+          toFirestore: (model, _) => model.toJson(),
+        )
+        .get();
+  }
+
+  /// Culto especifica
+  static Future<DocumentSnapshot<Culto>?> obterSnapshotCulto(String? id) async {
+    if (id == null) {
+      return null;
+    }
+    return await FirebaseFirestore.instance
+        .collection(Culto.collection)
+        .doc(id)
+        .withConverter<Culto>(
+          fromFirestore: (snapshot, _) => Culto.fromJson(snapshot.data()!),
           toFirestore: (model, _) => model.toJson(),
         )
         .get();
@@ -294,12 +323,14 @@ class Metodo {
     dev.log('TODO: abrir PDF');
   }
 
-  static Future<bool> anunciarDisponibilidade(
-      DocumentSnapshot<Culto> culto) async {
-    if (Global.integranteLogado == null || culto.data() == null) {
+  static Future<bool> definirDisponibiliadeParaOCulto(
+      DocumentReference<Culto> reference) async {
+    if (Global.integranteLogado == null) {
       dev.log('Valores nulos');
       return false;
     }
+    var culto = await obterSnapshotCulto(reference.id);
+    if (culto == null) return false;
     bool exist = culto
             .data()!
             .disponiveis
@@ -334,9 +365,9 @@ class Metodo {
   }
 
   static Future<bool> definirDataHoraDoEnsaio(
-      DocumentSnapshot<Culto> culto, Timestamp dataHora) async {
+      DocumentReference<Culto> reference, Timestamp dataHora) async {
     try {
-      await culto.reference.update({'dataEnsaio': dataHora});
+      await reference.update({'dataEnsaio': dataHora});
       dev.log('Data definida com sucesso');
       return true;
     } catch (e) {
@@ -345,10 +376,10 @@ class Metodo {
     }
   }
 
-  static Future<bool> escalarDirigente(DocumentSnapshot<Culto> culto,
+  static Future<bool> escalarDirigente(DocumentReference<Culto> reference,
       DocumentReference<Integrante> integrante) async {
     try {
-      await culto.reference.update({'dirigente': integrante});
+      await reference.update({'dirigente': integrante});
       dev.log('Sucesso!');
       return true;
     } catch (e) {
@@ -358,12 +389,12 @@ class Metodo {
   }
 
   static Future<bool> atualizarCampoDoCulto({
-    required DocumentSnapshot<Culto> culto,
+    required DocumentReference<Culto> reference,
     required String campo,
     required dynamic valor,
   }) async {
     try {
-      await culto.reference.update({campo: valor});
+      await reference.update({campo: valor});
       dev.log('Sucesso!');
       return true;
     } catch (e) {

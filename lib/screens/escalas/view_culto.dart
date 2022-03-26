@@ -16,7 +16,7 @@ import '/models/integrante.dart';
 
 class ViewCulto extends StatefulWidget {
   const ViewCulto({Key? key, required this.culto}) : super(key: key);
-  final DocumentSnapshot<Culto> culto;
+  final DocumentReference<Culto> culto;
 
   @override
   State<ViewCulto> createState() => _ViewCultoState();
@@ -29,7 +29,7 @@ class _ViewCultoState extends State<ViewCulto> {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<DocumentSnapshot<Culto>>(
-        stream: widget.culto.reference.get().asStream(),
+        stream: widget.culto.snapshots(),
         builder: ((context, snapshot) {
           // Progresso
           if (!snapshot.hasData) {
@@ -98,7 +98,11 @@ class _ViewCultoState extends State<ViewCulto> {
                     ),
                     // Escalados (Equipe)
                     _secaoEscalados(
-                        'Equipe', Funcao.integrante, mCulto.equipe ?? {}, null),
+                      'Equipe',
+                      Funcao.integrante,
+                      mCulto.equipe ?? {},
+                      () => _escalarIntegrante(Funcao.dirigente, mCulto.equipe),
+                    ),
                     const Divider(),
                     Padding(
                       padding: const EdgeInsets.all(12),
@@ -190,13 +194,18 @@ class _ViewCultoState extends State<ViewCulto> {
     return StatefulBuilder(builder: (context, setState) {
       bool escalado = _usuarioEscalado;
       bool disponivel = _usuarioDisponivel;
-      dev.log('Escalado: $escalado | Disponível: $disponivel');
+      dev.log('Estou escalado: $escalado | Estou disponível: $disponivel');
       return OutlinedButton(
         onPressed: escalado
-            ? null
+            ? () {}
             : () async {
-                setState((() => alterar = true));
-                await Metodo.anunciarDisponibilidade(widget.culto);
+                setState(() {
+                  alterar = true;
+                });
+                await Metodo.definirDisponibiliadeParaOCulto(widget.culto);
+                setState(() {
+                  alterar = false;
+                });
               },
         child: Wrap(
           direction: Axis.vertical,
@@ -204,16 +213,18 @@ class _ViewCultoState extends State<ViewCulto> {
           spacing: 4,
           children: [
             alterar
-                ? const SizedBox(
-                    height: 24,
-                    child: CircularProgressIndicator(),
+                ? const Center(
+                    child: SizedBox.square(
+                      dimension: 24,
+                      child: CircularProgressIndicator(),
+                    ),
                   )
                 : const Icon(Icons.hail_rounded),
             Text(escalado
-                ? 'Escalado!'
+                ? 'Estou escalado!'
                 : disponivel
-                    ? 'Disponível!'
-                    : 'Disponível?'),
+                    ? 'Estou disponível!'
+                    : 'Estou disponível?'),
           ],
         ),
         style: OutlinedButton.styleFrom(
@@ -224,7 +235,7 @@ class _ViewCultoState extends State<ViewCulto> {
                   ? Colors.blue
                   : null,
           primary: escalado || disponivel
-              ? Colors.grey.shade100
+              ? Colors.white
               : Colors.grey.withOpacity(0.5),
         ),
       );
@@ -264,8 +275,7 @@ class _ViewCultoState extends State<ViewCulto> {
 
   /// Dialog Data e Hora do Ensaio
   void _definirHoraDoEnsaio() {
-    var dataPrevia =
-        widget.culto.data()?.dataEnsaio?.toDate() ?? DateTime.now();
+    var dataPrevia = mCulto.dataEnsaio?.toDate() ?? DateTime.now();
     showDatePicker(
             context: context,
             initialDate: dataPrevia,
@@ -308,7 +318,7 @@ class _ViewCultoState extends State<ViewCulto> {
             String? url = await Metodo.carregarArquivoPdf();
             if (url != null && url.isNotEmpty) {
               var ok = await Metodo.atualizarCampoDoCulto(
-                  culto: widget.culto, campo: 'liturgiaUrl', valor: url);
+                  reference: widget.culto, campo: 'liturgiaUrl', valor: url);
               if (!ok) {
                 Mensagem.simples(
                     context: context, mensagem: 'Falha ao atualizar o campo');
@@ -576,49 +586,89 @@ class _ViewCultoState extends State<ViewCulto> {
         };
         break;
       case Funcao.integrante:
+        selecionados = {funcao: Map.from(instrumentosIntegrantes!)};
         break;
       default:
         break;
     }
-    String? selecionado = mCulto.dirigente.toString();
     showDialog(
         context: context,
         builder: (context) {
-          return FutureBuilder<QuerySnapshot<Integrante>>(
-              future: Metodo.getIntegrantes(
-                  ativo: true, funcao: Funcao.dirigente.index),
-              builder: (context, snap) {
-                return StatefulBuilder(builder: (context, innerState) {
-                  return SimpleDialog(
-                    title: const Text('Selecionar dirigente'),
-                    children: snap.hasData
-                        ? List.generate(snap.data?.size ?? 0, (index) {
-                            String? integrante =
-                                snap.data?.docs[index].reference.toString();
-                            return RadioListTile<String?>(
-                              value: integrante ?? '',
-                              groupValue: selecionado,
-                              onChanged: (value) {
-                                innerState(() {
-                                  selecionado = value;
-                                  Metodo.escalarDirigente(widget.culto,
-                                      snap.data!.docs[index].reference);
-                                });
-                              },
-                              title: Text(snap.data?.docs[index].data().nome ??
-                                  'Sem nome'),
-                            );
-                          }).toList()
-                        : const [
-                            Padding(
-                              padding: EdgeInsets.all(24),
-                              child: Text('Nenhum integrante disponível'),
-                            )
-                          ],
-                  );
-                });
+          return FutureBuilder<QuerySnapshot<Instrumento>>(
+              future: Metodo.getInstrumentos(ativo: true),
+              builder: (_, snapInstr) {
+                if (!snapInstr.hasData) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                var instrumentos = snapInstr.data?.docs;
+                return FutureBuilder<QuerySnapshot<Integrante>>(
+                    future: Metodo.getIntegrantes(
+                        ativo: true, funcao: funcao.index),
+                    builder: (context, snapIntegrantes) {
+                      if (!snapIntegrantes.hasData) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
+                      List<QueryDocumentSnapshot<Integrante>>? integrantes =
+                          snapIntegrantes.data?.docs;
+                      return StatefulBuilder(builder: (context, innerState) {
+                        return SimpleDialog(
+                          title: const Text('Selecionar integrante'),
+                          children: snapIntegrantes.hasData
+                              ? List.generate(instrumentos?.length ?? 0,
+                                  (index) {
+                                  return Column(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Text(instrumentos?[index].data().nome ??
+                                            'Instrumento'),
+                                        Wrap(
+                                          children:
+                                              _integrantesDisponiveisNoInstrumento(
+                                                  integrantes,
+                                                  instrumentos?[index]
+                                                          .reference
+                                                          .toString() ??
+                                                      ''),
+                                        ),
+                                        const SizedBox(height: 12),
+                                      ]);
+                                }).toList()
+                              : const [
+                                  Padding(
+                                    padding: EdgeInsets.all(24),
+                                    child: Text('Nenhum integrante disponível'),
+                                  )
+                                ],
+                        );
+                      });
+                    });
               });
         });
+  }
+
+  List<Widget> _integrantesDisponiveisNoInstrumento(
+      List<QueryDocumentSnapshot<Integrante>>? integrantes,
+      String instrumentoRef) {
+    dev.log(instrumentoRef);
+    if (integrantes == null || integrantes.isEmpty) {
+      return const [Text('Ninguém disponivel!')];
+    }
+    try {
+      var integrantesDoInstrumento = integrantes
+          .where((element) => element
+              .data()
+              .instrumentos!
+              .map((e) => e.toString())
+              .contains(instrumentoRef))
+          .toList();
+      return List.generate(
+              integrantesDoInstrumento.length,
+              (index) => RawChip(
+                  label: Text(integrantesDoInstrumento[index].data().nome)))
+          .toList();
+    } catch (e) {
+      return const [Text('Erro: Ninguém disponivel!')];
+    }
   }
 
   /* void _escalarDirigente() {

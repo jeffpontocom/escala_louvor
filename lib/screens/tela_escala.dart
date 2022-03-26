@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:escala_louvor/models/igreja.dart';
 import 'package:flutter/material.dart';
 
+import '../global.dart';
 import '/functions/metodos.dart';
 import '/models/culto.dart';
 import '/screens/escalas/view_culto.dart';
@@ -22,19 +24,31 @@ class _TelaEscalaState extends State<TelaEscala> with TickerProviderStateMixin {
   /* SISTEMA */
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<QuerySnapshot<Culto>>(
-        stream: Metodo.escutarCultos(),
+    return FutureBuilder<QuerySnapshot<Culto>>(
+        future: FirebaseFirestore.instance
+            .collection(Culto.collection)
+            //.where('dataCulto', isGreaterThanOrEqualTo: dataMinima)
+            //.where('igreja', isEqualTo: Global.igrejaAtual!.reference)
+            .orderBy('dataCulto')
+            .withConverter<Culto>(
+              fromFirestore: (snapshot, _) => Culto.fromJson(snapshot.data()!),
+              toFirestore: (model, _) => model.toJson(),
+            )
+            .get(),
         builder: ((context, snapshot) {
+          if (snapshot.hasError) {
+            return const Center(
+                child: Text('Falha! Comunicar o desenvolvedor.'));
+          }
           if (!snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
-          } else {
-            _listaCultos.clear();
-            for (var snap in snapshot.data!.docs) {
-              _listaCultos.add(snap);
-            }
-            _tabController =
-                TabController(length: snapshot.data?.size ?? 0, vsync: this);
           }
+          _listaCultos.clear();
+          for (var snap in snapshot.data!.docs) {
+            _listaCultos.add(snap);
+          }
+          _tabController =
+              TabController(length: snapshot.data?.size ?? 0, vsync: this);
           return Column(
             children: [
               // Controle de acesso aos cultos cadastrados
@@ -79,7 +93,7 @@ class _TelaEscalaState extends State<TelaEscala> with TickerProviderStateMixin {
                   controller: _tabController,
                   children: List.generate(
                     _listaCultos.length,
-                    (index) => ViewCulto(culto: _listaCultos[index]),
+                    (index) => ViewCulto(culto: _listaCultos[index].reference),
                     growable: false,
                   ).toList(),
                 ),
