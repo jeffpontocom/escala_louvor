@@ -88,12 +88,13 @@ class _ViewCultoState extends State<ViewCulto> {
                         ),
                         // Coordenador
                         _secaoEscalados(
-                            'Coord. técnico',
-                            Funcao.leitor,
-                            {
-                              null: [mCulto.coordenador]
-                            },
-                            null),
+                          'Coord. técnico',
+                          Funcao.leitor,
+                          {
+                            null: [mCulto.coordenador]
+                          },
+                          null,
+                        ),
                       ],
                     ),
                     // Escalados (Equipe)
