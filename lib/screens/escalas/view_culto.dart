@@ -84,7 +84,7 @@ class _ViewCultoState extends State<ViewCulto> {
                           {
                             null: [mCulto.dirigente]
                           },
-                          () => _escalarIntegrante(Funcao.dirigente, null),
+                          () => _escalarDirigente(),
                         ),
                         // Coordenador
                         _secaoEscalados(
@@ -654,24 +654,34 @@ class _ViewCultoState extends State<ViewCulto> {
       return const [Text('Ninguém disponivel!')];
     }
     try {
-      var integrantesDoInstrumento = integrantes
-          .where((element) => element
-              .data()
-              .instrumentos!
+      List<QueryDocumentSnapshot<Integrante>> integrantesDoInstrumento = [];
+      for (var integrante in integrantes) {
+        var instrumentosDoIntegrante = integrante.data().instrumentos;
+        if (instrumentosDoIntegrante != null) {
+          if (instrumentosDoIntegrante
               .map((e) => e.toString())
-              .contains(instrumentoRef))
-          .toList();
+              .contains(instrumentoRef)) {
+            integrantesDoInstrumento.add(integrante);
+          }
+        }
+      }
+      if (integrantesDoInstrumento.isEmpty) {
+        return const [Text('Ninguém disponivel!')];
+      }
       return List.generate(
-              integrantesDoInstrumento.length,
-              (index) => RawChip(
-                  label: Text(integrantesDoInstrumento[index].data().nome)))
-          .toList();
+          integrantesDoInstrumento.length,
+          (index) => RawChip(
+              label: Text(integrantesDoInstrumento[index]
+                  .data()
+                  .nome
+                  .split(' ')
+                  .first))).toList();
     } catch (e) {
       return const [Text('Erro: Ninguém disponivel!')];
     }
   }
 
-  /* void _escalarDirigente() {
+  void _escalarDirigente() {
     String? selecionado = mCulto.dirigente.toString();
     showDialog(
         context: context,
@@ -711,5 +721,5 @@ class _ViewCultoState extends State<ViewCulto> {
                 });
               });
         });
-  } */
+  }
 }
