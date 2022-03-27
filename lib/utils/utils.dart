@@ -16,7 +16,7 @@ class MyNetwork {
     if (url == null) return null;
     return Image.network(
       url,
-      fit: BoxFit.contain,
+      fit: BoxFit.cover,
       loadingBuilder: (context, child, loading) {
         if (loading == null) return child;
         return SizedBox(

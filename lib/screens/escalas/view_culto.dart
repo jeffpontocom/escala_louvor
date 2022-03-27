@@ -446,8 +446,10 @@ class _ViewCultoState extends State<ViewCulto> {
                       color: Colors.grey.withOpacity(0.5),
                     ),
                     borderRadius: BorderRadius.circular(12),
-                    color:
-                        _usuarioEscalado ? Colors.amber.withOpacity(0.5) : null,
+                    color: (Global.integranteLogado != null &&
+                            integrante?.id == Global.integranteLogado?.id)
+                        ? Colors.amber.withOpacity(0.25)
+                        : null,
                   ),
                   // Pilha
                   child: Stack(
@@ -459,16 +461,27 @@ class _ViewCultoState extends State<ViewCulto> {
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           // Foto do integrante
-                          CircleAvatar(
-                            child: const Icon(
-                              Icons.person,
-                              color: Colors.grey,
+                          SizedBox(
+                            width: 36,
+                            height: 36,
+                            child: IconTheme.merge(
+                              data: Theme.of(context).iconTheme,
+                              child: CircleAvatar(
+                                child: const Icon(
+                                  Icons.person,
+                                  color: Colors.grey,
+                                ),
+                                foregroundImage:
+                                    /* MyNetwork.getImageFromUrl(
+                                      integrante?.data()?.fotoUrl, 16)
+                                  ?.image, */
+
+                                    NetworkImage(
+                                        integrante?.data()?.fotoUrl ?? ''),
+                                backgroundColor: Colors.grey.shade200,
+                                //radius: 4,
+                              ),
                             ),
-                            foregroundImage: MyNetwork.getImageFromUrl(
-                                    integrante?.data()?.fotoUrl, 16)
-                                ?.image,
-                            backgroundColor: Colors.grey.shade200,
-                            radius: 28,
                           ),
                           const SizedBox(height: 8),
                           // Nome do integrante
@@ -635,7 +648,7 @@ class _ViewCultoState extends State<ViewCulto> {
                                   (index) {
                                   return Padding(
                                     padding: const EdgeInsets.symmetric(
-                                        horizontal: 12, vertical: 4),
+                                        horizontal: 24, vertical: 4),
                                     child: Column(
                                         mainAxisSize: MainAxisSize.min,
                                         crossAxisAlignment:
