@@ -87,8 +87,8 @@ class Notificacoes {
 
     // Obter token
     //FirebaseMessaging.instance.getToken().then(instancia.setToken);
-    var vapidkey = await FirebaseMessaging.instance.getToken();
-    instancia.setToken(vapidkey);
+    var vapidKey = await FirebaseMessaging.instance.getToken();
+    instancia.setToken(vapidKey);
     instancia._tokenStream = FirebaseMessaging.instance.onTokenRefresh;
     instancia._tokenStream.listen(instancia.setToken);
 
@@ -104,7 +104,7 @@ class Notificacoes {
   }
 
   /// Permitir
-  Future<void> _obterPermissao() async {
+  /* Future<void> _obterPermissao() async {
     NotificationSettings settings =
         await FirebaseMessaging.instance.requestPermission(
       alert: true,
@@ -116,7 +116,7 @@ class Notificacoes {
       sound: true,
     );
     dev.log('Usuário cedeu permissão: ${settings.authorizationStatus}');
-  }
+  } */
 
   /// Ouvir
   void _ouvirMensagens(BuildContext context) {

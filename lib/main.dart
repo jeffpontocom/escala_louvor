@@ -51,7 +51,8 @@ class MyApp extends StatelessWidget {
                   .asStream(),
               builder: (_, snapshotIntegrante) {
                 Global.integranteLogado = snapshotIntegrante.data;
-                dev.log(Global.integranteLogado?.id ?? 'Deslogado');
+                dev.log(
+                    'Usuário: ${Global.integranteLogado?.id ?? "Não está logado!"}');
                 return MaterialApp.router(
                   title: 'Escala do Louvor',
                   theme: ThemeData(
