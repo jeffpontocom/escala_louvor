@@ -1,9 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:escala_louvor/models/igreja.dart';
+import 'package:escala_louvor/global.dart';
+import 'package:escala_louvor/utils/utils.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_modular/flutter_modular.dart';
 
-import '../global.dart';
-import '/functions/metodos.dart';
+import '../utils/mensagens.dart';
 import '/models/culto.dart';
 import '/screens/escalas/view_culto.dart';
 
@@ -62,7 +63,13 @@ class _TelaEscalaState extends State<TelaEscala> with TickerProviderStateMixin {
                     padding:
                         const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                     visualDensity: VisualDensity.compact,
-                    onPressed: () {},
+                    onPressed: () {
+                      Mensagem.bottomDialog(
+                        context: context,
+                        titulo: 'Ir para',
+                        conteudo: _listaDeCultos,
+                      );
+                    },
                   ),
                   const SizedBox(width: 8),
                   // Controle de paginação
@@ -77,12 +84,21 @@ class _TelaEscalaState extends State<TelaEscala> with TickerProviderStateMixin {
                       ),
                       labelColor: Theme.of(context).colorScheme.primary,
                       unselectedLabelColor: Colors.grey.shade300,
+                      labelPadding: const EdgeInsets.symmetric(
+                          horizontal: 8, vertical: 0),
                       tabs: List.generate(
                         _listaCultos.length,
-                        (index) => const Tab(icon: Icon(Icons.circle, size: 6)),
+                        (index) => const Tab(
+                          icon: Icon(Icons.circle, size: 6),
+                        ),
                         growable: false,
                       ),
                     ),
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    Global.igrejaAtual?.data()?.sigla ?? '[Escolher igreja]',
+                    style: Theme.of(context).textTheme.titleSmall,
                   ),
                   const SizedBox(width: 12),
                 ],
@@ -101,5 +117,36 @@ class _TelaEscalaState extends State<TelaEscala> with TickerProviderStateMixin {
             ],
           );
         }));
+  }
+
+  Widget get _listaDeCultos {
+    return Scrollbar(
+      isAlwaysShown: true,
+      child: OrientationBuilder(
+        builder: (context, orientation) {
+          return ListView(
+            shrinkWrap: true,
+            children: List.generate(
+              _tabController.length,
+              (index) {
+                return TextButton(
+                  onPressed: () {
+                    // fecha o bottomDialog
+                    Modular.to.pop();
+                    // vai até a pagina selecionada
+                    _tabController.animateTo(
+                      index,
+                      duration: const Duration(milliseconds: 600),
+                    );
+                  },
+                  child: Text(MyInputs.mascaraData
+                      .format(_listaCultos[index].data()!.dataCulto.toDate())),
+                );
+              },
+            ),
+          );
+        },
+      ),
+    );
   }
 }

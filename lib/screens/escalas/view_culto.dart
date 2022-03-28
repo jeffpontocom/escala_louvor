@@ -1,17 +1,18 @@
 import 'dart:developer' as dev;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:escala_louvor/functions/metodos.dart';
-import 'package:escala_louvor/functions/notificacoes.dart';
-import 'package:escala_louvor/utils/mensagens.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:intl/intl.dart';
 
+import '/functions/metodos.dart';
+import '/functions/notificacoes.dart';
 import '/global.dart';
 import '/models/culto.dart';
 import '/models/instrumento.dart';
 import '/models/integrante.dart';
+import '/utils/mensagens.dart';
+import '/utils/utils.dart';
 
 class ViewCulto extends StatefulWidget {
   const ViewCulto({Key? key, required this.culto}) : super(key: key);
@@ -36,7 +37,8 @@ class _ViewCultoState extends State<ViewCulto> {
           }
           // Erro
           if (snapshot.hasError) {
-            return const Center(child: Text('Falha'));
+            return const Center(
+                child: Text('Falha ao carregar dados do culto.'));
           }
           // Conteúdo
           mCulto = snapshot.data!.data()!;
@@ -74,7 +76,7 @@ class _ViewCultoState extends State<ViewCulto> {
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       mainAxisSize: MainAxisSize.max,
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      //mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         // Dirigente
                         _sectionEscalados(
@@ -194,15 +196,27 @@ class _ViewCultoState extends State<ViewCulto> {
     return StatefulBuilder(builder: (context, setState) {
       bool escalado = _usuarioEscalado;
       bool disponivel = _usuarioDisponivel;
+      bool restrito = _usuarioRestrito;
       dev.log('Estou escalado: $escalado | Estou disponível: $disponivel');
       return OutlinedButton(
-        onPressed: escalado
+        onPressed: escalado || restrito
             ? () {}
             : () async {
                 setState(() {
                   alterar = true;
                 });
-                await Metodo.definirDisponibiliadeParaOCulto(widget.culto);
+                await Metodo.definirDisponibilidadeParaOCulto(widget.culto);
+                setState(() {
+                  alterar = false;
+                });
+              },
+        onLongPress: escalado || disponivel
+            ? () {}
+            : () async {
+                setState(() {
+                  alterar = true;
+                });
+                await Metodo.definirRestricaoParaOCulto(widget.culto);
                 setState(() {
                   alterar = false;
                 });
@@ -224,7 +238,9 @@ class _ViewCultoState extends State<ViewCulto> {
                 ? 'Estou escalado!'
                 : disponivel
                     ? 'Estou disponível!'
-                    : 'Estou disponível?'),
+                    : restrito
+                        ? 'Estou restrito!'
+                        : 'Estou disponível?'),
           ],
         ),
         style: OutlinedButton.styleFrom(
@@ -233,8 +249,10 @@ class _ViewCultoState extends State<ViewCulto> {
               ? Colors.green
               : disponivel
                   ? Colors.blue
-                  : null,
-          primary: escalado || disponivel
+                  : restrito
+                      ? Colors.red
+                      : null,
+          primary: escalado || disponivel || restrito
               ? Colors.white
               : Colors.grey.withOpacity(0.5),
         ),
@@ -284,9 +302,9 @@ class _ViewCultoState extends State<ViewCulto> {
         .then((data) {
       if (data == null) return;
       showTimePicker(
-              context: context, initialTime: TimeOfDay.fromDateTime(data))
+              context: context, initialTime: TimeOfDay.fromDateTime(dataPrevia))
           .then((hora) {
-        if (data == null || hora == null) return;
+        if (hora == null) return;
         var dataHora = Timestamp.fromDate(
             DateTime(data.year, data.month, data.day, hora.hour, hora.minute));
         Metodo.definirDataHoraDoEnsaio(widget.culto, dataHora);
@@ -304,13 +322,16 @@ class _ViewCultoState extends State<ViewCulto> {
           child: Text('LITURGIA'),
         ),
         // Botão para abrir arquivo
-        TextButton.icon(
-            icon: const Icon(Icons.picture_as_pdf),
-            label: const Text('Abrir arquivo'),
-            style: TextButton.styleFrom(padding: EdgeInsets.zero),
-            onPressed: mCulto.liturgiaUrl == null
-                ? null
-                : () => Metodo.abrirArquivoPdf(mCulto.liturgiaUrl)),
+        mCulto.liturgiaUrl == null
+            ? Text(
+                'Arquivo não carregado',
+                style: Theme.of(context).textTheme.caption,
+              )
+            : TextButton(
+                child: const Text('Ver documento'),
+                style: TextButton.styleFrom(padding: EdgeInsets.zero),
+                onPressed: () =>
+                    Metodo.abrirArquivoPdf(context, mCulto.liturgiaUrl)),
         const Expanded(child: SizedBox()),
         // Botão de ação para dirigentes
         IconButton(
@@ -337,15 +358,63 @@ class _ViewCultoState extends State<ViewCulto> {
 
   /// Seção o que falta
   Widget get _rowOqueFalta {
-    var resultado = _verificaEquipe();
-    return Container(
-      color: Colors.amber.withOpacity(0.5),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      child: Text(
-        resultado,
-        style: Theme.of(context).textTheme.labelSmall,
-      ),
-    );
+    return FutureBuilder<QuerySnapshot<Instrumento>>(
+        future: Metodo.getInstrumentos(ativo: true),
+        builder: (context, snapshot) {
+          String resultado;
+          if (!snapshot.hasData) {
+            resultado = 'Analisando equipe...';
+          }
+          if (snapshot.hasError) {
+            resultado = 'Falha ao analisar equipe!';
+          } else {
+            resultado = _verificaEquipe(snapshot.data);
+          }
+          return Container(
+            color: Colors.amber.withOpacity(0.5),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            child: Text(
+              resultado,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          );
+        });
+  }
+
+  /// Verifica se há o mínimo de instrumentos para compor a equipe
+  String _verificaEquipe(QuerySnapshot<Instrumento>? mInstrumentos) {
+    if (mInstrumentos == null) {
+      return 'Sem instrumentos cadastrados';
+    }
+    if (mCulto.equipe == null || mCulto.equipe!.isEmpty) {
+      return 'Escalar equipe!';
+    }
+    List<String> instrumentosEscalados = mCulto.equipe?.keys.toList() ?? [];
+    Map<String, int> faltantes = {};
+    for (var instrumentoSnap in mInstrumentos.docs) {
+      int minimo = instrumentoSnap.data().composMin;
+      int escalados = 0;
+      for (var instrumento in instrumentosEscalados) {
+        if (instrumento == instrumentoSnap.id) {
+          escalados++;
+        }
+      }
+      if (escalados < minimo) {
+        faltantes.putIfAbsent(
+            instrumentoSnap.data().nome, () => minimo - escalados);
+      }
+    }
+
+    // Regras
+    if (faltantes.isNotEmpty) {
+      var resultado = 'Falta(m): ';
+      for (var falta in faltantes.entries) {
+        resultado += '${falta.value} ${falta.key}; ';
+      }
+      resultado = resultado.substring(0, resultado.length - 2) + '.';
+      return resultado;
+    }
+    return 'Equipe mínima completa!';
   }
 
   /// Seção escalados
@@ -359,9 +428,7 @@ class _ViewCultoState extends State<ViewCulto> {
     for (var entrada in dados.entries) {
       var instrumentoId = entrada.key;
       var integrantes = entrada.value;
-      if (integrantes == null || integrantes.isEmpty) {
-        escalados.add(const SizedBox());
-      } else {
+      if (integrantes != null && integrantes.isNotEmpty) {
         for (var integrante in integrantes) {
           escalados.add(
               _cardIntegranteInstrumento(integrante, instrumentoId, funcao));
@@ -371,11 +438,10 @@ class _ViewCultoState extends State<ViewCulto> {
     return Padding(
       padding: const EdgeInsets.only(left: 12, right: 12, top: 0, bottom: 8),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
-            mainAxisSize: MainAxisSize.max,
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               // Título
               Text(titulo.toUpperCase()),
@@ -396,6 +462,11 @@ class _ViewCultoState extends State<ViewCulto> {
             runSpacing: 8,
             children: escalados,
           ),
+          /* GridView.count(
+            shrinkWrap: true,
+            crossAxisCount: escalados.length,
+            children: escalados,
+          ), */
         ],
       ),
     );
@@ -408,9 +479,9 @@ class _ViewCultoState extends State<ViewCulto> {
   ) {
     return FutureBuilder<DocumentSnapshot<Integrante>>(
         future: refIntegrante?.get(),
-        builder: (_, integ) {
-          if (!integ.hasData) return const SizedBox();
-          var integrante = integ.data;
+        builder: (_, snapIntegrante) {
+          if (!snapIntegrante.hasData) return const SizedBox();
+          var integrante = snapIntegrante.data;
           var nomeIntegrante = integrante?.data()?.nome ?? '[Sem nome]';
           var nomePrimeiro = nomeIntegrante.split(' ').first;
           var nomeSegundo = nomeIntegrante.split(' ').last;
@@ -430,15 +501,17 @@ class _ViewCultoState extends State<ViewCulto> {
                       )
                       .get(),
               builder: (_, instr) {
-                var instrumento;
+                Instrumento? instrumento;
                 if (!instr.hasError) {
                   instrumento = instr.data?.data();
                 }
+                var deviceWidth =
+                    MediaQuery.of(context).size.width - 8 - 16 - 24;
+                //dev.log(deviceWidth.toString());
                 // Box
                 return Container(
-                  width: 112,
-                  height: 128,
-                  padding: const EdgeInsets.all(8),
+                  width: 172,
+                  padding: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
                     border: Border.all(
                       width: 1,
@@ -452,53 +525,50 @@ class _ViewCultoState extends State<ViewCulto> {
                   ),
                   // Pilha
                   child: Stack(
-                    alignment: Alignment.topRight,
+                    alignment: Alignment.topLeft,
                     children: [
-                      Column(
-                        mainAxisSize: MainAxisSize.max,
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                      Row(
                         children: [
                           // Foto do integrante
-                          SizedBox(
-                            width: 36,
-                            height: 36,
-                            child: IconTheme.merge(
-                              data: Theme.of(context).iconTheme,
-                              child: CircleAvatar(
-                                child: const Icon(
-                                  Icons.person,
-                                  color: Colors.grey,
+                          const SizedBox(width: 8),
+                          CircleAvatar(
+                            child: const Icon(
+                              Icons.person,
+                              color: Colors.grey,
+                            ),
+                            foregroundImage: MyNetwork.getImageFromUrl(
+                                    integrante?.data()?.fotoUrl, 16)
+                                ?.image,
+                            backgroundColor: Colors.grey.withOpacity(0.5),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Nome do integrante
+                                Text(
+                                  nomeIntegrante,
+                                  maxLines: 1,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyLarge!
+                                      .copyWith(
+                                        fontWeight: FontWeight.bold,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
                                 ),
-                                foregroundImage:
-                                    /* MyNetwork.getImageFromUrl(
-                                      integrante?.data()?.fotoUrl, 16)
-                                  ?.image, */
-
-                                    NetworkImage(
-                                        integrante?.data()?.fotoUrl ?? ''),
-                                backgroundColor: Colors.grey.shade200,
-                                //radius: 4,
-                              ),
+                                // Instrumento para o qual está escalado
+                                Text(
+                                  instrumento?.nome ?? '',
+                                  textAlign: TextAlign.center,
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                ),
+                              ],
                             ),
                           ),
-                          const SizedBox(height: 8),
-                          // Nome do integrante
-                          Text(
-                            nomeIntegrante,
-                            textAlign: TextAlign.center,
-                            maxLines: 2,
-                            style: Theme.of(context)
-                                .textTheme
-                                .bodyLarge!
-                                .copyWith(fontWeight: FontWeight.bold),
-                          ),
-                          // Instrumento para o qual está escalado
-                          Text(
-                            instrumento?.nome ?? '',
-                            textAlign: TextAlign.center,
-                            style: Theme.of(context).textTheme.bodySmall,
-                          ),
+                          const SizedBox(width: 8),
                         ],
                       ),
                       // Imagem do instrumento
@@ -509,7 +579,7 @@ class _ViewCultoState extends State<ViewCulto> {
                                 : funcao == Funcao.coordenador
                                     ? 'assets/icons/music_coordenador.png'
                                     : 'assets/icons/ic_launcher.png'),
-                        width: 20,
+                        width: 16,
                         color: Theme.of(context)
                             .colorScheme
                             .inverseSurface
@@ -553,6 +623,14 @@ class _ViewCultoState extends State<ViewCulto> {
         false;
   }
 
+  /// Verifica se usuário está restrito
+  bool get _usuarioRestrito {
+    return mCulto.restritos
+            ?.map((e) => e.toString())
+            .contains(Global.integranteLogado?.reference.toString()) ??
+        false;
+  }
+
   /// Verifica se usuário está escalado
   bool get _usuarioEscalado {
     if (mCulto.dirigente.toString() ==
@@ -564,62 +642,21 @@ class _ViewCultoState extends State<ViewCulto> {
     if (mCulto.equipe == null || mCulto.equipe!.isEmpty) {
       return false;
     }
-    for (var integrante in mCulto.equipe!.values) {
-      if (integrante.toString() ==
-          Global.integranteLogado?.reference.toString()) {
-        return true;
+    for (var instrumentosEquipe in mCulto.equipe!.values.toList()) {
+      for (var integrante in instrumentosEquipe) {
+        if (integrante.toString() ==
+            Global.integranteLogado?.reference.toString()) {
+          return true;
+        }
       }
     }
     return false;
-  }
-
-  /// Verifica na equipe se há no mínimo:
-  /// - 1 dirigente
-  /// - 1 vocal
-  /// - 1 guitarra ou 1 violão
-  /// - 1 baixo
-  /// - 1 teclado
-  /// - 1 sonoplasta
-  /// - 1 transmissão
-  String _verificaEquipe() {
-    if (mCulto.equipe == null || mCulto.equipe!.isEmpty) {
-      return 'Escalar equipe!';
-    }
-    List<String> lista = [];
-    for (var instrumento in mCulto.equipe!.keys) {
-      lista.add(instrumento);
-    }
-    // Regras
-    if (lista.isEmpty) return 'Falta: Voz, Violão, Teclado, Sonorização';
-    return 'Equipe completa!';
   }
 
   void _escalarIntegrante(
     Funcao funcao,
     Map<String, List<DocumentReference<Integrante>>>? instrumentosIntegrantes,
   ) {
-    Map<Funcao, Map<String, List<String>?>>? selecionados = {};
-    switch (funcao) {
-      case Funcao.dirigente:
-        selecionados = {
-          funcao: {
-            'Dirigente': [mCulto.dirigente.toString()]
-          }
-        };
-        break;
-      case Funcao.coordenador:
-        selecionados = {
-          funcao: {
-            'Coordenador': [mCulto.coordenador.toString()]
-          }
-        };
-        break;
-      case Funcao.integrante:
-        selecionados = {funcao: Map.from(instrumentosIntegrantes!)};
-        break;
-      default:
-        break;
-    }
     showDialog(
         context: context,
         builder: (context) {

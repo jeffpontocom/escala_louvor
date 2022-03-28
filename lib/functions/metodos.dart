@@ -2,16 +2,20 @@ import 'dart:async';
 import 'dart:developer' as dev;
 import 'dart:io';
 
+import 'package:http/http.dart' as http;
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:firebase_core/firebase_core.dart' as firebase_core;
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:printing/printing.dart';
 
 import '../global.dart';
+import '../utils/mensagens.dart';
 import '/models/culto.dart';
 import '/models/igreja.dart';
 import '/models/instrumento.dart';
@@ -63,7 +67,7 @@ class Metodo {
     return FirebaseFirestore.instance
         .collection(Instrumento.collection)
         .where('ativo', isEqualTo: ativos)
-        .orderBy('nome')
+        .orderBy('ordem')
         .withConverter<Instrumento>(
           fromFirestore: (snapshot, _) =>
               Instrumento.fromJson(snapshot.data()!),
@@ -157,12 +161,12 @@ class Metodo {
   static Future<UserCredential?> criarUsuario(
       {required String email, required String senha}) async {
     FirebaseApp tempApp = await Firebase.initializeApp(
-        name: 'AppTemporario', options: Firebase.app().options);
+        name: 'AppTemp', options: Firebase.app().options);
     UserCredential? userCredential;
     try {
       userCredential = await FirebaseAuth.instanceFor(app: tempApp)
           .createUserWithEmailAndPassword(email: email, password: senha);
-      //userCredential.user?.sendEmailVerification();
+      await Global.auth.sendPasswordResetEmail(email: email);
     } on FirebaseAuthException catch (e) {
       dev.log(e.toString());
     }
@@ -177,6 +181,19 @@ class Metodo {
         .where('ativo', isEqualTo: ativo)
         .get();
     return snap.docs.length;
+  }
+
+  /// Lista de Integrantes
+  static Future<QuerySnapshot<Igreja>> getIgrejas({required bool ativo}) async {
+    return FirebaseFirestore.instance
+        .collection(Igreja.collection)
+        .where('ativo', isEqualTo: ativo)
+        .orderBy('sigla')
+        .withConverter<Igreja>(
+          fromFirestore: (snapshot, _) => Igreja.fromJson(snapshot.data()!),
+          toFirestore: (model, _) => model.toJson(),
+        )
+        .get();
   }
 
   /// Lista de Integrantes
@@ -318,12 +335,29 @@ class Metodo {
   }
 
   /// Abrir arquivo PDF
-  static void abrirArquivoPdf(String? url) {
+  static void abrirArquivoPdf(BuildContext context, String? url) async {
     if (url == null || url.isEmpty) return;
     dev.log('TODO: abrir PDF');
+    try {
+      var data = await http.get(Uri.parse(url));
+      Mensagem.showPdf(
+        context: context,
+        titulo: 'Arquivo',
+        conteudo: PdfPreview(
+          build: (format) {
+            return data.bodyBytes;
+          },
+          canDebug: false,
+          canChangeOrientation: false,
+          canChangePageFormat: false,
+        ),
+      );
+    } catch (e) {
+      throw Exception("Error opening url file");
+    }
   }
 
-  static Future<bool> definirDisponibiliadeParaOCulto(
+  static Future<bool> definirDisponibilidadeParaOCulto(
       DocumentReference<Culto> reference) async {
     if (Global.integranteLogado == null) {
       dev.log('Valores nulos');
@@ -353,6 +387,47 @@ class Metodo {
       try {
         await culto.reference.update({
           'disponiveis':
+              FieldValue.arrayUnion([Global.integranteLogado!.reference])
+        });
+        dev.log('Adicionado com Sucesso');
+        return true;
+      } catch (e) {
+        dev.log('Erro: ${e.toString()}');
+        return false;
+      }
+    }
+  }
+
+  static Future<bool> definirRestricaoParaOCulto(
+      DocumentReference<Culto> reference) async {
+    if (Global.integranteLogado == null) {
+      dev.log('Valores nulos');
+      return false;
+    }
+    var culto = await obterSnapshotCulto(reference.id);
+    if (culto == null) return false;
+    bool exist = culto
+            .data()!
+            .restritos
+            ?.map((e) => e.toString())
+            .contains(Global.integranteLogado!.reference.toString()) ??
+        false;
+    if (exist) {
+      try {
+        await culto.reference.update({
+          'restritos':
+              FieldValue.arrayRemove([Global.integranteLogado!.reference])
+        });
+        dev.log('Removido com Sucesso');
+        return true;
+      } catch (e) {
+        dev.log('Erro: ${e.toString()}');
+        return false;
+      }
+    } else {
+      try {
+        await culto.reference.update({
+          'restritos':
               FieldValue.arrayUnion([Global.integranteLogado!.reference])
         });
         dev.log('Adicionado com Sucesso');

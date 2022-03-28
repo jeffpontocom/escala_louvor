@@ -133,10 +133,12 @@ class _PerfilPageState extends State<PerfilPage> {
                               // Foto do Integrante
                               Hero(
                                 tag: widget.id,
-                                child: const Icon(
-                                  Icons.account_circle,
-                                  size: 128.0,
-                                  color: Colors.grey,
+                                child: CircleAvatar(
+                                  child: const Icon(Icons.person, size: 64),
+                                  foregroundImage: MyNetwork.getImageFromUrl(
+                                          _integrante.fotoUrl, null)
+                                      ?.image,
+                                  radius: 96,
                                 ),
                               ),
                               const SizedBox(height: 8),

@@ -79,7 +79,7 @@ class MyInputs {
   }
 
   /// Gerar string aleatória
-  static String stringAleatoria(int length) {
+  static String randomString(int length) {
     const ch = 'AaBbCcDdEeFfGgHhIiJjKkLlMmNnOoPpQqRrSsTtUuVvWwXxYyZz';
     Random r = Random();
     return String.fromCharCodes(

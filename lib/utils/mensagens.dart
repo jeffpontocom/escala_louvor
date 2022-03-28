@@ -210,4 +210,24 @@ class Mensagem {
       if (onPressed != null) onPressed();
     });
   }
+
+  /// Apresenta popup no padrão bottom dialog
+  static void showPdf(
+      {required BuildContext context,
+      required String titulo,
+      required Widget conteudo}) {
+    ScrollController _scrollControler = ScrollController();
+    bottomDialog(
+      context: context,
+      titulo: titulo,
+      conteudo: SingleChildScrollView(
+        controller: _scrollControler,
+        child: SizedBox(
+          height: MediaQuery.of(context).size.height * 0.75,
+          child: conteudo,
+        ),
+      ),
+      scrollController: _scrollControler,
+    );
+  }
 }

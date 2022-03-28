@@ -5,6 +5,7 @@ import 'package:escala_louvor/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 
+import 'models/integrante.dart';
 import 'preferencias.dart';
 import 'global.dart';
 import 'models/igreja.dart';
@@ -75,75 +76,100 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     dev.log('HOME PAGE Build');
-    return Scaffold(
-      // APP BAR
-      appBar: AppBar(
-        // Ícone da aplicação
-        leading: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Image.asset('assets/icons/ic_launcher.png'),
-        ),
-        // Título da aplicação
-        title: Text(
-          _telas[_telaSelecionada]['titulo'],
-          style: Estilo.appBarTitulo,
-        ),
-        titleSpacing: 0,
-        // Ações
-        actions: [
-          // Tela administrador
-          IconButton(
-            onPressed: () => Modular.to.pushNamed('/admin'),
-            icon: const Icon(Icons.admin_panel_settings),
-          ),
-          // Tela perfil do usuário
-          IconButton(
-            onPressed: () => Modular.to
-                .pushNamed('/perfil?id=${Global.auth.currentUser?.uid ?? ''}'),
-            icon: CircleAvatar(
-              child: const Icon(Icons.person),
-              foregroundImage: Global.integranteLogado?.data()?.fotoUrl == null
-                  ? null
-                  : Image.network(Global.integranteLogado!.data()!.fotoUrl!)
-                      .image,
+    return StreamBuilder<DocumentSnapshot<Integrante>?>(
+        stream: FirebaseFirestore.instance
+            .collection(Integrante.collection)
+            .doc(Global.auth.currentUser?.uid)
+            .withConverter<Integrante>(
+                fromFirestore: (snapshot, _) =>
+                    Integrante.fromJson(snapshot.data()!),
+                toFirestore: (pacote, _) => pacote.toJson())
+            .get()
+            .asStream(),
+        builder: (_, snapshotIntegrante) {
+          Global.integranteLogado = snapshotIntegrante.data;
+          dev.log('Integrante ID: ${Global.integranteLogado?.id}');
+          if (!snapshotIntegrante.hasData) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (snapshotIntegrante.hasError) {
+            return const Center(
+                child: Text('Falha: integrante não localizado!'));
+          }
+          return Scaffold(
+            // APP BAR
+            appBar: AppBar(
+              // Ícone da aplicação
+              leading: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Image.asset('assets/icons/ic_launcher.png'),
+              ),
+              // Título da aplicação
+              title: Text(
+                _telas[_telaSelecionada]['titulo'],
+                style: Estilo.appBarTitulo,
+              ),
+              titleSpacing: 0,
+              // Ações
+              actions: [
+                // Tela administrador
+                IconButton(
+                  onPressed: () => Modular.to.pushNamed('/admin'),
+                  icon: const Icon(Icons.admin_panel_settings),
+                ),
+                // Tela perfil do usuário
+                IconButton(
+                  onPressed: () => Modular.to.pushNamed(
+                      '/perfil?id=${Global.auth.currentUser?.uid ?? ''}'),
+                  icon: CircleAvatar(
+                    child: const Icon(Icons.person),
+                    foregroundImage: MyNetwork.getImageFromUrl(
+                            Global.integranteLogado?.data()?.fotoUrl, 12)
+                        ?.image,
+                  ),
+                ),
+              ],
             ),
-          ),
-        ],
-      ),
-      // CORPO
-      body: _telas[_telaSelecionada]['tela'],
-      // NAVIGATION BAR
-      bottomNavigationBar: BottomNavigationBar(
-        items: _navigationItens,
-        currentIndex: _telaSelecionada,
-        selectedItemColor: Colors.blue,
-        unselectedItemColor: Colors.grey.withOpacity(0.5),
-        type: BottomNavigationBarType.shifting,
-        onTap: (index) {
-          if (index == 4) return;
-          setState(() {
-            _telaSelecionada = index;
-          });
-        },
-      ),
-      // FLOAT ACTION
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Mensagem.bottomDialog(
-            context: context,
-            titulo: 'Selecionar igreja ou local',
-            conteudo: _igrejas,
+            // CORPO
+            body: _telas[_telaSelecionada]['tela'],
+            // NAVIGATION BAR
+            bottomNavigationBar: BottomNavigationBar(
+              items: _navigationItens,
+              currentIndex: _telaSelecionada,
+              selectedItemColor: Colors.blue,
+              unselectedItemColor: Colors.grey.withOpacity(0.5),
+              type: BottomNavigationBarType.shifting,
+              onTap: (index) {
+                if (index == 4) return;
+                setState(() {
+                  _telaSelecionada = index;
+                });
+              },
+            ),
+            // FLOAT ACTION
+            floatingActionButton: FloatingActionButton(
+              onPressed: () {
+                Mensagem.bottomDialog(
+                  context: context,
+                  titulo: 'Selecionar igreja ou local',
+                  conteudo: _igrejas,
+                );
+              },
+              child: const Icon(Icons.church),
+            ),
+            floatingActionButtonLocation:
+                FloatingActionButtonLocation.endDocked,
           );
-        },
-        child: const Icon(Icons.church),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
-    );
+        });
+  }
+
+  void _refresh() {
+    setState(() {});
   }
 
   Widget get _igrejas {
-    return StreamBuilder<QuerySnapshot<Igreja>>(
-        stream: Metodo.escutarIgrejas(ativos: true),
+    return FutureBuilder<QuerySnapshot<Igreja>>(
+        future: Metodo.getIgrejas(ativo: true),
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
             return const Center(
@@ -187,6 +213,7 @@ class _HomePageState extends State<HomePage> {
                         Modular.to.pop(); // fecha progresso
                         Modular.to.pop(); // fecha dialog
                         setState(() {});
+                        _refresh();
                       },
                       child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,

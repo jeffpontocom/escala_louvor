@@ -31,7 +31,7 @@ class TelaAgenda extends StatelessWidget {
 
     void _dialogNovoCulto() async {
       if (Global.igrejaAtual == null) {
-        // TODO: Utilizar a mesma interface do floatbutton em Home
+        // TODO: Utilizar a mesma interface do float button em Home
         Mensagem.bottomDialog(
           context: context,
           titulo: 'Selecione uma igreja',

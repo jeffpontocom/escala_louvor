@@ -108,8 +108,9 @@ class AdminPage extends StatelessWidget {
                             return ListTile(
                               leading: CircleAvatar(
                                 child: const Icon(Icons.church),
-                                foregroundImage:
-                                    NetworkImage(igreja.fotoUrl ?? ''),
+                                foregroundImage: MyNetwork.getImageFromUrl(
+                                        igreja.fotoUrl, null)
+                                    ?.image,
                               ),
                               title: Text(igreja.sigla),
                               subtitle: Text(igreja.nome),
@@ -160,30 +161,37 @@ class AdminPage extends StatelessWidget {
                         }
                       },
                       icon: const Icon(Icons.add_a_photo)),
-                  foregroundImage: NetworkImage(igreja!.fotoUrl ?? ''),
+                  foregroundImage:
+                      MyNetwork.getImageFromUrl(igreja?.fotoUrl, null)?.image,
                   radius: 48,
                 );
               }),
               const SizedBox(width: 24),
-              // Sigla
               Expanded(
-                child: TextFormField(
-                  initialValue: igreja.sigla,
-                  decoration: const InputDecoration(labelText: 'Sigla'),
-                  onChanged: (value) {
-                    igreja!.sigla = value;
-                  },
-                ),
-              ),
+                  child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Sigla
+                  TextFormField(
+                    initialValue: igreja.sigla,
+                    decoration: const InputDecoration(labelText: 'Sigla'),
+                    onChanged: (value) {
+                      igreja!.sigla = value;
+                    },
+                  ),
+                  // Nome
+                  TextFormField(
+                    initialValue: igreja.nome,
+                    decoration:
+                        const InputDecoration(labelText: 'Nome completo'),
+                    onChanged: (value) {
+                      igreja!.nome = value;
+                    },
+                  ),
+                ],
+              )),
             ],
-          ),
-          // Nome
-          TextFormField(
-            initialValue: igreja.nome,
-            decoration: const InputDecoration(labelText: 'Nome completo'),
-            onChanged: (value) {
-              igreja!.nome = value;
-            },
           ),
           // Endereço
           TextFormField(
@@ -197,7 +205,7 @@ class AdminPage extends StatelessWidget {
           FutureBuilder<QuerySnapshot<Integrante>?>(
             future: Metodo.getIntegrantes(ativo: true),
             builder: ((context, snapshot) {
-              // Chave para resetar Formularios
+              // Chave para redefinir formulários
               final GlobalKey<FormFieldState> _key =
                   GlobalKey<FormFieldState>();
               // Lista dos integrantes ativos
@@ -345,29 +353,68 @@ class AdminPage extends StatelessWidget {
                     child: CircularProgressIndicator(),
                   );
                 }
-                return snapshot.data!.docs.isEmpty
-                    ? const Center(
-                        heightFactor: 10,
-                        child: Text('Nenhum instrumento cadastrado'),
-                      )
-                    : ListView(
-                        shrinkWrap: true,
-                        children: List.generate(snapshot.data!.size, (index) {
-                          Instrumento instrumento =
-                              snapshot.data!.docs[index].data();
-                          DocumentReference reference =
-                              snapshot.data!.docs[index].reference;
-                          return ListTile(
-                            leading:
-                                Image.asset(instrumento.iconAsset, width: 28),
-                            title: Text(instrumento.nome),
-                            subtitle: Text(
-                                'Composição: mínima ${instrumento.composMin} | máxima ${instrumento.composMax}'),
-                            onTap: () => _editarInstrumento(context,
-                                instrumento: instrumento, id: reference.id),
-                          );
-                        }),
-                      );
+                if (snapshot.hasError) {
+                  return const Center(
+                    heightFactor: 10,
+                    child: Text('Falha ao buscar instrumentos'),
+                  );
+                }
+                if (snapshot.data!.docs.isEmpty) {
+                  return const Center(
+                    heightFactor: 10,
+                    child: Text('Nenhum instrumento cadastrado'),
+                  );
+                }
+                List<Widget> _list =
+                    List.generate(snapshot.data!.size, (index) {
+                  Instrumento instrumento = snapshot.data!.docs[index].data();
+                  DocumentReference reference =
+                      snapshot.data!.docs[index].reference;
+                  return ListTile(
+                    key: Key(reference.id),
+                    leading: Image.asset(instrumento.iconAsset, width: 28),
+                    title: Text(instrumento.nome),
+                    subtitle: Text(
+                        'Composição: mínima ${instrumento.composMin} | máxima ${instrumento.composMax}'),
+                    onTap: () => _editarInstrumento(context,
+                        instrumento: instrumento, id: reference.id),
+                  );
+                });
+                return ReorderableListView(
+                  shrinkWrap: true,
+                  children: _list,
+                  onReorder: (int start, int current) async {
+                    // dragging from top to bottom
+                    if (start < current) {
+                      int end = current - 1;
+                      Widget startItem = _list[start];
+                      int i = 0;
+                      int local = start;
+                      do {
+                        await snapshot.data?.docs[local].reference
+                            .update({'ordem': ++local});
+                        //_list[local] = _list[++local];
+                        i++;
+                      } while (i < end - start);
+                      //await snapshot.data?.docs[end].reference
+                      //    .update({'ordem': startItem});
+                      _list[end] = startItem;
+                    }
+                    // dragging from bottom to top
+                    else if (start > current) {
+                      Widget startItem = _list[start];
+                      for (int i = start; i > current; i--) {
+                        await snapshot.data?.docs[i].reference
+                            .update({'ordem': i - 1});
+                        //_list[i] = _list[i - 1];
+                      }
+                      //await snapshot.data?.docs[current].reference
+                      //    .update({'ordem': startItem});
+                      _list[current] = startItem;
+                    }
+                    innerState(() {});
+                  },
+                );
               }),
             ),
             const SizedBox(height: 16),
@@ -895,8 +942,7 @@ class AdminPage extends StatelessWidget {
               // Salva os dados no firebase
               if (novoCadastro) {
                 var auth = await Metodo.criarUsuario(
-                    email: integrante!.email,
-                    senha: MyInputs.stringAleatoria(10));
+                    email: integrante!.email, senha: MyInputs.randomString(10));
                 id = auth?.user?.uid;
               }
               if (id == null) {

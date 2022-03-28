@@ -1,8 +1,5 @@
 import 'dart:developer' as dev;
 
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:escala_louvor/global.dart';
-import 'package:escala_louvor/models/integrante.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
@@ -39,52 +36,40 @@ class MyApp extends StatelessWidget {
     return StreamBuilder<User?>(
         stream: FirebaseAuth.instance.userChanges(),
         builder: (_, snapshotUser) {
-          return StreamBuilder<DocumentSnapshot<Integrante>?>(
-              stream: FirebaseFirestore.instance
-                  .collection(Integrante.collection)
-                  .doc(snapshotUser.data?.uid)
-                  .withConverter<Integrante>(
-                      fromFirestore: (snapshot, _) =>
-                          Integrante.fromJson(snapshot.data()!),
-                      toFirestore: (pacote, _) => pacote.toJson())
-                  .get()
-                  .asStream(),
-              builder: (_, snapshotIntegrante) {
-                Global.integranteLogado = snapshotIntegrante.data;
-                dev.log(
-                    'Usuário: ${Global.integranteLogado?.id ?? "Não está logado!"}');
-                return MaterialApp.router(
-                  title: 'Escala do Louvor',
-                  theme: ThemeData(
-                    primarySwatch: Colors.blue,
-                    visualDensity: kIsWeb
-                        ? VisualDensity.comfortable
-                        : VisualDensity.adaptivePlatformDensity,
-                  ),
-                  darkTheme: ThemeData(
-                    primarySwatch: Colors.blue,
-                    colorScheme: const ColorScheme.dark(
-                      primary: Colors.blue,
-                      secondary: Colors.lightBlue,
-                    ),
-                    brightness: Brightness.dark,
-                    visualDensity: kIsWeb
-                        ? VisualDensity.comfortable
-                        : VisualDensity.adaptivePlatformDensity,
-                  ),
-                  scrollBehavior: MyCustomScrollBehavior(),
-                  // Suporte a lingua português nos elementos globais
-                  localizationsDelegates: const [
-                    GlobalMaterialLocalizations.delegate,
-                    GlobalCupertinoLocalizations.delegate,
-                  ],
-                  supportedLocales: const [Locale('pt')],
-                  locale: const Locale('pt_BR'),
-                  // Navegação
-                  routeInformationParser: Modular.routeInformationParser,
-                  routerDelegate: Modular.routerDelegate,
-                );
-              });
+          dev.log(
+              'FirebaseAuth change: ${snapshotUser.data?.email ?? 'Não logado!'}');
+          return MaterialApp.router(
+            title: 'Escala do Louvor',
+            theme: ThemeData(
+              primarySwatch: Colors.blue,
+              visualDensity: kIsWeb
+                  ? VisualDensity.comfortable
+                  : VisualDensity.adaptivePlatformDensity,
+            ),
+            darkTheme: ThemeData(
+              primarySwatch: Colors.blue,
+              colorScheme: const ColorScheme.dark(
+                primary: Colors.blue,
+                secondary: Colors.lightBlue,
+              ),
+              brightness: Brightness.dark,
+              visualDensity: kIsWeb
+                  ? VisualDensity.comfortable
+                  : VisualDensity.adaptivePlatformDensity,
+            ),
+            scrollBehavior: MyCustomScrollBehavior(),
+            // Suporte a lingua português nos elementos globais
+            localizationsDelegates: const [
+              GlobalMaterialLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: const [Locale('pt')],
+            locale: const Locale('pt_BR'),
+            // Navegação
+            routeInformationParser: Modular.routeInformationParser,
+            routerDelegate: Modular.routerDelegate,
+          );
+          //});
         });
   }
 }

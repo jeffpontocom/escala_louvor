@@ -27,8 +27,6 @@ String funcaoToString(Funcao funcao) {
       return 'Leitor';
     case Funcao.sudo:
       return 'SUDO';
-    default:
-      return '[indefinida]';
   }
 }
 

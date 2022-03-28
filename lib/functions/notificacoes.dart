@@ -185,8 +185,14 @@ class Notificacoes {
       await http.post(
         Uri.parse('https://api.rnfirebase.io/messaging/send'),
         headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
+          'Content-Type': 'application/json; charset=UTF-8'
         },
+        /* Uri.parse(
+            'https://fcm.googleapis.com/v1/projects/escala-louvor-ipbfoz/messages:send'),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+          'Authorization': 'Bearer ' + (_token ?? ''),
+        }, */
         body: _construirFCMPayload(_token),
       );
       dev.log('Solicitação de FCM enviada com sucesso!');
