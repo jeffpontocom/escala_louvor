@@ -4,7 +4,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:escala_louvor/functions/metodos.dart';
 import 'package:escala_louvor/functions/notificacoes.dart';
 import 'package:escala_louvor/utils/mensagens.dart';
-import 'package:escala_louvor/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:intl/intl.dart';
@@ -52,7 +51,7 @@ class _ViewCultoState extends State<ViewCulto> {
                     // Dados sobre o culto
                     Expanded(child: _cultoData),
                     // Botão de disponibilidade
-                    _botaoDisponibilidade,
+                    _buttonDisponibilidade,
                   ],
                 ),
               ),
@@ -78,7 +77,7 @@ class _ViewCultoState extends State<ViewCulto> {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         // Dirigente
-                        _secaoEscalados(
+                        _sectionEscalados(
                           'Dirigente',
                           Funcao.dirigente,
                           {
@@ -87,7 +86,7 @@ class _ViewCultoState extends State<ViewCulto> {
                           () => _escalarDirigente(),
                         ),
                         // Coordenador
-                        _secaoEscalados(
+                        _sectionEscalados(
                           'Coord. técnico',
                           Funcao.coordenador,
                           {
@@ -98,7 +97,7 @@ class _ViewCultoState extends State<ViewCulto> {
                       ],
                     ),
                     // Escalados (Equipe)
-                    _secaoEscalados(
+                    _sectionEscalados(
                       'Equipe',
                       Funcao.integrante,
                       mCulto.equipe ?? {},
@@ -190,7 +189,7 @@ class _ViewCultoState extends State<ViewCulto> {
   }
 
   /// Botão disponibilidade
-  Widget get _botaoDisponibilidade {
+  Widget get _buttonDisponibilidade {
     bool alterar = false;
     return StatefulBuilder(builder: (context, setState) {
       bool escalado = _usuarioEscalado;
@@ -350,7 +349,7 @@ class _ViewCultoState extends State<ViewCulto> {
   }
 
   /// Seção escalados
-  Widget _secaoEscalados(
+  Widget _sectionEscalados(
     String titulo,
     Funcao funcao,
     Map<String?, List<DocumentReference<Integrante>?>?> dados,

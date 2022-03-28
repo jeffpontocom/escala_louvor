@@ -5,10 +5,15 @@
         "Cantico",
         "canticos",
         "conteudo",
+        "disponiveis",
         "firestore",
         "grey",
+        "Metodo",
         "metodos",
         "notificacoes",
-        "ocasiao"
+        "observacoes",
+        "ocasiao",
+        "Permissao",
+        "usuario"
     ]
 }

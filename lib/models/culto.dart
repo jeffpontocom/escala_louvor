@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 import 'cantico.dart';
 import 'igreja.dart';
-import 'instrumento.dart';
 import 'integrante.dart';
 
 class Culto {
@@ -12,9 +11,10 @@ class Culto {
   late DocumentReference<Igreja> igreja;
   String? ocasiao;
   List<DocumentReference<Integrante>>? disponiveis;
+  List<DocumentReference<Integrante>>? restritos;
   DocumentReference<Integrante>? dirigente;
   DocumentReference<Integrante>? coordenador;
-  // Esse map entrega: {instrumento id: lista de integrantes}
+  // Esse map entrega: {id do instrumento: lista de integrantes}
   Map<String, List<DocumentReference<Integrante>>>? equipe;
   Timestamp? dataEnsaio;
   List<DocumentReference<Cantico>>? canticos;
@@ -26,6 +26,7 @@ class Culto {
     required this.igreja,
     this.ocasiao,
     this.disponiveis,
+    this.restritos,
     this.dirigente,
     this.coordenador,
     this.equipe,
@@ -40,7 +41,8 @@ class Culto {
           dataCulto: (json['dataCulto'] ?? Timestamp.now()) as Timestamp,
           igreja: _getIgreja(json['igreja']),
           ocasiao: json['ocasiao'] as String?,
-          disponiveis: _getDisponiveis(json['disponiveis']),
+          disponiveis: _getIntegrantes(json['disponiveis']),
+          restritos: _getIntegrantes(json['restritos']),
           dirigente: _getIntegrante(json['dirigente']),
           coordenador: _getIntegrante(json['coordenador']),
           equipe: _getEquipe(json['equipe']),
@@ -56,6 +58,7 @@ class Culto {
       'igreja': igreja,
       'ocasiao': ocasiao,
       'disponiveis': disponiveis,
+      'restritos': restritos,
       'dirigente': dirigente,
       'coordenador': coordenador,
       'equipe': equipe,
@@ -66,18 +69,6 @@ class Culto {
     };
   }
 
-  static List<DocumentReference<Integrante>>? _getDisponiveis(var json) {
-    if (json == null) return null;
-    return List<DocumentReference<Integrante>>.from(
-      (json as List<dynamic>).map(
-        (doc) => (doc as DocumentReference).withConverter<Integrante>(
-          fromFirestore: (snapshot, _) => Integrante.fromJson(snapshot.data()!),
-          toFirestore: (model, _) => model.toJson(),
-        ),
-      ),
-    );
-  }
-
   static DocumentReference<Igreja> _getIgreja(var json) {
     if (json == null) {
       return FirebaseFirestore.instance.collection(Igreja.collection).doc()
@@ -86,6 +77,18 @@ class Culto {
     return (json as DocumentReference).withConverter<Igreja>(
       fromFirestore: (snapshot, _) => Igreja.fromJson(snapshot.data()!),
       toFirestore: (model, _) => model.toJson(),
+    );
+  }
+
+  static List<DocumentReference<Integrante>>? _getIntegrantes(var json) {
+    if (json == null) return null;
+    return List<DocumentReference<Integrante>>.from(
+      (json as List<dynamic>).map(
+        (doc) => (doc as DocumentReference).withConverter<Integrante>(
+          fromFirestore: (snapshot, _) => Integrante.fromJson(snapshot.data()!),
+          toFirestore: (model, _) => model.toJson(),
+        ),
+      ),
     );
   }
 
@@ -128,23 +131,7 @@ class Culto {
         );
       }),
     );
-
-    /* Map<DocumentReference<Instrumento>,
-        DocumentReference<Integrante>>.from(
-      (json as Map<dynamic, dynamic>).map((key, value) {
-        return MapEntry(
-          (key as DocumentReference).withConverter<Instrumento>(
-            fromFirestore: (snapshot, _) =>
-                Instrumento.fromJson(snapshot.data()!),
-            toFirestore: (model, _) => model.toJson(),
-          ),
-          (value as DocumentReference).withConverter<Integrante>(
-            fromFirestore: (snapshot, _) =>
-                Integrante.fromJson(snapshot.data()!),
-            toFirestore: (model, _) => model.toJson(),
-          ),
-        );
-      }),
-    ); */
   }
+
+  // FIM
 }
