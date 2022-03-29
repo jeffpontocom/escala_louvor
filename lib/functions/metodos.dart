@@ -217,6 +217,7 @@ class Metodo {
     return FirebaseFirestore.instance
         .collection(Instrumento.collection)
         .where('ativo', isEqualTo: ativo)
+        .orderBy('ordem')
         .withConverter<Instrumento>(
           fromFirestore: (snapshot, _) =>
               Instrumento.fromJson(snapshot.data()!),

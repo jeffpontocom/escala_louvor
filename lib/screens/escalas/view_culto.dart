@@ -79,21 +79,17 @@ class _ViewCultoState extends State<ViewCulto> {
                       //mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         // Dirigente
-                        _sectionEscalados(
+                        _sectionResponsaveis(
                           'Dirigente',
                           Funcao.dirigente,
-                          {
-                            null: [mCulto.dirigente]
-                          },
+                          mCulto.dirigente,
                           () => _escalarDirigente(),
                         ),
                         // Coordenador
-                        _sectionEscalados(
+                        _sectionResponsaveis(
                           'Coord. técnico',
                           Funcao.coordenador,
-                          {
-                            null: [mCulto.coordenador]
-                          },
+                          mCulto.coordenador,
                           () => _escalarCoordenador(),
                         ),
                       ],
@@ -122,25 +118,32 @@ class _ViewCultoState extends State<ViewCulto> {
                     // Botões de ação do administrador
                     Padding(
                       padding: const EdgeInsets.all(12),
-                      child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: [
-                            ElevatedButton.icon(
-                              onPressed: null,
-                              label: const Text('Alterar dados do culto'),
-                              icon: const Icon(Icons.edit_calendar),
-                            ),
-                            OutlinedButton.icon(
-                              onPressed: () async {
-                                Mensagem.aguardar(
-                                    context: context); // abre progresso
-                                Notificacoes.instancia.enviarMensagemPush();
-                                Modular.to.pop(); // fecha progresso
-                              },
-                              label: const Text('Notificar escalados'),
-                              icon: const Icon(Icons.notifications),
-                            ),
-                          ]),
+                      child: Wrap(
+                        spacing: 12,
+                        runSpacing: 12,
+                        children: [
+                          ElevatedButton.icon(
+                            onPressed: null,
+                            label: const Text('Alterar dados do culto'),
+                            icon: const Icon(Icons.edit_calendar),
+                          ),
+                          ElevatedButton.icon(
+                            onPressed: null,
+                            label: const Text('Ver indecisos'),
+                            icon: const Icon(Icons.device_unknown),
+                          ),
+                          OutlinedButton.icon(
+                            onPressed: () async {
+                              Mensagem.aguardar(
+                                  context: context); // abre progresso
+                              Notificacoes.instancia.enviarMensagemPush();
+                              Modular.to.pop(); // fecha progresso
+                            },
+                            label: const Text('Notificar escalados'),
+                            icon: const Icon(Icons.notifications),
+                          ),
+                        ],
+                      ),
                     ),
                     const SizedBox(height: 36),
                     // Fim da tela
@@ -233,7 +236,7 @@ class _ViewCultoState extends State<ViewCulto> {
                       child: CircularProgressIndicator(),
                     ),
                   )
-                : const Icon(Icons.hail_rounded),
+                : const Icon(Icons.emoji_people),
             Text(escalado
                 ? 'Estou escalado!'
                 : disponivel
@@ -244,6 +247,8 @@ class _ViewCultoState extends State<ViewCulto> {
           ],
         ),
         style: OutlinedButton.styleFrom(
+          minimumSize: const Size(136, 56),
+          maximumSize: const Size.fromWidth(136),
           padding: const EdgeInsets.all(12),
           backgroundColor: escalado
               ? Colors.green
@@ -324,7 +329,7 @@ class _ViewCultoState extends State<ViewCulto> {
         // Botão para abrir arquivo
         mCulto.liturgiaUrl == null
             ? Text(
-                'Arquivo não carregado',
+                'Nenhum arquivo carregado',
                 style: Theme.of(context).textTheme.caption,
               )
             : TextButton(
@@ -396,7 +401,7 @@ class _ViewCultoState extends State<ViewCulto> {
       int escalados = 0;
       for (var instrumento in instrumentosEscalados) {
         if (instrumento == instrumentoSnap.id) {
-          escalados++;
+          escalados += mCulto.equipe?[instrumento]?.length ?? 0;
         }
       }
       if (escalados < minimo) {
@@ -407,7 +412,7 @@ class _ViewCultoState extends State<ViewCulto> {
 
     // Regras
     if (faltantes.isNotEmpty) {
-      var resultado = 'Falta(m): ';
+      var resultado = 'Precisamos de: ';
       for (var falta in faltantes.entries) {
         resultado += '${falta.value} ${falta.key}; ';
       }
@@ -415,6 +420,41 @@ class _ViewCultoState extends State<ViewCulto> {
       return resultado;
     }
     return 'Equipe mínima completa!';
+  }
+
+  /// Seção escalados
+  Widget _sectionResponsaveis(
+    String titulo,
+    Funcao funcao,
+    DocumentReference<Integrante>? integrante,
+    Function()? funcaoEditar,
+  ) {
+    return Padding(
+      padding: const EdgeInsets.only(left: 12, right: 8, top: 0, bottom: 8),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              // Título
+              Text(titulo.toUpperCase()),
+              // Botão de edição
+              IconButton(
+                onPressed: funcaoEditar,
+                icon: const Icon(
+                  Icons.more_horiz,
+                  color: Colors.grey,
+                  size: 18,
+                ),
+              ),
+            ],
+          ),
+          // Responsável
+          _cardIntegranteInstrumento(integrante, null, funcao)
+        ],
+      ),
+    );
   }
 
   /// Seção escalados
@@ -505,9 +545,6 @@ class _ViewCultoState extends State<ViewCulto> {
                 if (!instr.hasError) {
                   instrumento = instr.data?.data();
                 }
-                var deviceWidth =
-                    MediaQuery.of(context).size.width - 8 - 16 - 24;
-                //dev.log(deviceWidth.toString());
                 // Box
                 return Container(
                   width: 172,
@@ -781,7 +818,6 @@ class _ViewCultoState extends State<ViewCulto> {
   }
 
   void _escalarDirigente() {
-    String? selecionado = mCulto.dirigente.toString();
     showDialog(
         context: context,
         builder: (context) {
@@ -790,13 +826,37 @@ class _ViewCultoState extends State<ViewCulto> {
                   ativo: true, funcao: Funcao.dirigente.index),
               builder: (context, snap) {
                 return StatefulBuilder(builder: (context, innerState) {
+                  String? selecionado = mCulto.dirigente.toString();
                   return SimpleDialog(
                     title: const Text('Selecionar dirigente'),
                     children: snap.hasData
                         ? List.generate(snap.data?.size ?? 0, (index) {
                             String? integrante =
                                 snap.data?.docs[index].reference.toString();
-                            return RadioListTile<String?>(
+                            return ChoiceChip(
+                                selected: selecionado ==
+                                    snap.data?.docs[index].reference.toString(),
+                                selectedColor:
+                                    Theme.of(context).colorScheme.primary,
+                                onSelected: (value) {
+                                  if (value) {
+                                    widget.culto.update({
+                                      'dirigente':
+                                          snap.data?.docs[index].reference
+                                    }).then((value) => innerState(() {}));
+                                  } else {
+                                    widget.culto
+                                        .update({'dirigente': null}).then(
+                                            (value) => innerState(() {}));
+                                  }
+                                },
+                                label: Text(snap.data?.docs[index]
+                                        .data()
+                                        .nome
+                                        .split(' ')
+                                        .first ??
+                                    'Sem nome'));
+                            /* RadioListTile<String?>(
                               value: integrante ?? '',
                               groupValue: selecionado,
                               onChanged: (value) {
@@ -808,7 +868,7 @@ class _ViewCultoState extends State<ViewCulto> {
                               },
                               title: Text(snap.data?.docs[index].data().nome ??
                                   'Sem nome'),
-                            );
+                            ); */
                           }).toList()
                         : const [
                             Padding(

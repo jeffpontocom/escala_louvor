@@ -344,8 +344,8 @@ class AdminPage extends StatelessWidget {
                 ],
               ),
             ),
-            StreamBuilder<QuerySnapshot<Instrumento>>(
-              stream: Metodo.escutarInstrumentos(ativos: verAtivos),
+            FutureBuilder<QuerySnapshot<Instrumento>>(
+              future: Metodo.getInstrumentos(ativo: verAtivos),
               builder: ((context, snapshot) {
                 if (!snapshot.hasData) {
                   return const Center(
@@ -365,54 +365,53 @@ class AdminPage extends StatelessWidget {
                     child: Text('Nenhum instrumento cadastrado'),
                   );
                 }
+                List<DocumentReference> references = [];
                 List<Widget> _list =
                     List.generate(snapshot.data!.size, (index) {
                   Instrumento instrumento = snapshot.data!.docs[index].data();
                   DocumentReference reference =
                       snapshot.data!.docs[index].reference;
+                  references.add(reference);
                   return ListTile(
                     key: Key(reference.id),
                     leading: Image.asset(instrumento.iconAsset, width: 28),
                     title: Text(instrumento.nome),
                     subtitle: Text(
                         'Composição: mínima ${instrumento.composMin} | máxima ${instrumento.composMax}'),
+                    //trailing: Text(instrumento.ordem.toString()),
                     onTap: () => _editarInstrumento(context,
                         instrumento: instrumento, id: reference.id),
                   );
                 });
+
                 return ReorderableListView(
                   shrinkWrap: true,
                   children: _list,
-                  onReorder: (int start, int current) async {
+                  onReorder: (int old, int current) async {
+                    dev.log('${old.toString()} | ${current.toString()}');
                     // dragging from top to bottom
-                    if (start < current) {
-                      int end = current - 1;
-                      Widget startItem = _list[start];
-                      int i = 0;
-                      int local = start;
-                      do {
-                        await snapshot.data?.docs[local].reference
-                            .update({'ordem': ++local});
-                        //_list[local] = _list[++local];
-                        i++;
-                      } while (i < end - start);
-                      //await snapshot.data?.docs[end].reference
-                      //    .update({'ordem': startItem});
-                      _list[end] = startItem;
+                    if (old < current) {
+                      Widget startItem = _list[old];
+                      // 0 para 4 (i = 0; i < 4-1 ; i++)
+                      for (int i = old; i < current - 1; i++) {
+                        _list[i] = _list[i + 1];
+                        references[i + 1].update({'ordem': i});
+                      }
+                      _list[current - 1] = startItem;
+                      references[old].update({'ordem': current - 1});
                     }
                     // dragging from bottom to top
-                    else if (start > current) {
-                      Widget startItem = _list[start];
-                      for (int i = start; i > current; i--) {
-                        await snapshot.data?.docs[i].reference
-                            .update({'ordem': i - 1});
-                        //_list[i] = _list[i - 1];
+                    else if (old > current) {
+                      Widget startItem = _list[old];
+                      // 4 para 0 (i = 4; i > 0 ; i--)
+                      for (int i = old; i > current; i--) {
+                        _list[i] = _list[i - 1];
+                        references[i - 1].update({'ordem': i});
                       }
-                      //await snapshot.data?.docs[current].reference
-                      //    .update({'ordem': startItem});
                       _list[current] = startItem;
+                      references[old].update({'ordem': current});
                     }
-                    innerState(() {});
+                    //innerState(() {});
                   },
                 );
               }),
