@@ -1,39 +1,46 @@
+// ignore_for_file: constant_identifier_names
+
 import 'package:escala_louvor/screens/tela_notificacoes.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 
-import 'admin.dart';
-import 'global.dart';
-import 'home.dart';
-import 'login.dart';
-import 'perfil.dart';
+import 'screens/tela_admin.dart';
+import 'screens/home.dart';
+import 'screens/tela_login.dart';
+import 'screens/tela_perfil.dart';
 
-class AppNavigation extends Module {
+class AppRotas extends Module {
+  static const String HOME = '/';
+  static const String LOGIN = '/login';
+  static const String PERFIL = '/perfil';
+  static const String ADMIN = '/admin';
+
   @override
   final List<Bind> binds = [];
 
   @override
   final List<ModularRoute> routes = [
     ChildRoute(
-      '/',
+      HOME,
       child: (_, __) => const HomePage(),
       guards: [AuthGuard()],
     ),
     ChildRoute(
-      '/login',
+      LOGIN,
       child: (_, __) => const LoginPage(),
       //transition: TransitionType.fadeIn,
     ),
     ChildRoute(
-      '/perfil',
-      child: (_, args) => PerfilPage(id: args.queryParams['id'] ?? ''),
-      //transition: TransitionType.rightToLeftWithFade,
+      PERFIL,
+      child: (_, args) => TelaPerfil(id: args.queryParams['id'] ?? ''),
       guards: [AuthGuard(), HasQueryGuard()],
+      //transition: TransitionType.rightToLeftWithFade,
     ),
     ChildRoute(
-      '/admin',
+      ADMIN,
       child: (_, __) => const AdminPage(),
-      //transition: TransitionType.downToUp,
       guards: [AuthGuard()],
+      //transition: TransitionType.downToUp,
     ),
     ChildRoute(
       '/notificacoes',
@@ -51,17 +58,17 @@ class AppNavigation extends Module {
 }
 
 class AuthGuard extends RouteGuard {
-  AuthGuard() : super(redirectTo: '/login');
+  AuthGuard() : super(redirectTo: AppRotas.LOGIN);
 
   @override
   // ignore: avoid_renaming_method_parameters
   Future<bool> canActivate(String path, ModularRoute router) async {
-    return Global.auth.currentUser != null;
+    return FirebaseAuth.instance.currentUser != null;
   }
 }
 
 class HasQueryGuard extends RouteGuard {
-  HasQueryGuard() : super(redirectTo: '/');
+  HasQueryGuard() : super(redirectTo: AppRotas.HOME);
 
   @override
   // ignore: avoid_renaming_method_parameters

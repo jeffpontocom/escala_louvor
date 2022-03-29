@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:intl/intl.dart';
 
-import '/functions/metodos.dart';
+import '../../functions/metodos_firebase.dart';
 import '/functions/notificacoes.dart';
 import '/global.dart';
 import '/models/culto.dart';
@@ -23,13 +23,14 @@ class ViewCulto extends StatefulWidget {
 }
 
 class _ViewCultoState extends State<ViewCulto> {
-  /* SISTEMA */
+  /* VARIÁVEIS */
   late Culto mCulto;
 
+  /* SISTEMA */
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<DocumentSnapshot<Culto>>(
-        stream: widget.culto.snapshots(),
+        stream: widget.culto.snapshots(includeMetadataChanges: true),
         builder: ((context, snapshot) {
           // Progresso
           if (!snapshot.hasData) {
@@ -57,7 +58,7 @@ class _ViewCultoState extends State<ViewCulto> {
                   ],
                 ),
               ),
-              const Divider(height: 1),
+              const Divider(height: 1, thickness: 2),
               // Corpo
               Expanded(
                 child: ListView(
@@ -83,14 +84,14 @@ class _ViewCultoState extends State<ViewCulto> {
                           'Dirigente',
                           Funcao.dirigente,
                           mCulto.dirigente,
-                          () => _escalarDirigente(),
+                          () => _escalarResponsavel('dirigente'),
                         ),
                         // Coordenador
                         _sectionResponsaveis(
                           'Coord. técnico',
                           Funcao.coordenador,
                           mCulto.coordenador,
-                          () => _escalarCoordenador(),
+                          () => _escalarResponsavel('coordenador'),
                         ),
                       ],
                     ),
@@ -208,7 +209,8 @@ class _ViewCultoState extends State<ViewCulto> {
                 setState(() {
                   alterar = true;
                 });
-                await Metodo.definirDisponibilidadeParaOCulto(widget.culto);
+                await MeuFirebase.definirDisponibilidadeParaOCulto(
+                    widget.culto);
                 setState(() {
                   alterar = false;
                 });
@@ -219,7 +221,7 @@ class _ViewCultoState extends State<ViewCulto> {
                 setState(() {
                   alterar = true;
                 });
-                await Metodo.definirRestricaoParaOCulto(widget.culto);
+                await MeuFirebase.definirRestricaoParaOCulto(widget.culto);
                 setState(() {
                   alterar = false;
                 });
@@ -312,7 +314,7 @@ class _ViewCultoState extends State<ViewCulto> {
         if (hora == null) return;
         var dataHora = Timestamp.fromDate(
             DateTime(data.year, data.month, data.day, hora.hour, hora.minute));
-        Metodo.definirDataHoraDoEnsaio(widget.culto, dataHora);
+        MeuFirebase.definirDataHoraDoEnsaio(widget.culto, dataHora);
       });
     });
   }
@@ -336,19 +338,18 @@ class _ViewCultoState extends State<ViewCulto> {
                 child: const Text('Ver documento'),
                 style: TextButton.styleFrom(padding: EdgeInsets.zero),
                 onPressed: () =>
-                    Metodo.abrirArquivoPdf(context, mCulto.liturgiaUrl)),
+                    MeuFirebase.abrirArquivoPdf(context, mCulto.liturgiaUrl)),
         const Expanded(child: SizedBox()),
         // Botão de ação para dirigentes
         IconButton(
           onPressed: () async {
-            String? url = await Metodo.carregarArquivoPdf();
+            String? url = await MeuFirebase.carregarArquivoPdf();
             if (url != null && url.isNotEmpty) {
-              var ok = await Metodo.atualizarCampoDoCulto(
-                  reference: widget.culto, campo: 'liturgiaUrl', valor: url);
-              if (!ok) {
+              widget.culto.update({'liturgiaUrl': url}).then((value) => null,
+                  onError: (_) {
                 Mensagem.simples(
                     context: context, mensagem: 'Falha ao atualizar o campo');
-              }
+              });
             }
           },
           icon: const Icon(
@@ -364,7 +365,7 @@ class _ViewCultoState extends State<ViewCulto> {
   /// Seção o que falta
   Widget get _rowOqueFalta {
     return FutureBuilder<QuerySnapshot<Instrumento>>(
-        future: Metodo.getInstrumentos(ativo: true),
+        future: MeuFirebase.obterListaInstrumentos(ativo: true),
         builder: (context, snapshot) {
           String resultado;
           if (!snapshot.hasData) {
@@ -445,13 +446,15 @@ class _ViewCultoState extends State<ViewCulto> {
                 icon: const Icon(
                   Icons.more_horiz,
                   color: Colors.grey,
-                  size: 18,
+                  size: 12,
                 ),
               ),
             ],
           ),
           // Responsável
-          _cardIntegranteInstrumento(integrante, null, funcao)
+          integrante == null
+              ? const SizedBox()
+              : _cardIntegranteResponsavel(integrante, funcao)
         ],
       ),
     );
@@ -491,7 +494,7 @@ class _ViewCultoState extends State<ViewCulto> {
                 icon: const Icon(
                   Icons.more_horiz,
                   color: Colors.grey,
-                  size: 18,
+                  size: 12,
                 ),
               ),
             ],
@@ -510,6 +513,91 @@ class _ViewCultoState extends State<ViewCulto> {
         ],
       ),
     );
+  }
+
+  Widget _cardIntegranteResponsavel(
+    DocumentReference<Integrante> refIntegrante,
+    Funcao funcao,
+  ) {
+    return FutureBuilder<DocumentSnapshot<Integrante>>(
+        future: refIntegrante.get(),
+        builder: (_, snapIntegrante) {
+          if (!snapIntegrante.hasData) return const SizedBox();
+          var integrante = snapIntegrante.data;
+          var nomeIntegrante = integrante?.data()?.nome ?? '[Sem nome]';
+          var nomePrimeiro = nomeIntegrante.split(' ').first;
+          var nomeSegundo = nomeIntegrante.split(' ').last;
+          nomeIntegrante = nomePrimeiro == nomeSegundo
+              ? nomePrimeiro
+              : nomePrimeiro + ' ' + nomeSegundo;
+          return InkWell(
+            onTap: () => Modular.to.pushNamed('/perfil?id=${integrante?.id}'),
+            child: Container(
+              width: 96,
+              height: 128,
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                border: Border.all(
+                  width: 1,
+                  color: Colors.grey.withOpacity(0.5),
+                ),
+                borderRadius: BorderRadius.circular(12),
+                color: (Global.integranteLogado != null &&
+                        integrante?.id == Global.integranteLogado?.id)
+                    ? Colors.amber.withOpacity(0.25)
+                    : null,
+              ),
+              // Pilha
+              child: Stack(
+                alignment: Alignment.topLeft,
+                children: [
+                  Column(
+                    children: [
+                      const SizedBox(height: 16),
+                      // Foto do integrante
+                      CircleAvatar(
+                        child: const Icon(
+                          Icons.person,
+                          color: Colors.grey,
+                        ),
+                        foregroundImage: MyNetwork.getImageFromUrl(
+                                integrante?.data()?.fotoUrl, 16)
+                            ?.image,
+                        backgroundColor: Colors.grey.withOpacity(0.5),
+                      ),
+                      const SizedBox(height: 16),
+                      // Nome do integrante
+                      Center(
+                        child: Text(
+                          nomeIntegrante,
+                          textAlign: TextAlign.center,
+                          style:
+                              Theme.of(context).textTheme.bodyLarge!.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  // Imagem do instrumento
+                  Image.asset(
+                    funcao == Funcao.dirigente
+                        ? 'assets/icons/music_dirigente.png'
+                        : funcao == Funcao.coordenador
+                            ? 'assets/icons/music_coordenador.png'
+                            : 'assets/icons/ic_launcher.png',
+                    width: 16,
+                    color: Theme.of(context)
+                        .colorScheme
+                        .inverseSurface
+                        .withOpacity(0.75),
+                    colorBlendMode: BlendMode.srcATop,
+                  ),
+                ],
+              ),
+            ),
+          );
+        });
   }
 
   Widget _cardIntegranteInstrumento(
@@ -546,84 +634,89 @@ class _ViewCultoState extends State<ViewCulto> {
                   instrumento = instr.data?.data();
                 }
                 // Box
-                return Container(
-                  width: 172,
-                  padding: const EdgeInsets.all(4),
-                  decoration: BoxDecoration(
-                    border: Border.all(
-                      width: 1,
-                      color: Colors.grey.withOpacity(0.5),
+                return InkWell(
+                  onTap: () =>
+                      Modular.to.pushNamed('/perfil?id=${integrante?.id}'),
+                  child: Container(
+                    width: 172,
+                    padding: const EdgeInsets.all(4),
+                    decoration: BoxDecoration(
+                      border: Border.all(
+                        width: 1,
+                        color: Colors.grey.withOpacity(0.5),
+                      ),
+                      borderRadius: BorderRadius.circular(12),
+                      color: (Global.integranteLogado != null &&
+                              integrante?.id == Global.integranteLogado?.id)
+                          ? Colors.amber.withOpacity(0.25)
+                          : null,
                     ),
-                    borderRadius: BorderRadius.circular(12),
-                    color: (Global.integranteLogado != null &&
-                            integrante?.id == Global.integranteLogado?.id)
-                        ? Colors.amber.withOpacity(0.25)
-                        : null,
-                  ),
-                  // Pilha
-                  child: Stack(
-                    alignment: Alignment.topLeft,
-                    children: [
-                      Row(
-                        children: [
-                          // Foto do integrante
-                          const SizedBox(width: 8),
-                          CircleAvatar(
-                            child: const Icon(
-                              Icons.person,
-                              color: Colors.grey,
+                    // Pilha
+                    child: Stack(
+                      alignment: Alignment.topLeft,
+                      children: [
+                        Row(
+                          children: [
+                            // Foto do integrante
+                            const SizedBox(width: 8),
+                            CircleAvatar(
+                              child: const Icon(
+                                Icons.person,
+                                color: Colors.grey,
+                              ),
+                              foregroundImage: MyNetwork.getImageFromUrl(
+                                      integrante?.data()?.fotoUrl, 16)
+                                  ?.image,
+                              backgroundColor: Colors.grey.withOpacity(0.5),
                             ),
-                            foregroundImage: MyNetwork.getImageFromUrl(
-                                    integrante?.data()?.fotoUrl, 16)
-                                ?.image,
-                            backgroundColor: Colors.grey.withOpacity(0.5),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // Nome do integrante
-                                Text(
-                                  nomeIntegrante,
-                                  maxLines: 1,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodyLarge!
-                                      .copyWith(
-                                        fontWeight: FontWeight.bold,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                ),
-                                // Instrumento para o qual está escalado
-                                Text(
-                                  instrumento?.nome ?? '',
-                                  textAlign: TextAlign.center,
-                                  style: Theme.of(context).textTheme.bodySmall,
-                                ),
-                              ],
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  // Nome do integrante
+                                  Text(
+                                    nomeIntegrante,
+                                    maxLines: 1,
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .bodyLarge!
+                                        .copyWith(
+                                          fontWeight: FontWeight.bold,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                  ),
+                                  // Instrumento para o qual está escalado
+                                  Text(
+                                    instrumento?.nome ?? '',
+                                    textAlign: TextAlign.center,
+                                    style:
+                                        Theme.of(context).textTheme.bodySmall,
+                                  ),
+                                ],
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: 8),
-                        ],
-                      ),
-                      // Imagem do instrumento
-                      Image.asset(
-                        instrumento?.iconAsset ??
-                            (funcao == Funcao.dirigente
-                                ? 'assets/icons/music_dirigente.png'
-                                : funcao == Funcao.coordenador
-                                    ? 'assets/icons/music_coordenador.png'
-                                    : 'assets/icons/ic_launcher.png'),
-                        width: 16,
-                        color: Theme.of(context)
-                            .colorScheme
-                            .inverseSurface
-                            .withOpacity(0.75),
-                        colorBlendMode: BlendMode.srcATop,
-                      ),
-                    ],
+                            const SizedBox(width: 8),
+                          ],
+                        ),
+                        // Imagem do instrumento
+                        Image.asset(
+                          instrumento?.iconAsset ??
+                              (funcao == Funcao.dirigente
+                                  ? 'assets/icons/music_dirigente.png'
+                                  : funcao == Funcao.coordenador
+                                      ? 'assets/icons/music_coordenador.png'
+                                      : 'assets/icons/ic_launcher.png'),
+                          width: 16,
+                          color: Theme.of(context)
+                              .colorScheme
+                              .inverseSurface
+                              .withOpacity(0.75),
+                          colorBlendMode: BlendMode.srcATop,
+                        ),
+                      ],
+                    ),
                   ),
                 );
               });
@@ -698,14 +791,14 @@ class _ViewCultoState extends State<ViewCulto> {
         context: context,
         builder: (context) {
           return FutureBuilder<QuerySnapshot<Instrumento>>(
-              future: Metodo.getInstrumentos(ativo: true),
+              future: MeuFirebase.obterListaInstrumentos(ativo: true),
               builder: (_, snapInstr) {
                 if (!snapInstr.hasData) {
                   return const Center(child: CircularProgressIndicator());
                 }
                 var instrumentos = snapInstr.data?.docs;
                 return FutureBuilder<QuerySnapshot<Integrante>>(
-                    future: Metodo.getIntegrantes(
+                    future: MeuFirebase.obterListaIntegrantes(
                         ativo: true, funcao: funcao.index),
                     builder: (context, snapIntegrantes) {
                       if (!snapIntegrantes.hasData) {
@@ -817,100 +910,41 @@ class _ViewCultoState extends State<ViewCulto> {
     }
   }
 
-  void _escalarDirigente() {
+  void _escalarResponsavel(String funcao) {
     showDialog(
         context: context,
         builder: (context) {
           return FutureBuilder<QuerySnapshot<Integrante>>(
-              future: Metodo.getIntegrantes(
-                  ativo: true, funcao: Funcao.dirigente.index),
+              future: MeuFirebase.obterListaIntegrantes(
+                  ativo: true, funcao: funcaoToInt(funcao)),
               builder: (context, snap) {
                 return StatefulBuilder(builder: (context, innerState) {
-                  String? selecionado = mCulto.dirigente.toString();
+                  String? selecionado = funcao == 'dirigente'
+                      ? mCulto.dirigente.toString()
+                      : mCulto.coordenador.toString();
                   return SimpleDialog(
-                    title: const Text('Selecionar dirigente'),
+                    title: Text('Selecionar $funcao'),
                     children: snap.hasData
                         ? List.generate(snap.data?.size ?? 0, (index) {
-                            String? integrante =
-                                snap.data?.docs[index].reference.toString();
+                            var integrante = snap.data?.docs[index];
                             return ChoiceChip(
                                 selected: selecionado ==
-                                    snap.data?.docs[index].reference.toString(),
+                                    integrante?.reference.toString(),
                                 selectedColor:
                                     Theme.of(context).colorScheme.primary,
-                                onSelected: (value) {
+                                onSelected: (value) async {
                                   if (value) {
-                                    widget.culto.update({
-                                      'dirigente':
-                                          snap.data?.docs[index].reference
-                                    }).then((value) => innerState(() {}));
+                                    await widget.culto.update(
+                                        {funcao: integrante?.reference});
                                   } else {
-                                    widget.culto
-                                        .update({'dirigente': null}).then(
-                                            (value) => innerState(() {}));
+                                    await widget.culto.update({funcao: null});
                                   }
+                                  Modular.to.pop(); // fecha o dialog
+                                  //setState(() {});
                                 },
-                                label: Text(snap.data?.docs[index]
-                                        .data()
-                                        .nome
-                                        .split(' ')
-                                        .first ??
-                                    'Sem nome'));
-                            /* RadioListTile<String?>(
-                              value: integrante ?? '',
-                              groupValue: selecionado,
-                              onChanged: (value) {
-                                innerState(() {
-                                  selecionado = value;
-                                  Metodo.escalarDirigente(widget.culto,
-                                      snap.data!.docs[index].reference);
-                                });
-                              },
-                              title: Text(snap.data?.docs[index].data().nome ??
-                                  'Sem nome'),
-                            ); */
-                          }).toList()
-                        : const [
-                            Padding(
-                              padding: EdgeInsets.all(24),
-                              child: Text('Nenhum integrante disponível'),
-                            )
-                          ],
-                  );
-                });
-              });
-        });
-  }
-
-  void _escalarCoordenador() {
-    String? selecionado = mCulto.coordenador.toString();
-    showDialog(
-        context: context,
-        builder: (context) {
-          return FutureBuilder<QuerySnapshot<Integrante>>(
-              future: Metodo.getIntegrantes(
-                  ativo: true, funcao: Funcao.coordenador.index),
-              builder: (context, snap) {
-                return StatefulBuilder(builder: (context, innerState) {
-                  return SimpleDialog(
-                    title: const Text('Selecionar coordenador técnico'),
-                    children: snap.hasData
-                        ? List.generate(snap.data?.size ?? 0, (index) {
-                            String? integrante =
-                                snap.data?.docs[index].reference.toString();
-                            return RadioListTile<String?>(
-                              value: integrante ?? '',
-                              groupValue: selecionado,
-                              onChanged: (value) {
-                                innerState(() {
-                                  selecionado = value;
-                                  Metodo.escalarCoordenador(widget.culto,
-                                      snap.data!.docs[index].reference);
-                                });
-                              },
-                              title: Text(snap.data?.docs[index].data().nome ??
-                                  'Sem nome'),
-                            );
+                                label: Text(
+                                    integrante?.data().nome.split(' ').first ??
+                                        'Sem nome'));
                           }).toList()
                         : const [
                             Padding(

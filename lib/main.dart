@@ -16,12 +16,11 @@ import 'preferencias.dart';
 void main() async {
   setPathUrlStrategy(); // remove o hash '#' das URLs
   WidgetsFlutterBinding.ensureInitialized();
-  //bool needsWeb = Platform.isLinux | Platform.isWindows;
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await Preferencias.carregarInstancia();
   runApp(
     ModularApp(
-      module: AppNavigation(),
+      module: AppRotas(),
       child: const MyApp(),
       debugMode: !kReleaseMode,
     ),
@@ -42,20 +41,14 @@ class MyApp extends StatelessWidget {
             title: 'Escala do Louvor',
             theme: ThemeData(
               primarySwatch: Colors.blue,
-              visualDensity: kIsWeb
-                  ? VisualDensity.comfortable
-                  : VisualDensity.adaptivePlatformDensity,
             ),
             darkTheme: ThemeData(
+              brightness: Brightness.dark,
               primarySwatch: Colors.blue,
               colorScheme: const ColorScheme.dark(
                 primary: Colors.blue,
                 secondary: Colors.lightBlue,
               ),
-              brightness: Brightness.dark,
-              visualDensity: kIsWeb
-                  ? VisualDensity.comfortable
-                  : VisualDensity.adaptivePlatformDensity,
             ),
             scrollBehavior: MyCustomScrollBehavior(),
             // Suporte a lingua português nos elementos globais
@@ -69,7 +62,6 @@ class MyApp extends StatelessWidget {
             routeInformationParser: Modular.routeInformationParser,
             routerDelegate: Modular.routerDelegate,
           );
-          //});
         });
   }
 }

@@ -1,12 +1,12 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:escala_louvor/global.dart';
-import 'package:escala_louvor/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 
-import '../utils/mensagens.dart';
+import '/global.dart';
 import '/models/culto.dart';
-import '/screens/escalas/view_culto.dart';
+import '/screens/views/view_culto.dart';
+import '/utils/mensagens.dart';
+import '/utils/utils.dart';
 
 class TelaEscala extends StatefulWidget {
   const TelaEscala({Key? key}) : super(key: key);
@@ -21,15 +21,24 @@ class _TelaEscalaState extends State<TelaEscala> with TickerProviderStateMixin {
 
   /* VARIÁVEIS */
   late TabController _tabController;
+  late Timestamp _hoje;
 
   /* SISTEMA */
+
+  @override
+  void initState() {
+    var agora = DateTime.now();
+    _hoje = Timestamp.fromDate(DateTime(agora.year, agora.month, agora.day));
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<QuerySnapshot<Culto>>(
         future: FirebaseFirestore.instance
             .collection(Culto.collection)
-            //.where('dataCulto', isGreaterThanOrEqualTo: dataMinima)
-            //.where('igreja', isEqualTo: Global.igrejaAtual!.reference)
+            .where('dataCulto', isGreaterThanOrEqualTo: _hoje)
+            .where('igreja', isEqualTo: Global.igrejaAtual?.reference)
             .orderBy('dataCulto')
             .withConverter<Culto>(
               fromFirestore: (snapshot, _) => Culto.fromJson(snapshot.data()!),
@@ -47,6 +56,15 @@ class _TelaEscalaState extends State<TelaEscala> with TickerProviderStateMixin {
           _listaCultos.clear();
           for (var snap in snapshot.data!.docs) {
             _listaCultos.add(snap);
+          }
+          if (_listaCultos.isEmpty) {
+            return Center(
+              child: Text(
+                'Nenhuma agenda para\n\n${Global.igrejaAtual?.data()?.nome ?? ''}',
+                style: Theme.of(context).textTheme.headlineSmall,
+                textAlign: TextAlign.center,
+              ),
+            );
           }
           _tabController =
               TabController(length: snapshot.data?.size ?? 0, vsync: this);

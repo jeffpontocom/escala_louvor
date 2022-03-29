@@ -30,6 +30,25 @@ String funcaoToString(Funcao funcao) {
   }
 }
 
+int funcaoToInt(String funcao) {
+  switch (funcao.toLowerCase()) {
+    case 'administrador':
+      return 0;
+    case 'dirigente':
+      return 1;
+    case 'coordenador':
+      return 2;
+    case 'integrante':
+      return 3;
+    case 'leitor':
+      return 4;
+    case 'sudo':
+      return 5;
+    default:
+      return 4;
+  }
+}
+
 class Integrante {
   static const String collection = 'integrantes';
 
@@ -160,5 +179,26 @@ class Integrante {
         ),
       ),
     );
+  }
+
+  /* BOOLEANS  */
+  bool get ehAdm {
+    return funcoes?.contains(Funcao.administrador) ?? false;
+  }
+
+  bool get ehDirigente {
+    return funcoes?.contains(Funcao.dirigente) ?? false;
+  }
+
+  bool get ehCoordenador {
+    return funcoes?.contains(Funcao.coordenador) ?? false;
+  }
+
+  bool get ehIntegrante {
+    return funcoes?.contains(Funcao.integrante) ?? false;
+  }
+
+  bool get ehLeitor {
+    return funcoes?.contains(Funcao.leitor) ?? false;
   }
 }

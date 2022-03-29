@@ -1,16 +1,17 @@
 import 'dart:developer' as dev;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:escala_louvor/screens/views/view_integrante.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 
-import 'functions/metodos.dart';
-import 'models/igreja.dart';
-import 'models/instrumento.dart';
-import 'models/integrante.dart';
-import 'utils/estilos.dart';
-import 'utils/mensagens.dart';
-import 'utils/utils.dart';
+import '../functions/metodos_firebase.dart';
+import '../models/igreja.dart';
+import '../models/instrumento.dart';
+import '../models/integrante.dart';
+import '../utils/estilos.dart';
+import '../utils/mensagens.dart';
+import '../utils/utils.dart';
 
 class AdminPage extends StatelessWidget {
   const AdminPage({Key? key}) : super(key: key);
@@ -26,7 +27,7 @@ class AdminPage extends StatelessWidget {
     );
   }
 
-  Widget _iconeComLegenda(IconData iconData, String legenda) {
+  /* Widget _iconeComLegenda(IconData iconData, String legenda) {
     return Wrap(
       direction: Axis.vertical,
       crossAxisAlignment: WrapCrossAlignment.center,
@@ -36,13 +37,13 @@ class AdminPage extends StatelessWidget {
         Text(legenda),
       ],
     );
-  }
+  } */
 
   /* DIALOGS */
 
   /// Abre lista de igreja
   void _verIgrejas(BuildContext context) {
-    bool verAtivos = true;
+    bool verAtivas = true;
     Mensagem.bottomDialog(
         context: context,
         titulo: 'Igrejas e locais de culto',
@@ -59,15 +60,15 @@ class AdminPage extends StatelessWidget {
                     const Text('Exibindo:'),
                     const SizedBox(width: 8),
                     ChoiceChip(
-                      label: Text(verAtivos
+                      label: Text(verAtivas
                           ? 'Cadastros ativos'
                           : 'Cadastros inativos'),
-                      selected: verAtivos,
+                      selected: verAtivas,
                       selectedColor: Colors.green,
                       backgroundColor: Colors.red,
                       onSelected: (value) {
                         innerState((() {
-                          verAtivos = !verAtivos;
+                          verAtivas = !verAtivas;
                         }));
                       },
                     ),
@@ -85,8 +86,8 @@ class AdminPage extends StatelessWidget {
                   ],
                 ),
               ),
-              StreamBuilder<QuerySnapshot<Igreja>>(
-                stream: Metodo.escutarIgrejas(ativos: verAtivos),
+              FutureBuilder<QuerySnapshot<Igreja>>(
+                future: MeuFirebase.obterListaIgrejas(ativo: verAtivas),
                 builder: ((context, snapshot) {
                   if (!snapshot.hasData) {
                     return const Center(
@@ -153,7 +154,7 @@ class AdminPage extends StatelessWidget {
                 return CircleAvatar(
                   child: IconButton(
                       onPressed: () async {
-                        var url = await Metodo.carregarFoto();
+                        var url = await MeuFirebase.carregarFoto();
                         if (url != null && url.isNotEmpty) {
                           innerState(() {
                             igreja!.fotoUrl = url;
@@ -203,7 +204,7 @@ class AdminPage extends StatelessWidget {
           ),
           // Responsável
           FutureBuilder<QuerySnapshot<Integrante>?>(
-            future: Metodo.getIntegrantes(ativo: true),
+            future: MeuFirebase.obterListaIntegrantes(ativo: true),
             builder: ((context, snapshot) {
               // Chave para redefinir formulários
               final GlobalKey<FormFieldState> _key =
@@ -274,7 +275,7 @@ class AdminPage extends StatelessWidget {
                           disabledColor: Colors.green,
                           onSelected: (value) async {
                             innerState((() => igreja!.ativo = !igreja.ativo));
-                            await Metodo.salvarIgreja(igreja!, id: id);
+                            await MeuFirebase.salvarIgreja(igreja!, id: id);
                             Modular.to.pop(); // Fecha dialog
                           });
                     }),
@@ -287,7 +288,7 @@ class AdminPage extends StatelessWidget {
                   // Abre progresso
                   Mensagem.aguardar(context: context);
                   // Salva os dados no firebase
-                  await Metodo.salvarIgreja(igreja!, id: id);
+                  await MeuFirebase.salvarIgreja(igreja!, id: id);
                   Modular.to.pop(); // Fecha progresso
                   Modular.to.pop(); // Fecha dialog
                 },
@@ -345,7 +346,7 @@ class AdminPage extends StatelessWidget {
               ),
             ),
             FutureBuilder<QuerySnapshot<Instrumento>>(
-              future: Metodo.getInstrumentos(ativo: verAtivos),
+              future: MeuFirebase.obterListaInstrumentos(ativo: verAtivos),
               builder: ((context, snapshot) {
                 if (!snapshot.hasData) {
                   return const Center(
@@ -542,7 +543,7 @@ class AdminPage extends StatelessWidget {
                           onSelected: (value) async {
                             innerState((() =>
                                 instrumento!.ativo = !instrumento.ativo));
-                            await Metodo.salvarInstrumento(instrumento!,
+                            await MeuFirebase.salvarInstrumento(instrumento!,
                                 id: id);
                             Modular.to.pop(); // Fecha dialog
                           });
@@ -556,7 +557,7 @@ class AdminPage extends StatelessWidget {
                   // Abre progresso
                   Mensagem.aguardar(context: context);
                   // Salva os dados no firebase
-                  await Metodo.salvarInstrumento(instrumento!, id: id);
+                  await MeuFirebase.salvarInstrumento(instrumento!, id: id);
                   Modular.to.pop(); // Fecha progresso
                   Modular.to.pop(); // Fecha dialog
                 },
@@ -615,7 +616,7 @@ class AdminPage extends StatelessWidget {
                 ),
               ),
               StreamBuilder<QuerySnapshot<Integrante>>(
-                stream: Metodo.escutarIntegrantes(ativos: verAtivos),
+                stream: MeuFirebase.escutarIntegrantes(ativos: verAtivos),
                 builder: ((context, snapshot) {
                   if (!snapshot.hasData) {
                     return const Center(
@@ -672,293 +673,11 @@ class AdminPage extends StatelessWidget {
       context: context,
       titulo: novoCadastro ? 'Novo cadastro' : 'Editar Cadastro',
       icon: Icons.person,
-      conteudo: ListView(
-        shrinkWrap: true,
-        padding: const EdgeInsets.symmetric(horizontal: 24),
-        children: [
-          // Funções
-          Padding(
-            padding: const EdgeInsets.only(top: 8, bottom: 16),
-            child: LayoutBuilder(builder: (context, constraints) {
-              return StatefulBuilder(
-                builder: (_, innerState) {
-                  return ToggleButtons(
-                    borderRadius: const BorderRadius.all(Radius.circular(8)),
-                    constraints: BoxConstraints(
-                        minWidth: (constraints.maxWidth - 6) / 5,
-                        minHeight: 56),
-                    color: Colors.grey,
-                    children: [
-                      _iconeComLegenda(
-                          Icons.admin_panel_settings, 'Administrador'),
-                      _iconeComLegenda(Icons.mic, 'Dirigente'),
-                      _iconeComLegenda(Icons.music_note, 'Coordenador'),
-                      _iconeComLegenda(Icons.emoji_people, 'Integrante'),
-                      _iconeComLegenda(Icons.chrome_reader_mode, 'Leitor'),
-                    ],
-                    isSelected: [
-                      integrante?.funcoes?.contains(Funcao.administrador) ??
-                          false,
-                      integrante?.funcoes?.contains(Funcao.dirigente) ?? false,
-                      integrante?.funcoes?.contains(Funcao.coordenador) ??
-                          false,
-                      integrante?.funcoes?.contains(Funcao.integrante) ?? false,
-                      integrante?.funcoes?.contains(Funcao.leitor) ?? false,
-                    ],
-                    onPressed: (index) {
-                      innerState(
-                        (() {
-                          var funcao = Funcao.values[index];
-                          integrante?.funcoes == null ||
-                                  integrante!.funcoes!.isEmpty
-                              ? integrante?.funcoes?.add(funcao)
-                              : integrante.funcoes!.contains(funcao)
-                                  ? integrante.funcoes!.remove(funcao)
-                                  : integrante.funcoes!.add(funcao);
-                        }),
-                      );
-                    },
-                  );
-                },
-              );
-            }),
-          ),
-
-          // Informações básicas
-          Row(
-            children: [
-              // Foto
-              StatefulBuilder(builder: (innerContext, StateSetter innerState) {
-                return Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    CircleAvatar(
-                      child: IconButton(
-                          onPressed: () async {
-                            var url = await Metodo.carregarFoto();
-                            if (url != null && url.isNotEmpty) {
-                              innerState(() {
-                                integrante!.fotoUrl = url;
-                              });
-                            }
-                          },
-                          icon: integrante?.fotoUrl == null
-                              ? const Icon(Icons.add_a_photo)
-                              : const CircularProgressIndicator()),
-                      foregroundImage:
-                          Image.network(integrante!.fotoUrl ?? '').image,
-                      radius: 48,
-                    ),
-                    const SizedBox(height: 8),
-                    // Data de Nascimento
-                    ActionChip(
-                        avatar: Icon(Icons.cake, color: Colors.amber.shade800),
-                        backgroundColor: Colors.transparent,
-                        elevation: 0,
-                        side: BorderSide(color: Colors.grey.shade300),
-                        label: Text(
-                          integrante.dataNascimento == null
-                              ? 'Selecionar'
-                              : MyInputs.mascaraData
-                                  .format(integrante.dataNascimento!.toDate()),
-                        ),
-                        onPressed: () async {
-                          final DateTime? pick = await showDatePicker(
-                              context: context,
-                              initialDate:
-                                  integrante?.dataNascimento?.toDate() ??
-                                      DateTime.now(),
-                              firstDate: DateTime(1930),
-                              lastDate: DateTime(DateTime.now().year, 12, 31));
-                          if (pick != null) {
-                            innerState(() => integrante?.dataNascimento =
-                                Timestamp.fromDate(pick));
-                          }
-                        }),
-                  ],
-                );
-              }),
-              const SizedBox(width: 24),
-              Expanded(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Nome
-                    TextFormField(
-                      initialValue: integrante.nome,
-                      decoration: const InputDecoration(labelText: 'Nome'),
-                      onChanged: (value) {
-                        integrante!.nome = value;
-                      },
-                    ),
-                    // Email
-                    TextFormField(
-                      enabled: novoCadastro,
-                      initialValue: integrante.email,
-                      decoration: const InputDecoration(labelText: 'E-mail'),
-                      onChanged: (value) {
-                        integrante!.email = value;
-                      },
-                    ),
-                    // Telefone
-                    TextFormField(
-                      initialValue: integrante.telefone,
-                      decoration: const InputDecoration(labelText: 'WhatsApp'),
-                      onChanged: (value) {
-                        integrante!.telefone = value;
-                      },
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-
-          // Instrumentos
-          const Text('INSTRUMENTOS (habilidades)'),
-          Padding(
-            padding: const EdgeInsets.only(top: 8, bottom: 16),
-            child: StatefulBuilder(builder: (_, innerState) {
-              return StreamBuilder<QuerySnapshot<Instrumento>>(
-                  stream: Metodo.escutarInstrumentos(),
-                  builder: ((context, snapshot) {
-                    return Wrap(
-                      spacing: 4,
-                      runSpacing: 0,
-                      children:
-                          List.generate(snapshot.data?.size ?? 0, (index) {
-                        var doc = snapshot.data!.docs[index];
-                        return ChoiceChip(
-                          label: Text(doc.data().nome),
-                          avatar: Image.asset(doc.data().iconAsset, width: 12),
-                          selectedColor: Colors.blue,
-                          selected: integrante!.instrumentos
-                                  ?.map((e) => e.toString())
-                                  .contains(doc.reference.toString()) ??
-                              false,
-                          onSelected: (check) {
-                            if (integrante!.instrumentos == null) {
-                              integrante.instrumentos = [];
-                            }
-                            check
-                                ? integrante.instrumentos?.add(doc.reference)
-                                : integrante.instrumentos?.removeWhere(
-                                    (element) =>
-                                        element.toString() ==
-                                        doc.reference.toString());
-                            innerState(() {});
-                          },
-                        );
-                      }).toList(),
-                    );
-                  }));
-            }),
-          ),
-
-          // Igrejas
-          const Text('IGREJAS (em que pode ser escalado)'),
-          Padding(
-            padding: const EdgeInsets.only(top: 8, bottom: 16),
-            child: StatefulBuilder(builder: (_, innerState) {
-              return Row(
-                children: [
-                  IconButton(
-                    onPressed: () {},
-                    icon: const Icon(Icons.add_circle),
-                  ),
-                  Wrap(
-                    children: List.generate(
-                      integrante!.igrejas?.length ?? 0,
-                      (index) => FutureBuilder<DocumentSnapshot<Igreja>?>(
-                          future: Metodo.obterSnapshotIgreja(
-                              integrante!.igrejas![index].id),
-                          builder: (_, snap) {
-                            if (snap.hasData) {
-                              if (snap.data == null) {
-                                return const SizedBox();
-                              }
-                              return RawChip(
-                                label: Text(snap.data?.data()?.sigla ?? '?'),
-                                avatar: const Icon(Icons.church),
-                              );
-                            }
-                            return const CircularProgressIndicator();
-                          }),
-                    ).toList(),
-                  ),
-                ],
-              );
-            }),
-          ),
-
-          // Obs
-          Padding(
-            padding: const EdgeInsets.only(top: 8, bottom: 16),
-            child: TextFormField(
-              initialValue: integrante.obs,
-              minLines: 4,
-              maxLines: 15,
-              decoration: const InputDecoration(
-                labelText: 'Observações',
-                floatingLabelBehavior: FloatingLabelBehavior.always,
-              ),
-              onChanged: (value) {
-                integrante!.obs = value;
-              },
-            ),
-          ),
-        ],
-      ),
-      rodape: Row(
-        children: [
-          // Ativo
-          novoCadastro
-              ? const SizedBox()
-              : StatefulBuilder(builder: (_, innerState) {
-                  return ChoiceChip(
-                      label: Text(integrante!.ativo
-                          ? 'Desativar cadastro'
-                          : 'Reativar cadastro'),
-                      selected: integrante.ativo,
-                      selectedColor: Colors.red,
-                      disabledColor: Colors.green,
-                      onSelected: (value) async {
-                        innerState(
-                            (() => integrante!.ativo = !integrante.ativo));
-                        await Metodo.salvarIntegrante(integrante!, id: id);
-                        Modular.to.pop(); // Fecha dialog
-                      });
-                }),
-          const Expanded(child: SizedBox()),
-          // Botão criar
-          ElevatedButton.icon(
-            icon: const Icon(Icons.save),
-            label: Text(novoCadastro ? 'CRIAR' : 'SALVAR'),
-            onPressed: () async {
-              // Abre progresso
-              Mensagem.aguardar(context: context);
-              // Salva os dados no firebase
-              if (novoCadastro) {
-                var auth = await Metodo.criarUsuario(
-                    email: integrante!.email, senha: MyInputs.randomString(10));
-                id = auth?.user?.uid;
-              }
-              if (id == null) {
-                Mensagem.simples(
-                  context: context,
-                  titulo: 'Falha',
-                  mensagem:
-                      'Não foi possível registrar o novo integrante. Tente mais tarde novamente!',
-                );
-              } else {
-                await Metodo.salvarIntegrante(integrante!, id: id);
-              }
-              Modular.to.pop(); // Fecha progresso
-              Modular.to.pop(); // Fecha dialog
-            },
-          ),
-        ],
+      conteudo: ViewIntegrante(
+        id: id,
+        integrante: integrante,
+        novoCadastro: novoCadastro,
+        editMode: true,
       ),
     );
   }
@@ -985,7 +704,8 @@ class AdminPage extends StatelessWidget {
               leading: const Icon(Icons.church),
               title: const Text('Igrejas e locais de culto'),
               subtitle: FutureBuilder<int>(
-                future: Metodo.totalCadastros(Igreja.collection, ativo: true),
+                future:
+                    MeuFirebase.totalCadastros(Igreja.collection, ativo: true),
                 builder: ((context, snapshot) {
                   if (!snapshot.hasData) return const Text('verificando...');
                   int total = snapshot.data!;
@@ -1005,8 +725,8 @@ class AdminPage extends StatelessWidget {
               leading: const Icon(Icons.music_video),
               title: const Text('Instrumentos e equipamentos'),
               subtitle: FutureBuilder<int>(
-                future:
-                    Metodo.totalCadastros(Instrumento.collection, ativo: true),
+                future: MeuFirebase.totalCadastros(Instrumento.collection,
+                    ativo: true),
                 builder: ((context, snapshot) {
                   if (!snapshot.hasData) return const Text('verificando...');
                   int total = snapshot.data!;
@@ -1026,8 +746,8 @@ class AdminPage extends StatelessWidget {
               leading: const Icon(Icons.groups),
               title: const Text('Integrantes da equipe'),
               subtitle: FutureBuilder<int>(
-                future:
-                    Metodo.totalCadastros(Integrante.collection, ativo: true),
+                future: MeuFirebase.totalCadastros(Integrante.collection,
+                    ativo: true),
                 builder: ((context, snapshot) {
                   if (!snapshot.hasData) return const Text('verificando...');
                   int total = snapshot.data!;

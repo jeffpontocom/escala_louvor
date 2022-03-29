@@ -21,11 +21,16 @@
         "observacoes",
         "ocasiao",
         "ocasioes",
+        "percussao",
         "Permissao",
+        "Responsaveis",
         "responsavel",
         "Restricao",
         "rodape",
         "secao",
-        "usuario"
+        "sonorizacao",
+        "transmissao",
+        "usuario",
+        "violao"
     ]
 }
