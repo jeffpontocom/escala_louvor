@@ -31,7 +31,7 @@ class ViewIntegrante extends StatelessWidget {
         Expanded(
           child: ListView(
             shrinkWrap: true,
-            padding: const EdgeInsets.symmetric(horizontal: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
             children: [
               // Funções
               editMode
@@ -236,87 +236,14 @@ class ViewIntegrante extends StatelessWidget {
               // Instrumentos
               const Text('INSTRUMENTOS (habilidades)'),
               Padding(
-                padding: const EdgeInsets.only(top: 8, bottom: 16),
-                child: StatefulBuilder(builder: (_, innerState) {
-                  return FutureBuilder<QuerySnapshot<Instrumento>>(
-                      future: MeuFirebase.obterListaInstrumentos(ativo: true),
-                      builder: ((context, snapshot) {
-                        return Wrap(
-                          spacing: 4,
-                          runSpacing: 4,
-                          children:
-                              List.generate(snapshot.data?.size ?? 0, (index) {
-                            var snapInstrumento = snapshot.data!.docs[index];
-                            return ChoiceChip(
-                              label: Text(snapInstrumento.data().nome),
-                              avatar: Image.asset(
-                                  snapInstrumento.data().iconAsset,
-                                  width: 12),
-                              selectedColor: Colors.blue,
-                              disabledColor: Colors.grey.withOpacity(0.1),
-                              selected: integrante.instrumentos
-                                      ?.map((e) => e.toString())
-                                      .contains(snapInstrumento.reference
-                                          .toString()) ??
-                                  false,
-                              onSelected: editMode
-                                  ? (check) {
-                                      integrante.instrumentos ??= [];
-                                      check
-                                          ? integrante.instrumentos
-                                              ?.add(snapInstrumento.reference)
-                                          : integrante.instrumentos
-                                              ?.removeWhere((element) =>
-                                                  element.toString() ==
-                                                  snapInstrumento.reference
-                                                      .toString());
-                                      innerState(() {});
-                                    }
-                                  : null,
-                            );
-                          }).toList(),
-                        );
-                      }));
-                }),
-              ),
+                  padding: const EdgeInsets.only(top: 8, bottom: 16),
+                  child: _verInstrumentos(context)),
 
               // Igrejas
               const Text('IGREJAS (em que pode ser escalado)'),
               Padding(
                 padding: const EdgeInsets.only(top: 8, bottom: 16),
-                child: StatefulBuilder(builder: (_, innerState) {
-                  return Row(
-                    children: [
-                      editMode
-                          ? IconButton(
-                              onPressed: () => _addIgreja(context),
-                              icon: const Icon(Icons.add_circle),
-                            )
-                          : const SizedBox(),
-                      Wrap(
-                        children: List.generate(
-                          integrante.igrejas?.length ?? 0,
-                          (index) => FutureBuilder<DocumentSnapshot<Igreja>?>(
-                              future: MeuFirebase.obterSnapshotIgreja(
-                                  integrante.igrejas![index].id),
-                              builder: (_, snap) {
-                                if (snap.hasData) {
-                                  if (snap.data == null) {
-                                    return const SizedBox();
-                                  }
-                                  return RawChip(
-                                    label:
-                                        Text(snap.data?.data()?.sigla ?? '?'),
-                                    avatar: const Icon(Icons.church),
-                                  );
-                                }
-                                return const CircularProgressIndicator();
-                              }),
-                        ).toList(),
-                      ),
-                    ],
-                  );
-                }),
+                child: _verIgrejas(context),
               ),
 
               // Obs
@@ -394,9 +321,9 @@ class ViewIntegrante extends StatelessWidget {
                         } else {
                           await MeuFirebase.salvarIntegrante(integrante,
                               id: integranteId);
+                          Modular.to.pop(); // Fecha progresso
+                          Modular.to.maybePop(); // Fecha dialog ou tela
                         }
-                        Modular.to.pop(); // Fecha progresso
-                        Modular.to.pop(); // Fecha dialog
                       },
                     ),
                   ],
@@ -419,93 +346,185 @@ class ViewIntegrante extends StatelessWidget {
     );
   }
 
-  void _addIgreja(BuildContext context) {
-    var conteudo = Padding(
-      padding: EdgeInsets.all(24),
-      child: FutureBuilder<QuerySnapshot<Igreja>>(
-          future: MeuFirebase.obterListaIgrejas(ativo: true),
-          builder: ((context, snapshot) {
-            var igrejas = snapshot.data?.docs;
-            if (igrejas == null || igrejas.isEmpty) {
-              return Text('Erro');
+  Widget _verInstrumentos(BuildContext context) {
+    return FutureBuilder<QuerySnapshot<Instrumento>>(
+      future: MeuFirebase.obterListaInstrumentos(ativo: true),
+      builder: ((context, snapshot) {
+        var instrumentos = snapshot.data?.docs;
+        if (instrumentos == null || instrumentos.isEmpty) {
+          return Text(
+            'Nenhum instrumento cadastrado!',
+            style: Theme.of(context).textTheme.bodySmall,
+          );
+        }
+        if (!editMode) {
+          instrumentos.removeWhere((element) {
+            if (integrante.instrumentos == null ||
+                integrante.instrumentos!.isEmpty) {
+              return true;
             }
+            if (integrante.instrumentos!
+                .map((e) => e.toString())
+                .contains(element.reference.toString())) {
+              return false;
+            } else {
+              return true;
+            }
+          });
+          if (instrumentos.isEmpty) {
+            return Text(
+              'Nenhum instrumento selecionado',
+              style: Theme.of(context).textTheme.bodySmall,
+            );
+          }
+        }
+        return StatefulBuilder(builder: (_, innerState) {
+          return Wrap(
+            spacing: 4,
+            runSpacing: 4,
+            children: List.generate(instrumentos.length, (index) {
+              var snapInstrumento = instrumentos[index];
+              return ChoiceChip(
+                label: Text(snapInstrumento.data().nome),
+                avatar:
+                    Image.asset(snapInstrumento.data().iconAsset, width: 12),
+                selectedColor: Colors.blue,
+                disabledColor: Colors.grey.withOpacity(0.1),
+                pressElevation: 0,
+                selected: integrante.instrumentos
+                        ?.map((e) => e.toString())
+                        .contains(snapInstrumento.reference.toString()) ??
+                    false,
+                onSelected: editMode
+                    ? (check) {
+                        integrante.instrumentos ??= [];
+                        check
+                            ? integrante.instrumentos
+                                ?.add(snapInstrumento.reference)
+                            : integrante.instrumentos?.removeWhere((element) =>
+                                element.toString() ==
+                                snapInstrumento.reference.toString());
+                        innerState(() {});
+                      }
+                    : (check) {},
+              );
+            }).toList(),
+          );
+        });
+      }),
+    );
+  }
+
+  Widget _verIgrejas(BuildContext context) {
+    return FutureBuilder<QuerySnapshot<Igreja>>(
+        future: MeuFirebase.obterListaIgrejas(ativo: true),
+        builder: ((context, snapshot) {
+          var igrejas = snapshot.data?.docs;
+          if (igrejas == null || igrejas.isEmpty) {
+            return Text(
+              'Nenhuma igreja cadastrada!',
+              style: Theme.of(context).textTheme.bodySmall,
+            );
+          }
+          if (!editMode) {
+            igrejas.removeWhere((element) {
+              if (integrante.igrejas == null || integrante.igrejas!.isEmpty) {
+                return true;
+              }
+              if (integrante.igrejas!
+                  .map((e) => e.toString())
+                  .contains(element.reference.toString())) {
+                return false;
+              } else {
+                return true;
+              }
+            });
+            if (igrejas.isEmpty) {
+              return Text(
+                'Nenhuma igreja selecionada',
+                style: Theme.of(context).textTheme.bodySmall,
+              );
+            }
+          }
+          return StatefulBuilder(builder: (context, innerState) {
             return Wrap(
+              spacing: 8,
+              runSpacing: 8,
               children: List.generate(
                 igrejas.length,
                 (index) {
-                  return ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 150),
+                  bool inscrito = integrante.igrejas
+                          ?.map((e) => e.toString())
+                          .contains(igrejas[index].reference.toString()) ??
+                      false;
+                  return InkWell(
+                    onTap: editMode
+                        ? () {
+                            integrante.igrejas ??= [];
+                            innerState(() {
+                              inscrito
+                                  ? integrante.igrejas?.removeWhere((element) =>
+                                      element.toString() ==
+                                      igrejas[index].reference.toString())
+                                  : integrante.igrejas
+                                      ?.add(igrejas[index].reference);
+                            });
+                          }
+                        : null,
                     // Card da Igreja
-                    child: Card(
-                      clipBehavior: Clip.antiAlias,
-                      color: igrejas[index].reference.toString() ==
-                              Global.igrejaAtual?.reference.toString()
-                          ? Colors.amber.withOpacity(0.5)
-                          : null,
-                      shape: RoundedRectangleBorder(
-                        side: BorderSide(color: Colors.grey.withOpacity(0.5)),
-                        borderRadius:
-                            const BorderRadius.all(Radius.circular(16)),
-                      ),
-                      child: InkWell(
-                        radius: 16,
-                        customBorder: const RoundedRectangleBorder(
-                          side: BorderSide(color: Colors.grey),
-                          borderRadius: BorderRadius.all(
-                            Radius.circular(16),
+                    child: Stack(
+                      alignment: AlignmentDirectional.topEnd,
+                      children: [
+                        Card(
+                          clipBehavior: Clip.antiAlias,
+                          margin: const EdgeInsets.only(top: 8, right: 8),
+                          shape: RoundedRectangleBorder(
+                            side:
+                                BorderSide(color: Colors.grey.withOpacity(0.5)),
+                            borderRadius:
+                                const BorderRadius.all(Radius.circular(8)),
                           ),
-                        ),
-                        onTap: () async {
-                          Mensagem.aguardar(context: context);
-                          String? id = igrejas[index].reference.id;
-                          Preferencias.igrejaAtual = id;
-                          Global.igrejaAtual =
-                              await MeuFirebase.obterSnapshotIgreja(id);
-                          Modular.to.pop(); // fecha progresso
-                          Modular.to.pop(); // fecha dialog
-                          //_igrejaContexto.value = Global.igrejaAtual?.data();
-                        },
-                        child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Foto da igreja
-                              SizedBox(
-                                height: 150,
-                                child: MyNetwork.getImageFromUrl(
-                                        igrejas[index].data().fotoUrl, null) ??
-                                    const Center(child: Icon(Icons.church)),
-                              ),
-                              // Sigla
-                              const SizedBox(height: 8),
-                              Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 12),
+                          child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              children: [
+                                // Foto da igreja
+                                SizedBox(
+                                  height: 56,
+                                  width: 64,
+                                  child: MyNetwork.getImageFromUrl(
+                                          igrejas[index].data().fotoUrl,
+                                          null) ??
+                                      const Icon(Icons.church),
+                                ),
+                                // Sigla
+                                Padding(
+                                  padding: const EdgeInsets.all(8),
                                   child: Text(
                                     igrejas[index].data().sigla.toUpperCase(),
-                                    style: const TextStyle(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold),
-                                  )),
-
-                              // Nome
-                              const SizedBox(height: 4),
-                              Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 12),
-                                child: Text(igrejas[index].data().nome),
-                              ),
-                              const SizedBox(height: 12),
-                            ]),
-                      ),
+                                    style:
+                                        Theme.of(context).textTheme.titleSmall,
+                                  ),
+                                ),
+                              ]),
+                        ),
+                        // Icone inscrito
+                        CircleAvatar(
+                          backgroundColor: Colors.white,
+                          radius: 12,
+                          child: inscrito
+                              ? Icon(Icons.check_circle,
+                                  color: Theme.of(context).colorScheme.primary)
+                              : const Icon(Icons.remove_circle,
+                                  color: Colors.grey),
+                        ),
+                      ],
                     ),
                   );
                 },
                 growable: false,
               ).toList(),
             );
-          })),
-    );
-    return Mensagem.bottomDialog(
-        context: context, titulo: 'Adicionar igreja', conteudo: conteudo);
+          });
+        }));
   }
 }

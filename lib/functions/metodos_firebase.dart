@@ -23,6 +23,36 @@ import '/utils/mensagens.dart';
 class MeuFirebase {
   /* STREAMS  */
 
+  static void escutarIntegranteLogado(String id) {
+    FirebaseFirestore.instance
+        .collection(Integrante.collection)
+        .doc(id)
+        .withConverter<Integrante>(
+            fromFirestore: (snapshot, _) =>
+                Integrante.fromJson(snapshot.data()!),
+            toFirestore: (pacote, _) => pacote.toJson())
+        .snapshots()
+        .listen((event) async {
+      Global.integranteLogado = event;
+      // Se não houver mais igrejas vinculadas, então resetar igreja selecionada.
+      var igrejas = event.data()?.igrejas;
+      if (igrejas == null || igrejas.isEmpty) {
+        Global.igrejaSelecionada.value = null;
+      } else {
+        // Se nas igrejas inscritas não houver a igreja selecionada, então resetar a igreja selecionada.
+        if (!(igrejas
+            .map((e) => e.toString())
+            .contains(Global.igrejaSelecionada.value?.reference.toString()))) {
+          if (Global.igrejaSelecionada.value == null) {
+            Global.igrejaSelecionada.value = await igrejas[0].get();
+          } else {
+            Global.igrejaSelecionada.value = null;
+          }
+        } else {}
+      }
+    });
+  }
+
   /// Stream para escutar base de dados das Igrejas
   static Stream<QuerySnapshot<Igreja>> escutarIgrejas({bool? ativas}) {
     return FirebaseFirestore.instance

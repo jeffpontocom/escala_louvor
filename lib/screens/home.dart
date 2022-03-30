@@ -31,7 +31,6 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   /* VARIÁVEIS */
   int _telaSelecionada = 0;
-  final ValueNotifier<Igreja?> _igrejaContexto = ValueNotifier(null);
 
   String get titulo {
     switch (_telaSelecionada) {
@@ -92,7 +91,7 @@ class _HomePageState extends State<HomePage> {
   ];
 
   /* SISTEMA */
-
+  late Stream<DocumentSnapshot<Integrante>?> integranteStream;
   @override
   void initState() {
     super.initState();
@@ -100,8 +99,15 @@ class _HomePageState extends State<HomePage> {
     // FlutterLocalNotificationsPlugin will not be initialize and you will get error
     Notificacoes.carregarInstancia(context);
     MeuFirebase.obterSnapshotIgreja(Preferencias.igrejaAtual).then((value) {
-      Global.igrejaAtual = value;
-      _igrejaContexto.value = value?.data();
+      bool inscrito = Global.integranteLogado
+              ?.data()
+              ?.igrejas
+              ?.map((e) => e.toString())
+              .contains(value?.reference.toString()) ??
+          false;
+      if (inscrito) {
+        Global.igrejaSelecionada.value = value;
+      }
     });
   }
 
@@ -114,7 +120,8 @@ class _HomePageState extends State<HomePage> {
             .asStream(),
         builder: (_, snapshotIntegrante) {
           Global.integranteLogado = snapshotIntegrante.data;
-          dev.log('Integrante ID: ${Global.integranteLogado?.id}');
+          dev.log('Integrante ID: ${Global.integranteLogado?.id}',
+              name: 'log:home');
           // Aguardando dados do integrante
           if (!snapshotIntegrante.hasData) {
             return const Scaffold(
@@ -128,8 +135,8 @@ class _HomePageState extends State<HomePage> {
             );
           }
           // Sucesso. Escutar Igreja em contexto
-          return ValueListenableBuilder<Igreja?>(
-              valueListenable: _igrejaContexto,
+          return ValueListenableBuilder<DocumentSnapshot<Igreja>?>(
+              valueListenable: Global.igrejaSelecionada,
               builder: (context, igrejaContexto, _) {
                 // Nenhum Igreja em contexto
                 if (igrejaContexto == null) {
@@ -209,7 +216,7 @@ class _HomePageState extends State<HomePage> {
                       Mensagem.bottomDialog(
                         context: context,
                         titulo: 'Selecionar igreja ou local',
-                        conteudo: _igrejas,
+                        conteudo: ViewIgrejas(),
                       );
                     },
                     child: const Icon(Icons.church),
@@ -248,7 +255,8 @@ class _HomePageState extends State<HomePage> {
                       child: Card(
                         clipBehavior: Clip.antiAlias,
                         color: igrejas?[index].reference.toString() ==
-                                Global.igrejaAtual?.reference.toString()
+                                Global.igrejaSelecionada.value?.reference
+                                    .toString()
                             ? Colors.amber.withOpacity(0.5)
                             : null,
                         shape: RoundedRectangleBorder(
@@ -268,11 +276,10 @@ class _HomePageState extends State<HomePage> {
                             Mensagem.aguardar(context: context);
                             String? id = igrejas?[index].reference.id;
                             Preferencias.igrejaAtual = id;
-                            Global.igrejaAtual =
-                                await MeuFirebase.obterSnapshotIgreja(id);
                             Modular.to.pop(); // fecha progresso
                             Modular.to.pop(); // fecha dialog
-                            _igrejaContexto.value = Global.igrejaAtual?.data();
+                            Global.igrejaSelecionada.value =
+                                await MeuFirebase.obterSnapshotIgreja(id);
                           },
                           child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,

@@ -38,7 +38,8 @@ class _TelaEscalaState extends State<TelaEscala> with TickerProviderStateMixin {
         future: FirebaseFirestore.instance
             .collection(Culto.collection)
             .where('dataCulto', isGreaterThanOrEqualTo: _hoje)
-            .where('igreja', isEqualTo: Global.igrejaAtual?.reference)
+            .where('igreja',
+                isEqualTo: Global.igrejaSelecionada.value?.reference)
             .orderBy('dataCulto')
             .withConverter<Culto>(
               fromFirestore: (snapshot, _) => Culto.fromJson(snapshot.data()!),
@@ -60,7 +61,7 @@ class _TelaEscalaState extends State<TelaEscala> with TickerProviderStateMixin {
           if (_listaCultos.isEmpty) {
             return Center(
               child: Text(
-                'Nenhuma agenda para\n\n${Global.igrejaAtual?.data()?.nome ?? ''}',
+                'Nenhuma agenda para\n\n${Global.igrejaSelecionada.value?.data()?.nome ?? ''}',
                 style: Theme.of(context).textTheme.headlineSmall,
                 textAlign: TextAlign.center,
               ),
@@ -115,7 +116,8 @@ class _TelaEscalaState extends State<TelaEscala> with TickerProviderStateMixin {
                   ),
                   const SizedBox(width: 8),
                   Text(
-                    Global.igrejaAtual?.data()?.sigla ?? '[Escolher igreja]',
+                    Global.igrejaSelecionada.value?.data()?.sigla ??
+                        '[Escolher igreja]',
                     style: Theme.of(context).textTheme.titleSmall,
                   ),
                   const SizedBox(width: 12),

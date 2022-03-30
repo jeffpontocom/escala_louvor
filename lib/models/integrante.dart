@@ -147,11 +147,10 @@ class Integrante {
     if (json == null) return null;
     return List<DocumentReference<Igreja>>.from(
       (json as List<dynamic>).map(
-        (doc) => (doc as DocumentReference)
-          ..withConverter<Igreja>(
-            fromFirestore: (snapshot, _) => Igreja.fromJson(snapshot.data()!),
-            toFirestore: (model, _) => model.toJson(),
-          ),
+        (doc) => (doc as DocumentReference).withConverter<Igreja>(
+          fromFirestore: (snapshot, _) => Igreja.fromJson(snapshot.data()!),
+          toFirestore: (model, _) => model.toJson(),
+        ),
       ),
     );
   }

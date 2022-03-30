@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 
 import 'models/igreja.dart';
 import 'models/integrante.dart';
@@ -10,5 +11,6 @@ class Global {
 
   // Services
   static DocumentSnapshot<Integrante>? integranteLogado;
-  static DocumentSnapshot<Igreja>? igrejaAtual;
+  static ValueNotifier<DocumentSnapshot<Igreja>?> igrejaSelecionada =
+      ValueNotifier(null);
 }

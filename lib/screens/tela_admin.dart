@@ -345,6 +345,15 @@ class AdminPage extends StatelessWidget {
                 ],
               ),
             ),
+            // Ajuda
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(
+                'Segure e arraste para reordenar.',
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ),
+            // Lista
             FutureBuilder<QuerySnapshot<Instrumento>>(
               future: MeuFirebase.obterListaInstrumentos(ativo: verAtivos),
               builder: ((context, snapshot) {

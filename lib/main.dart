@@ -1,5 +1,7 @@
 import 'dart:developer' as dev;
 
+import 'package:escala_louvor/functions/metodos_firebase.dart';
+import 'package:escala_louvor/global.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
@@ -37,6 +39,11 @@ class MyApp extends StatelessWidget {
         builder: (_, snapshotUser) {
           dev.log(
               'FirebaseAuth change: ${snapshotUser.data?.email ?? 'Não logado!'}');
+          if (snapshotUser.hasData && snapshotUser.data != null) {
+            MeuFirebase.escutarIntegranteLogado(snapshotUser.data!.uid);
+          } else {
+            Global.integranteLogado == null;
+          }
           return MaterialApp.router(
             title: 'Escala do Louvor',
             theme: ThemeData(

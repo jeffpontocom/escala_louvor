@@ -42,8 +42,9 @@ class _TelaPerfilState extends State<TelaPerfil> {
         actions: [
           _ehMeuPerfil
               ? TextButton.icon(
-                  onPressed: () => _sair,
+                  onPressed: _sair,
                   icon: const Icon(Icons.logout),
+                  style: TextButton.styleFrom(primary: Colors.white),
                   label: const Text('SAIR'))
               : const SizedBox()
         ],
@@ -62,21 +63,11 @@ class _TelaPerfilState extends State<TelaPerfil> {
             _integrante = snap.data!.data()!;
             _documentReference = snap.data!.reference;
             // Tela com retorno preenchido
-            return InkWell(
-              splashColor: Colors.transparent,
-              focusColor: Colors.transparent,
-              hoverColor: Colors.transparent,
-              onTap: () => FocusScope.of(context).requestFocus(FocusNode()),
-              child: Scrollbar(
-                isAlwaysShown: true,
-                showTrackOnHover: true,
-                child: ViewIntegrante(
-                    id: _documentReference.id,
-                    integrante: _integrante,
-                    editMode: _ehMeuPerfil,
-                    novoCadastro: false),
-              ),
-            );
+            return ViewIntegrante(
+                id: _documentReference.id,
+                integrante: _integrante,
+                editMode: _ehMeuPerfil,
+                novoCadastro: false);
           }),
     );
   }
