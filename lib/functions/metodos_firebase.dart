@@ -253,6 +253,18 @@ class MeuFirebase {
         .set(culto);
   }
 
+  /// Atualizar ou Criar Culto
+  static Future apagarCulto(Culto culto, {String? id}) async {
+    FirebaseFirestore.instance
+        .collection(Culto.collection)
+        .withConverter<Culto>(
+          fromFirestore: (snapshot, _) => Culto.fromJson(snapshot.data()!),
+          toFirestore: (model, _) => model.toJson(),
+        )
+        .doc(id)
+        .delete();
+  }
+
   /// Criar novo usuário
   static Future<UserCredential?> criarUsuario(
       {required String email, required String senha}) async {

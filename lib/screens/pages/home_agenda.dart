@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:escala_louvor/screens/views/dialogos.dart';
 import 'package:escala_louvor/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
@@ -139,10 +140,24 @@ class TelaAgenda extends StatelessWidget {
               const Expanded(child: SizedBox()),
               // Botão criar novo registro de culto
               ActionChip(
-                avatar: const Icon(Icons.add_circle),
-                label: const Text('Culto'),
-                onPressed: () => _dialogNovoCulto(context),
-              ),
+                  avatar: const Icon(Icons.add_circle),
+                  label: const Text('Culto'),
+                  onPressed: () {
+                    // Tratamento de erros
+                    if (Global.igrejaSelecionada.value == null) {
+                      Mensagem.simples(
+                          context: context,
+                          mensagem:
+                              'Isso não deveria ter acontecido. Sem igreja selecionada.');
+                      return;
+                    }
+                    var culto = Culto(
+                      dataCulto: Timestamp.fromDate(_dataSelecionada.value),
+                      igreja: Global.igrejaSelecionada.value!.reference,
+                    );
+                    Dialogos.editarCulto(context, culto);
+                  } //_dialogNovoCulto(context),
+                  ),
             ],
           ),
         ),
@@ -266,7 +281,7 @@ class TelaAgenda extends StatelessWidget {
     // FIM
   }
 
-  void _dialogNovoCulto(BuildContext context) async {
+  /* void _dialogNovoCulto(BuildContext context) async {
     if (Global.igrejaSelecionada.value == null) {
       // TODO: Utilizar a mesma interface do float button em Home
       Mensagem.bottomDialog(
@@ -487,5 +502,5 @@ class TelaAgenda extends StatelessWidget {
         ],
       ),
     );
-  }
+  } */
 }

@@ -23,23 +23,24 @@ class AppRotas extends Module {
     ChildRoute(
       HOME,
       child: (_, __) => const HomePage(),
-      guards: [AuthGuard()],
+      guards: [NotAuthGuard()],
     ),
     ChildRoute(
       LOGIN,
       child: (_, __) => const LoginPage(),
+      guards: [AuthGuard()],
       //transition: TransitionType.fadeIn,
     ),
     ChildRoute(
       PERFIL,
       child: (_, args) => TelaPerfil(id: args.queryParams['id'] ?? ''),
-      guards: [AuthGuard(), HasQueryGuard()],
+      guards: [NotAuthGuard(), HasQueryGuard()],
       //transition: TransitionType.rightToLeftWithFade,
     ),
     ChildRoute(
       ADMIN,
       child: (_, __) => const AdminPage(),
-      guards: [AuthGuard()],
+      guards: [NotAuthGuard()],
       //transition: TransitionType.downToUp,
     ),
     ChildRoute(
@@ -57,13 +58,23 @@ class AppRotas extends Module {
   ];
 }
 
-class AuthGuard extends RouteGuard {
-  AuthGuard() : super(redirectTo: AppRotas.LOGIN);
+class NotAuthGuard extends RouteGuard {
+  NotAuthGuard() : super(redirectTo: AppRotas.LOGIN);
 
   @override
   // ignore: avoid_renaming_method_parameters
   Future<bool> canActivate(String path, ModularRoute router) async {
     return FirebaseAuth.instance.currentUser != null;
+  }
+}
+
+class AuthGuard extends RouteGuard {
+  AuthGuard() : super(redirectTo: AppRotas.HOME);
+
+  @override
+  // ignore: avoid_renaming_method_parameters
+  Future<bool> canActivate(String path, ModularRoute router) async {
+    return FirebaseAuth.instance.currentUser == null;
   }
 }
 

@@ -38,7 +38,7 @@ class MyApp extends StatelessWidget {
         stream: FirebaseAuth.instance.userChanges(),
         builder: (_, snapshotUser) {
           dev.log(
-              'FirebaseAuth change: ${snapshotUser.data?.email ?? 'Não logado!'}');
+              'FirebaseAuth alterado - usuário  ${snapshotUser.data?.email ?? 'não logado!'}');
           if (snapshotUser.hasData && snapshotUser.data != null) {
             MeuFirebase.escutarIntegranteLogado(snapshotUser.data!.uid);
           } else {

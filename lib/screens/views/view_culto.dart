@@ -1,11 +1,12 @@
 import 'dart:developer' as dev;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:escala_louvor/screens/views/dialogos.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:intl/intl.dart';
 
-import '../../functions/metodos_firebase.dart';
+import '/functions/metodos_firebase.dart';
 import '/functions/notificacoes.dart';
 import '/global.dart';
 import '/models/culto.dart';
@@ -30,7 +31,7 @@ class _ViewCultoState extends State<ViewCulto> {
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<DocumentSnapshot<Culto>>(
-        stream: widget.culto.snapshots(includeMetadataChanges: true),
+        stream: widget.culto.snapshots(),
         builder: ((context, snapshot) {
           // Progresso
           if (!snapshot.hasData) {
@@ -124,7 +125,9 @@ class _ViewCultoState extends State<ViewCulto> {
                         runSpacing: 12,
                         children: [
                           ElevatedButton.icon(
-                            onPressed: null,
+                            onPressed: () => Dialogos.editarCulto(
+                                context, mCulto,
+                                id: widget.culto.id),
                             label: const Text('Alterar dados do culto'),
                             icon: const Icon(Icons.edit_calendar),
                           ),
@@ -249,8 +252,8 @@ class _ViewCultoState extends State<ViewCulto> {
           ],
         ),
         style: OutlinedButton.styleFrom(
-          minimumSize: const Size(136, 56),
-          maximumSize: const Size.fromWidth(136),
+          minimumSize: const Size(128, 56),
+          maximumSize: const Size.fromWidth(128),
           padding: const EdgeInsets.all(12),
           backgroundColor: escalado
               ? Colors.green
