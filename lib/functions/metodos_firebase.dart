@@ -79,17 +79,36 @@ class MeuFirebase {
         .snapshots();
   }
 
-  /// Stream para escutar base de dados das Igrejas
-  static Stream<QuerySnapshot<Culto>> escutarCultos({
+  /// Lista de Igrejas
+  static Future<QuerySnapshot<Culto>> obterListaCultos({
+    DocumentReference? igreja,
     Timestamp? dataMinima,
     Timestamp? dataMaxima,
-    DocumentReference? integrante,
+  }) async {
+    return FirebaseFirestore.instance
+        .collection(Culto.collection)
+        .where('igreja', isEqualTo: igreja)
+        .where('dataCulto', isGreaterThanOrEqualTo: dataMinima)
+        .where('dataCulto', isLessThanOrEqualTo: dataMaxima)
+        .orderBy('dataCulto')
+        .withConverter<Culto>(
+          fromFirestore: (snapshot, _) => Culto.fromJson(snapshot.data()!),
+          toFirestore: (model, _) => model.toJson(),
+        )
+        .get();
+  }
+
+  /// Stream para escutar base de dados das Igrejas
+  static Stream<QuerySnapshot<Culto>> escutarCultos({
+    DocumentReference? igreja,
+    Timestamp? dataMinima,
+    Timestamp? dataMaxima,
   }) {
     return FirebaseFirestore.instance
         .collection(Culto.collection)
+        .where('igreja', isEqualTo: igreja)
         .where('dataCulto', isGreaterThanOrEqualTo: dataMinima)
         .where('dataCulto', isLessThanOrEqualTo: dataMaxima)
-        .where('equipe', arrayContains: integrante)
         .orderBy('dataCulto')
         .withConverter<Culto>(
           fromFirestore: (snapshot, _) => Culto.fromJson(snapshot.data()!),

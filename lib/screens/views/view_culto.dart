@@ -38,7 +38,7 @@ class _ViewCultoState extends State<ViewCulto> {
             return const Center(child: CircularProgressIndicator());
           }
           // Erro
-          if (snapshot.hasError) {
+          if (snapshot.hasError || snapshot.data?.data() == null) {
             return const Center(
                 child: Text('Falha ao carregar dados do culto.'));
           }
@@ -201,9 +201,12 @@ class _ViewCultoState extends State<ViewCulto> {
   Widget get _buttonDisponibilidade {
     bool alterar = false;
     return StatefulBuilder(builder: (context, setState) {
-      bool escalado = _usuarioEscalado;
-      bool disponivel = _usuarioDisponivel;
-      bool restrito = _usuarioRestrito;
+      bool escalado =
+          mCulto.usuarioEscalado(Global.integranteLogado?.reference);
+      bool disponivel =
+          mCulto.usuarioDisponivel(Global.integranteLogado?.reference);
+      bool restrito =
+          mCulto.usuarioRestrito(Global.integranteLogado?.reference);
       dev.log('Estou escalado: $escalado | Estou disponível: $disponivel');
       return OutlinedButton(
         onPressed: escalado || restrito
@@ -583,18 +586,22 @@ class _ViewCultoState extends State<ViewCulto> {
                     ],
                   ),
                   // Imagem do instrumento
-                  Image.asset(
-                    funcao == Funcao.dirigente
-                        ? 'assets/icons/music_dirigente.png'
-                        : funcao == Funcao.coordenador
-                            ? 'assets/icons/music_coordenador.png'
-                            : 'assets/icons/ic_launcher.png',
-                    width: 16,
-                    color: Theme.of(context)
+                  CircleAvatar(
+                    backgroundColor: Colors.white.withOpacity(0.5),
+                    radius: 10,
+                    child: Image.asset(
+                      funcao == Funcao.dirigente
+                          ? 'assets/icons/music_dirigente.png'
+                          : funcao == Funcao.coordenador
+                              ? 'assets/icons/music_coordenador.png'
+                              : 'assets/icons/ic_launcher.png',
+                      width: 16,
+                      /* color: Theme.of(context)
                         .colorScheme
                         .inverseSurface
                         .withOpacity(0.75),
-                    colorBlendMode: BlendMode.srcATop,
+                    colorBlendMode: BlendMode.srcATop, */
+                    ),
                   ),
                 ],
               ),
@@ -704,19 +711,18 @@ class _ViewCultoState extends State<ViewCulto> {
                           ],
                         ),
                         // Imagem do instrumento
-                        Image.asset(
-                          instrumento?.iconAsset ??
-                              (funcao == Funcao.dirigente
-                                  ? 'assets/icons/music_dirigente.png'
-                                  : funcao == Funcao.coordenador
-                                      ? 'assets/icons/music_coordenador.png'
-                                      : 'assets/icons/ic_launcher.png'),
-                          width: 16,
-                          color: Theme.of(context)
-                              .colorScheme
-                              .inverseSurface
-                              .withOpacity(0.75),
-                          colorBlendMode: BlendMode.srcATop,
+                        CircleAvatar(
+                          backgroundColor: Colors.white.withOpacity(0.5),
+                          radius: 10,
+                          child: Image.asset(
+                            instrumento?.iconAsset ??
+                                (funcao == Funcao.dirigente
+                                    ? 'assets/icons/music_dirigente.png'
+                                    : funcao == Funcao.coordenador
+                                        ? 'assets/icons/music_coordenador.png'
+                                        : 'assets/icons/ic_launcher.png'),
+                            width: 16,
+                          ),
                         ),
                       ],
                     ),
@@ -747,44 +753,6 @@ class _ViewCultoState extends State<ViewCulto> {
   }
 
   /* FUNÇÕES */
-
-  /// Verifica se usuário está disponivel
-  bool get _usuarioDisponivel {
-    return mCulto.disponiveis
-            ?.map((e) => e.toString())
-            .contains(Global.integranteLogado?.reference.toString()) ??
-        false;
-  }
-
-  /// Verifica se usuário está restrito
-  bool get _usuarioRestrito {
-    return mCulto.restritos
-            ?.map((e) => e.toString())
-            .contains(Global.integranteLogado?.reference.toString()) ??
-        false;
-  }
-
-  /// Verifica se usuário está escalado
-  bool get _usuarioEscalado {
-    if (mCulto.dirigente.toString() ==
-            Global.integranteLogado?.reference.toString() ||
-        mCulto.coordenador.toString() ==
-            Global.integranteLogado?.reference.toString()) {
-      return true;
-    }
-    if (mCulto.equipe == null || mCulto.equipe!.isEmpty) {
-      return false;
-    }
-    for (var instrumentosEquipe in mCulto.equipe!.values.toList()) {
-      for (var integrante in instrumentosEquipe) {
-        if (integrante.toString() ==
-            Global.integranteLogado?.reference.toString()) {
-          return true;
-        }
-      }
-    }
-    return false;
-  }
 
   void _escalarIntegrante(
     Funcao funcao,

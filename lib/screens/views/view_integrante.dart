@@ -2,8 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 
-import '../../global.dart';
-import '../../preferencias.dart';
 import '/functions/metodos_firebase.dart';
 import '/models/igreja.dart';
 import '/models/instrumento.dart';
@@ -380,8 +378,7 @@ class ViewIntegrante extends StatelessWidget {
         }
         return StatefulBuilder(builder: (_, innerState) {
           return Wrap(
-            spacing: 4,
-            runSpacing: 4,
+            spacing: 8,
             children: List.generate(instrumentos.length, (index) {
               var snapInstrumento = instrumentos[index];
               return ChoiceChip(

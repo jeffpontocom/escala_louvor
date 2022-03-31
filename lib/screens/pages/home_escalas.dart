@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:escala_louvor/functions/metodos_firebase.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 
@@ -8,14 +9,16 @@ import '/screens/views/view_culto.dart';
 import '/utils/mensagens.dart';
 import '/utils/utils.dart';
 
-class TelaEscala extends StatefulWidget {
-  const TelaEscala({Key? key}) : super(key: key);
+class TelaEscalas extends StatefulWidget {
+  final String? id;
+  const TelaEscalas({Key? key, this.id}) : super(key: key);
 
   @override
-  State<TelaEscala> createState() => _TelaEscalaState();
+  State<TelaEscalas> createState() => _TelaEscalasState();
 }
 
-class _TelaEscalaState extends State<TelaEscala> with TickerProviderStateMixin {
+class _TelaEscalasState extends State<TelaEscalas>
+    with TickerProviderStateMixin {
   /// Lista de cultos
   final List<DocumentSnapshot<Culto>> _listaCultos = [];
 
@@ -28,24 +31,17 @@ class _TelaEscalaState extends State<TelaEscala> with TickerProviderStateMixin {
   @override
   void initState() {
     var agora = DateTime.now();
-    _hoje = Timestamp.fromDate(DateTime(agora.year, agora.month, agora.day));
+    _hoje = Timestamp.fromDate(
+        DateTime(agora.year, agora.month, agora.day).toUtc());
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<QuerySnapshot<Culto>>(
-        future: FirebaseFirestore.instance
-            .collection(Culto.collection)
-            .where('dataCulto', isGreaterThanOrEqualTo: _hoje)
-            .where('igreja',
-                isEqualTo: Global.igrejaSelecionada.value?.reference)
-            .orderBy('dataCulto')
-            .withConverter<Culto>(
-              fromFirestore: (snapshot, _) => Culto.fromJson(snapshot.data()!),
-              toFirestore: (model, _) => model.toJson(),
-            )
-            .get(),
+        future: MeuFirebase.obterListaCultos(
+            igreja: Global.igrejaSelecionada.value?.reference,
+            dataMinima: _hoje),
         builder: ((context, snapshot) {
           if (snapshot.hasError) {
             return const Center(
@@ -69,6 +65,13 @@ class _TelaEscalaState extends State<TelaEscala> with TickerProviderStateMixin {
           }
           _tabController =
               TabController(length: snapshot.data?.size ?? 0, vsync: this);
+          if (widget.id != null) {
+            var index =
+                _listaCultos.indexWhere((element) => element.id == widget.id);
+            if (index != -1) {
+              _tabController.animateTo(index);
+            }
+          }
           return Column(
             children: [
               // Controle de acesso aos cultos cadastrados
@@ -114,12 +117,6 @@ class _TelaEscalaState extends State<TelaEscala> with TickerProviderStateMixin {
                       ),
                     ),
                   ),
-                  const SizedBox(width: 8),
-                  Text(
-                    Global.igrejaSelecionada.value?.data()?.sigla ??
-                        '[Escolher igreja]',
-                    style: Theme.of(context).textTheme.titleSmall,
-                  ),
                   const SizedBox(width: 12),
                 ],
               ),
@@ -129,7 +126,11 @@ class _TelaEscalaState extends State<TelaEscala> with TickerProviderStateMixin {
                   controller: _tabController,
                   children: List.generate(
                     _listaCultos.length,
-                    (index) => ViewCulto(culto: _listaCultos[index].reference),
+                    (index) {
+                      return ViewCulto(
+                          key: LabeledGlobalKey(_listaCultos[index].id),
+                          culto: _listaCultos[index].reference);
+                    },
                     growable: false,
                   ).toList(),
                 ),

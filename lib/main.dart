@@ -1,7 +1,5 @@
 import 'dart:developer' as dev;
 
-import 'package:escala_louvor/functions/metodos_firebase.dart';
-import 'package:escala_louvor/global.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
@@ -12,8 +10,10 @@ import 'package:flutter_modular/flutter_modular.dart';
 import 'package:url_strategy/url_strategy.dart';
 
 import 'firebase_options.dart';
-import 'rotas.dart';
+import 'functions/metodos_firebase.dart';
+import 'global.dart';
 import 'preferencias.dart';
+import 'rotas.dart';
 
 void main() async {
   setPathUrlStrategy(); // remove o hash '#' das URLs
@@ -38,7 +38,7 @@ class MyApp extends StatelessWidget {
         stream: FirebaseAuth.instance.userChanges(),
         builder: (_, snapshotUser) {
           dev.log(
-              'FirebaseAuth alterado - usuário  ${snapshotUser.data?.email ?? 'não logado!'}');
+              'FirebaseAuth alterado - usuário ${snapshotUser.data?.email ?? 'não logado!'}');
           if (snapshotUser.hasData && snapshotUser.data != null) {
             MeuFirebase.escutarIntegranteLogado(snapshotUser.data!.uid);
           } else {
@@ -48,14 +48,22 @@ class MyApp extends StatelessWidget {
             title: 'Escala do Louvor',
             theme: ThemeData(
               primarySwatch: Colors.blue,
+              colorScheme: ColorScheme.light(
+                primary: Colors.blue,
+                secondary: Colors.blue.shade600,
+              ),
+              materialTapTargetSize:
+                  kIsWeb ? MaterialTapTargetSize.padded : null,
             ),
             darkTheme: ThemeData(
               brightness: Brightness.dark,
               primarySwatch: Colors.blue,
-              colorScheme: const ColorScheme.dark(
+              colorScheme: ColorScheme.dark(
                 primary: Colors.blue,
-                secondary: Colors.lightBlue,
+                secondary: Colors.blue.shade400,
               ),
+              materialTapTargetSize:
+                  kIsWeb ? MaterialTapTargetSize.padded : null,
             ),
             scrollBehavior: MyCustomScrollBehavior(),
             // Suporte a lingua português nos elementos globais

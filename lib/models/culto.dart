@@ -133,5 +133,40 @@ class Culto {
     );
   }
 
+  /// Verifica se usuário está disponivel
+  bool usuarioDisponivel(DocumentReference<Integrante>? integrante) {
+    return disponiveis
+            ?.map((e) => e.toString())
+            .contains(integrante.toString()) ??
+        false;
+  }
+
+  /// Verifica se usuário está restrito
+  bool usuarioRestrito(DocumentReference<Integrante>? integrante) {
+    return restritos
+            ?.map((e) => e.toString())
+            .contains(integrante.toString()) ??
+        false;
+  }
+
+  /// Verifica se usuário está escalado
+  bool usuarioEscalado(DocumentReference<Integrante>? integrante) {
+    if (dirigente.toString() == integrante.toString() ||
+        coordenador.toString() == integrante.toString()) {
+      return true;
+    }
+    if (equipe == null || equipe!.isEmpty) {
+      return false;
+    }
+    for (var instrumentosEquipe in equipe!.values.toList()) {
+      for (var integrante in instrumentosEquipe) {
+        if (integrante.toString() == integrante.toString()) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
   // FIM
 }

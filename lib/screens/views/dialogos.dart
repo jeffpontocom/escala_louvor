@@ -51,10 +51,8 @@ class Dialogos {
                     showDatePicker(
                       context: context,
                       initialDate: dataPrevia,
-                      firstDate: DateTime(2022),
-                      lastDate: DateTime.now().toLocal().add(
-                            const Duration(days: 180),
-                          ),
+                      firstDate: DateTime(DateTime.now().year - 2),
+                      lastDate: DateTime(DateTime.now().year + 2, 12, 0),
                     ).then((dia) {
                       if (dia != null) {
                         innerState(() {
@@ -152,7 +150,7 @@ class Dialogos {
       rodape: Row(
         children: [
           id == null
-              ? SizedBox()
+              ? const SizedBox()
               : ElevatedButton.icon(
                   icon: const Icon(Icons.delete),
                   label: const Text('APAGAR'),
@@ -176,7 +174,18 @@ class Dialogos {
               // Abre progresso
               Mensagem.aguardar(context: context);
               // Salva os dados no firebase
-              await MeuFirebase.salvarCulto(culto, id: id);
+              try {
+                await FirebaseFirestore.instance
+                    .collection(Culto.collection)
+                    .doc(id)
+                    .update({
+                  'dataCulto': culto.dataCulto,
+                  'ocasiao': culto.ocasiao,
+                  'obs': culto.obs
+                });
+              } catch (e) {
+                await MeuFirebase.salvarCulto(culto, id: id);
+              }
               Modular.to.pop(); // Fecha progresso
             },
           ),

@@ -22,7 +22,7 @@ class AppRotas extends Module {
   final List<ModularRoute> routes = [
     ChildRoute(
       HOME,
-      child: (_, __) => const HomePage(),
+      child: (_, args) => HomePage(escala: args.queryParams['escala']),
       guards: [NotAuthGuard()],
     ),
     ChildRoute(

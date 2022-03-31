@@ -22,7 +22,8 @@ import '/utils/mensagens.dart';
 import '/utils/utils.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({Key? key}) : super(key: key);
+  final String? escala;
+  const HomePage({Key? key, this.escala}) : super(key: key);
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -30,7 +31,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   /* VARIÁVEIS */
-  int _telaSelecionada = 0;
+  late int _telaSelecionada;
 
   String get titulo {
     switch (_telaSelecionada) {
@@ -51,7 +52,7 @@ class _HomePageState extends State<HomePage> {
     switch (_telaSelecionada) {
       case 0:
         // ignore: prefer_const_constructors
-        return TelaEscala();
+        return TelaEscalas(id: widget.escala);
       case 1:
         // ignore: prefer_const_constructors
         return TelaAgenda();
@@ -95,6 +96,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
+    _telaSelecionada = 0;
     // Its Important to place this line after runApp() otherwise
     // FlutterLocalNotificationsPlugin will not be initialize and you will get error
     Notificacoes.carregarInstancia(context);
@@ -212,15 +214,30 @@ class _HomePageState extends State<HomePage> {
                   ),
                   // FLOAT ACTION
                   floatingActionButton: FloatingActionButton(
-                    onPressed: () {
-                      Mensagem.bottomDialog(
-                        context: context,
-                        titulo: 'Selecionar igreja ou local',
-                        conteudo: ViewIgrejas(),
-                      );
-                    },
-                    child: const Icon(Icons.church),
-                  ),
+                      onPressed: () {
+                        Mensagem.bottomDialog(
+                          context: context,
+                          titulo: 'Selecionar igreja ou local',
+                          conteudo: ViewIgrejas(),
+                        );
+                      },
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(
+                            Icons.church,
+                            color: Colors.white,
+                          ),
+                          Text(
+                            Global.igrejaSelecionada.value?.data()?.sigla ?? '',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.bold,
+                              letterSpacing: 0,
+                            ),
+                          )
+                        ],
+                      )),
                   floatingActionButtonLocation:
                       FloatingActionButtonLocation.endDocked,
                 );
@@ -228,7 +245,7 @@ class _HomePageState extends State<HomePage> {
         });
   }
 
-  Widget get _igrejas {
+  /* Widget get _igrejas {
     return FutureBuilder<QuerySnapshot<Igreja>>(
         future: MeuFirebase.obterListaIgrejas(ativo: true),
         builder: (context, snapshot) {
@@ -328,5 +345,5 @@ class _HomePageState extends State<HomePage> {
             ),
           );
         });
-  }
+  } */
 }
