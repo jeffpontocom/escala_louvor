@@ -282,19 +282,18 @@ class TelaAgenda extends StatelessWidget {
                                   .putIfAbsent(dataCulto, () => 'culto');
                               // Analise do usuario logado em cada culto
                               bool escalado = culto.usuarioEscalado(
-                                  Global.integranteLogado?.reference);
+                                  Global.integranteLogado.value?.reference);
                               bool disponivel = culto.usuarioDisponivel(
-                                  Global.integranteLogado?.reference);
+                                  Global.integranteLogado.value?.reference);
                               bool restrito = culto.usuarioRestrito(
-                                  Global.integranteLogado?.reference);
+                                  Global.integranteLogado.value?.reference);
 
                               // Tile
                               return StatefulBuilder(
                                   builder: (context, innerState) {
                                 return ListTile(
-                                  leading: const Icon(Icons.event),
                                   title: Text(culto.ocasiao ?? 'Culto'),
-                                  horizontalTitleGap: 0,
+                                  //horizontalTitleGap: 0,
                                   subtitle:
                                       Text('$dataFormatada às $horaFormatada'),
                                   trailing: Row(

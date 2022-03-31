@@ -33,7 +33,7 @@ class MeuFirebase {
             toFirestore: (pacote, _) => pacote.toJson())
         .snapshots()
         .listen((event) async {
-      Global.integranteLogado = event;
+      Global.integranteLogado.value = event;
       // Se não houver mais igrejas vinculadas, então resetar igreja selecionada.
       var igrejas = event.data()?.igrejas;
       if (igrejas == null || igrejas.isEmpty) {
@@ -260,16 +260,26 @@ class MeuFirebase {
         .set(integrante);
   }
 
-  /// Atualizar ou Criar Culto
-  static Future salvarCulto(Culto culto, {String? id}) async {
+  /// Criar Culto
+  static Future criarCulto(Culto culto) async {
     FirebaseFirestore.instance
         .collection(Culto.collection)
         .withConverter<Culto>(
           fromFirestore: (snapshot, _) => Culto.fromJson(snapshot.data()!),
           toFirestore: (model, _) => model.toJson(),
         )
-        .doc(id)
+        .doc()
         .set(culto);
+  }
+
+  /// Atualizar Culto
+  static Future atualizarCulto(
+      Culto culto, DocumentReference<Culto> reference) async {
+    reference.update({
+      'dataCulto': culto.dataCulto,
+      'ocasiao': culto.ocasiao,
+      'obs': culto.obs
+    });
   }
 
   /// Atualizar ou Criar Culto
@@ -315,13 +325,13 @@ class MeuFirebase {
             .data()!
             .disponiveis
             ?.map((e) => e.toString())
-            .contains(Global.integranteLogado!.reference.toString()) ??
+            .contains(Global.integranteLogado.value!.reference.toString()) ??
         false;
     if (exist) {
       try {
         await culto.reference.update({
           'disponiveis':
-              FieldValue.arrayRemove([Global.integranteLogado!.reference])
+              FieldValue.arrayRemove([Global.integranteLogado.value!.reference])
         });
         dev.log('Removido com Sucesso');
         return true;
@@ -333,7 +343,7 @@ class MeuFirebase {
       try {
         await culto.reference.update({
           'disponiveis':
-              FieldValue.arrayUnion([Global.integranteLogado!.reference])
+              FieldValue.arrayUnion([Global.integranteLogado.value!.reference])
         });
         dev.log('Adicionado com Sucesso');
         return true;
@@ -356,13 +366,13 @@ class MeuFirebase {
             .data()!
             .restritos
             ?.map((e) => e.toString())
-            .contains(Global.integranteLogado!.reference.toString()) ??
+            .contains(Global.integranteLogado.value!.reference.toString()) ??
         false;
     if (exist) {
       try {
         await culto.reference.update({
           'restritos':
-              FieldValue.arrayRemove([Global.integranteLogado!.reference])
+              FieldValue.arrayRemove([Global.integranteLogado.value!.reference])
         });
         dev.log('Removido com Sucesso');
         return true;
@@ -374,7 +384,7 @@ class MeuFirebase {
       try {
         await culto.reference.update({
           'restritos':
-              FieldValue.arrayUnion([Global.integranteLogado!.reference])
+              FieldValue.arrayUnion([Global.integranteLogado.value!.reference])
         });
         dev.log('Adicionado com Sucesso');
         return true;

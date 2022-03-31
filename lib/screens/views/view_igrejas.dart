@@ -35,7 +35,7 @@ class ViewIgrejas extends StatelessWidget {
           }
           List<QueryDocumentSnapshot<Igreja>> inscritas = [];
           for (var igreja in igrejas) {
-            if (Global.integranteLogado
+            if (Global.integranteLogado.value
                     ?.data()
                     ?.igrejas
                     ?.map((e) => e.toString())
@@ -139,7 +139,7 @@ class ViewIgrejas extends StatelessWidget {
 
   Widget _listaDeIgrejasParaInscricao(
       List<QueryDocumentSnapshot<Igreja>> igrejas) {
-    Integrante integrante = Global.integranteLogado!.data()!;
+    Integrante integrante = Global.integranteLogado.value!.data()!;
     return StatefulBuilder(builder: (context, innerState) {
       return Center(
           child: Column(
@@ -224,7 +224,7 @@ class ViewIgrejas extends StatelessWidget {
             onPressed: (integrante.igrejas?.isNotEmpty ?? false)
                 ? () async {
                     await MeuFirebase.salvarIntegrante(integrante,
-                        id: Global.integranteLogado!.id);
+                        id: Global.integranteLogado.value!.id);
                     Global.igrejaSelecionada.value = igrejas.firstWhere(
                         (element) =>
                             element.reference.toString() ==

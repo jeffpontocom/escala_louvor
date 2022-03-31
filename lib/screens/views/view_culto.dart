@@ -26,6 +26,7 @@ class ViewCulto extends StatefulWidget {
 class _ViewCultoState extends State<ViewCulto> {
   /* VARIÁVEIS */
   late Culto mCulto;
+  late Integrante logado;
 
   /* SISTEMA */
   @override
@@ -44,6 +45,9 @@ class _ViewCultoState extends State<ViewCulto> {
           }
           // Conteúdo
           mCulto = snapshot.data!.data()!;
+          logado = Global.integranteLogado.value!.data()!;
+          dev.log(
+              'VIEW CULTO Build: ${DateFormat.MEd('pt_BR').format(mCulto.dataCulto.toDate())}');
           return Column(
             children: [
               // Cabeçalho
@@ -99,53 +103,53 @@ class _ViewCultoState extends State<ViewCulto> {
                     // Escalados (Equipe)
                     _sectionEscalados(
                       'Equipe',
-                      Funcao.integrante,
                       mCulto.equipe ?? {},
-                      () => _escalarIntegrante(Funcao.dirigente, mCulto.equipe),
+                      () => _escalarIntegrante(mCulto.equipe),
                     ),
                     const Divider(),
-                    Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Text(
-                        'Cânticos',
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleMedium!
-                            .copyWith(fontWeight: FontWeight.bold),
-                      ),
-                    ),
+                    // Canticos
+                    const Padding(
+                        padding: EdgeInsets.all(12), child: Text('CÂNTICOS')),
                     const Divider(),
                     // Observações
+                    const Padding(
+                        padding: EdgeInsets.all(12),
+                        child: Text('OBSERVAÇÕES')),
                     _observacoes,
+                    const Divider(),
                     // Botões de ação do administrador
                     Padding(
                       padding: const EdgeInsets.all(12),
                       child: Wrap(
                         spacing: 12,
-                        runSpacing: 12,
+                        runSpacing: 4,
                         children: [
-                          ElevatedButton.icon(
-                            onPressed: () => Dialogos.editarCulto(
-                                context, mCulto,
-                                id: widget.culto.id),
-                            label: const Text('Alterar dados do culto'),
-                            icon: const Icon(Icons.edit_calendar),
-                          ),
+                          logado.ehAdm
+                              ? ElevatedButton.icon(
+                                  onPressed: () => Dialogos.editarCulto(
+                                      context, mCulto,
+                                      reference: widget.culto),
+                                  label: const Text('Editar registro'),
+                                  icon: const Icon(Icons.edit_calendar),
+                                )
+                              : const SizedBox(),
                           ElevatedButton.icon(
                             onPressed: null,
-                            label: const Text('Ver indecisos'),
-                            icon: const Icon(Icons.device_unknown),
+                            label: const Text('Status da equipe'),
+                            icon: const Icon(Icons.groups),
                           ),
-                          OutlinedButton.icon(
-                            onPressed: () async {
-                              Mensagem.aguardar(
-                                  context: context); // abre progresso
-                              Notificacoes.instancia.enviarMensagemPush();
-                              Modular.to.pop(); // fecha progresso
-                            },
-                            label: const Text('Notificar escalados'),
-                            icon: const Icon(Icons.notifications),
-                          ),
+                          logado.ehAdm
+                              ? OutlinedButton.icon(
+                                  onPressed: () async {
+                                    Mensagem.aguardar(
+                                        context: context); // abre progresso
+                                    Notificacoes.instancia.enviarMensagemPush();
+                                    Modular.to.pop(); // fecha progresso
+                                  },
+                                  label: const Text('Notificar escalados'),
+                                  icon: const Icon(Icons.notifications),
+                                )
+                              : const SizedBox(),
                         ],
                       ),
                     ),
@@ -202,12 +206,11 @@ class _ViewCultoState extends State<ViewCulto> {
     bool alterar = false;
     return StatefulBuilder(builder: (context, setState) {
       bool escalado =
-          mCulto.usuarioEscalado(Global.integranteLogado?.reference);
+          mCulto.usuarioEscalado(Global.integranteLogado.value?.reference);
       bool disponivel =
-          mCulto.usuarioDisponivel(Global.integranteLogado?.reference);
+          mCulto.usuarioDisponivel(Global.integranteLogado.value?.reference);
       bool restrito =
-          mCulto.usuarioRestrito(Global.integranteLogado?.reference);
-      dev.log('Estou escalado: $escalado | Estou disponível: $disponivel');
+          mCulto.usuarioRestrito(Global.integranteLogado.value?.reference);
       return OutlinedButton(
         onPressed: escalado || restrito
             ? () {}
@@ -295,10 +298,12 @@ class _ViewCultoState extends State<ViewCulto> {
         )),
         const SizedBox(width: 8),
         // Botão de ação para dirigentes
-        IconButton(
-          onPressed: () => _definirHoraDoEnsaio(),
-          icon: const Icon(Icons.more_time, color: Colors.grey),
-        ),
+        logado.ehAdm || logado.ehDirigente || logado.ehCoordenador
+            ? IconButton(
+                onPressed: () => _definirHoraDoEnsaio(),
+                icon: const Icon(Icons.more_time, color: Colors.grey),
+              )
+            : SizedBox(height: ButtonTheme.of(context).height),
         const SizedBox(width: 12),
       ],
     );
@@ -347,22 +352,25 @@ class _ViewCultoState extends State<ViewCulto> {
                     MeuFirebase.abrirArquivoPdf(context, mCulto.liturgiaUrl)),
         const Expanded(child: SizedBox()),
         // Botão de ação para dirigentes
-        IconButton(
-          onPressed: () async {
-            String? url = await MeuFirebase.carregarArquivoPdf();
-            if (url != null && url.isNotEmpty) {
-              widget.culto.update({'liturgiaUrl': url}).then((value) => null,
-                  onError: (_) {
-                Mensagem.simples(
-                    context: context, mensagem: 'Falha ao atualizar o campo');
-              });
-            }
-          },
-          icon: const Icon(
-            Icons.upload_file,
-            color: Colors.grey,
-          ),
-        ),
+        logado.ehAdm || logado.ehDirigente || logado.ehCoordenador
+            ? IconButton(
+                onPressed: () async {
+                  String? url = await MeuFirebase.carregarArquivoPdf();
+                  if (url != null && url.isNotEmpty) {
+                    widget.culto.update({'liturgiaUrl': url}).then(
+                        (value) => null, onError: (_) {
+                      Mensagem.simples(
+                          context: context,
+                          mensagem: 'Falha ao atualizar o campo');
+                    });
+                  }
+                },
+                icon: const Icon(
+                  Icons.upload_file,
+                  color: Colors.grey,
+                ),
+              )
+            : SizedBox(height: ButtonTheme.of(context).height),
         const SizedBox(width: 12),
       ],
     );
@@ -447,14 +455,16 @@ class _ViewCultoState extends State<ViewCulto> {
               // Título
               Text(titulo.toUpperCase()),
               // Botão de edição
-              IconButton(
-                onPressed: funcaoEditar,
-                icon: const Icon(
-                  Icons.more_horiz,
-                  color: Colors.grey,
-                  size: 12,
-                ),
-              ),
+              logado.ehAdm
+                  ? IconButton(
+                      onPressed: funcaoEditar,
+                      icon: const Icon(
+                        Icons.more_horiz,
+                        color: Colors.grey,
+                        size: 12,
+                      ),
+                    )
+                  : SizedBox(height: ButtonTheme.of(context).height),
             ],
           ),
           // Responsável
@@ -469,7 +479,6 @@ class _ViewCultoState extends State<ViewCulto> {
   /// Seção escalados
   Widget _sectionEscalados(
     String titulo,
-    Funcao funcao,
     Map<String?, List<DocumentReference<Integrante>?>?> dados,
     Function()? funcaoEditar,
   ) {
@@ -479,8 +488,7 @@ class _ViewCultoState extends State<ViewCulto> {
       var integrantes = entrada.value;
       if (integrantes != null && integrantes.isNotEmpty) {
         for (var integrante in integrantes) {
-          escalados.add(
-              _cardIntegranteInstrumento(integrante, instrumentoId, funcao));
+          escalados.add(_cardIntegranteInstrumento(integrante, instrumentoId));
         }
       }
     }
@@ -495,14 +503,16 @@ class _ViewCultoState extends State<ViewCulto> {
               // Título
               Text(titulo.toUpperCase()),
               // Botão de edição
-              IconButton(
-                onPressed: funcaoEditar,
-                icon: const Icon(
-                  Icons.more_horiz,
-                  color: Colors.grey,
-                  size: 12,
-                ),
-              ),
+              logado.ehAdm
+                  ? IconButton(
+                      onPressed: funcaoEditar,
+                      icon: const Icon(
+                        Icons.more_horiz,
+                        color: Colors.grey,
+                        size: 12,
+                      ),
+                    )
+                  : SizedBox(height: ButtonTheme.of(context).height),
             ],
           ),
           // Integrantes
@@ -511,11 +521,6 @@ class _ViewCultoState extends State<ViewCulto> {
             runSpacing: 8,
             children: escalados,
           ),
-          /* GridView.count(
-            shrinkWrap: true,
-            crossAxisCount: escalados.length,
-            children: escalados,
-          ), */
         ],
       ),
     );
@@ -549,7 +554,7 @@ class _ViewCultoState extends State<ViewCulto> {
                 ),
                 borderRadius: BorderRadius.circular(12),
                 color: (Global.integranteLogado != null &&
-                        integrante?.id == Global.integranteLogado?.id)
+                        integrante?.id == Global.integranteLogado.value?.id)
                     ? Colors.amber.withOpacity(0.25)
                     : null,
               ),
@@ -587,7 +592,7 @@ class _ViewCultoState extends State<ViewCulto> {
                   ),
                   // Imagem do instrumento
                   CircleAvatar(
-                    backgroundColor: Colors.white.withOpacity(0.5),
+                    backgroundColor: Colors.white.withOpacity(0.75),
                     radius: 10,
                     child: Image.asset(
                       funcao == Funcao.dirigente
@@ -611,10 +616,7 @@ class _ViewCultoState extends State<ViewCulto> {
   }
 
   Widget _cardIntegranteInstrumento(
-    DocumentReference<Integrante>? refIntegrante,
-    String? instrumentoId,
-    Funcao funcao,
-  ) {
+      DocumentReference<Integrante>? refIntegrante, String? instrumentoId) {
     return FutureBuilder<DocumentSnapshot<Integrante>>(
         future: refIntegrante?.get(),
         builder: (_, snapIntegrante) {
@@ -657,7 +659,8 @@ class _ViewCultoState extends State<ViewCulto> {
                       ),
                       borderRadius: BorderRadius.circular(12),
                       color: (Global.integranteLogado != null &&
-                              integrante?.id == Global.integranteLogado?.id)
+                              integrante?.id ==
+                                  Global.integranteLogado.value?.id)
                           ? Colors.amber.withOpacity(0.25)
                           : null,
                     ),
@@ -668,7 +671,7 @@ class _ViewCultoState extends State<ViewCulto> {
                         Row(
                           children: [
                             // Foto do integrante
-                            const SizedBox(width: 8),
+                            const SizedBox(width: 12),
                             CircleAvatar(
                               child: const Icon(
                                 Icons.person,
@@ -712,15 +715,11 @@ class _ViewCultoState extends State<ViewCulto> {
                         ),
                         // Imagem do instrumento
                         CircleAvatar(
-                          backgroundColor: Colors.white.withOpacity(0.5),
+                          backgroundColor: Colors.white.withOpacity(0.75),
                           radius: 10,
                           child: Image.asset(
                             instrumento?.iconAsset ??
-                                (funcao == Funcao.dirigente
-                                    ? 'assets/icons/music_dirigente.png'
-                                    : funcao == Funcao.coordenador
-                                        ? 'assets/icons/music_coordenador.png'
-                                        : 'assets/icons/ic_launcher.png'),
+                                'assets/icons/ic_launcher.png',
                             width: 16,
                           ),
                         ),
@@ -735,29 +734,16 @@ class _ViewCultoState extends State<ViewCulto> {
   /// Seção observações
   Widget get _observacoes {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      child: TextFormField(
-        initialValue: mCulto.obs,
-        enabled: false,
-        minLines: 5,
-        maxLines: 15,
-        decoration: const InputDecoration(
-          labelText: 'Observações',
-          floatingLabelBehavior: FloatingLabelBehavior.always,
-        ),
-        onChanged: (value) {
-          mCulto.obs = value;
-        },
-      ),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      child: SelectableText(mCulto.obs ?? '', minLines: 5),
     );
   }
 
   /* FUNÇÕES */
 
   void _escalarIntegrante(
-    Funcao funcao,
-    Map<String, List<DocumentReference<Integrante>>>? instrumentosIntegrantes,
-  ) {
+      Map<String, List<DocumentReference<Integrante>>>?
+          instrumentosIntegrantes) {
     showDialog(
         context: context,
         builder: (context) {
@@ -770,7 +756,7 @@ class _ViewCultoState extends State<ViewCulto> {
                 var instrumentos = snapInstr.data?.docs;
                 return FutureBuilder<QuerySnapshot<Integrante>>(
                     future: MeuFirebase.obterListaIntegrantes(
-                        ativo: true, funcao: funcao.index),
+                        ativo: true, funcao: Funcao.integrante.index),
                     builder: (context, snapIntegrantes) {
                       if (!snapIntegrantes.hasData) {
                         return const Center(child: CircularProgressIndicator());
@@ -823,25 +809,34 @@ class _ViewCultoState extends State<ViewCulto> {
   List<Widget> _integrantesDisponiveisNoInstrumento(
       List<QueryDocumentSnapshot<Integrante>>? integrantes,
       QueryDocumentSnapshot<Instrumento> instrumentoRef) {
-    dev.log(instrumentoRef.reference.id);
+    //dev.log('Instrumento: ${instrumentoRef.data().nome}');
     if (integrantes == null || integrantes.isEmpty) {
-      return const [Text('Ninguém disponivel!')];
+      return const [Text('Ninguém disponível no momento!')];
     }
     try {
       List<QueryDocumentSnapshot<Integrante>> integrantesDoInstrumento = [];
       for (var integrante in integrantes) {
         var instrumentosDoIntegrante = integrante.data().instrumentos;
         if (instrumentosDoIntegrante != null) {
+          // dev.log('Verificando integrante: ${integrante.data().nome}');
           if (instrumentosDoIntegrante
               .map((e) => e.toString())
               .contains(instrumentoRef.reference.toString())) {
-            integrantesDoInstrumento.add(integrante);
+            // dev.log('Integrante toca o instrumento');
+            if (mCulto.disponiveis!
+                .map((e) => e.toString())
+                .contains(integrante.reference.toString())) {
+              // dev.log('Integrante está disponivel');
+              integrantesDoInstrumento.add(integrante);
+            }
           }
         }
       }
+
       if (integrantesDoInstrumento.isEmpty) {
         return const [Text('Ninguém disponivel!')];
       }
+      dev.log('Proximo');
       return List.generate(integrantesDoInstrumento.length, (index) {
         return StatefulBuilder(builder: (context, setState) {
           bool selected = mCulto.equipe?[instrumentoRef.reference.id]
@@ -893,36 +888,63 @@ class _ViewCultoState extends State<ViewCulto> {
                   String? selecionado = funcao == 'dirigente'
                       ? mCulto.dirigente.toString()
                       : mCulto.coordenador.toString();
+
+                  List<QueryDocumentSnapshot<Integrante>> disponiveis = [];
+                  if (snap.hasData) {
+                    for (var integrante in snap.data!.docs) {
+                      if (mCulto.disponiveis!
+                          .map((e) => e.toString())
+                          .contains(integrante.reference.toString())) {
+                        // dev.log('Integrante está disponivel');
+                        disponiveis.add(integrante);
+                      }
+                    }
+                  }
+
                   return SimpleDialog(
                     title: Text('Selecionar $funcao'),
-                    children: snap.hasData
-                        ? List.generate(snap.data?.size ?? 0, (index) {
-                            var integrante = snap.data?.docs[index];
-                            return ChoiceChip(
-                                selected: selecionado ==
-                                    integrante?.reference.toString(),
-                                selectedColor:
-                                    Theme.of(context).colorScheme.primary,
-                                onSelected: (value) async {
-                                  if (value) {
-                                    await widget.culto.update(
-                                        {funcao: integrante?.reference});
-                                  } else {
-                                    await widget.culto.update({funcao: null});
-                                  }
-                                  Modular.to.pop(); // fecha o dialog
-                                  //setState(() {});
-                                },
-                                label: Text(
-                                    integrante?.data().nome.split(' ').first ??
-                                        'Sem nome'));
-                          }).toList()
-                        : const [
-                            Padding(
-                              padding: EdgeInsets.all(24),
-                              child: Text('Nenhum integrante disponível'),
+                    contentPadding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    children: [
+                      snap.hasData
+                          ? Wrap(
+                              spacing: 8,
+                              children: disponiveis.isNotEmpty
+                                  ? List.generate(disponiveis.length, (index) {
+                                      var integrante = disponiveis[index];
+                                      return ChoiceChip(
+                                          selected: selecionado ==
+                                              integrante.reference.toString(),
+                                          selectedColor: Theme.of(context)
+                                              .colorScheme
+                                              .primary,
+                                          onSelected: (value) async {
+                                            if (value) {
+                                              await widget.culto.update({
+                                                funcao: integrante.reference
+                                              });
+                                            } else {
+                                              await widget.culto
+                                                  .update({funcao: null});
+                                            }
+                                            Modular.to.pop(); // fecha o dialog
+                                          },
+                                          label: Text(integrante
+                                              .data()
+                                              .nome
+                                              .split(' ')
+                                              .first));
+                                    }).toList()
+                                  : const [
+                                      Padding(
+                                        padding: EdgeInsets.all(24),
+                                        child: Text(
+                                            'Nenhum integrante disponível'),
+                                      )
+                                    ],
                             )
-                          ],
+                          : const Text('Verificando usuários...'),
+                    ],
                   );
                 });
               });

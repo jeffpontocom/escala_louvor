@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:escala_louvor/rotas.dart';
 import 'package:escala_louvor/utils/utils.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/scheduler.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:intl/intl.dart';
 
@@ -13,7 +12,7 @@ import '../../utils/mensagens.dart';
 
 class Dialogos {
   static void editarCulto(BuildContext context, Culto culto,
-      {String? id, TaskCallback<bool>? callback}) async {
+      {DocumentReference<Culto>? reference}) async {
     List<String> ocasioes = ['EBD', 'Culto vespertino', 'Evento especial'];
 
     return Mensagem.bottomDialog(
@@ -149,7 +148,7 @@ class Dialogos {
       ),
       rodape: Row(
         children: [
-          id == null
+          reference == null
               ? const SizedBox()
               : ElevatedButton.icon(
                   icon: const Icon(Icons.delete),
@@ -158,7 +157,7 @@ class Dialogos {
                   onPressed: () async {
                     // Abre progresso
                     Mensagem.aguardar(context: context);
-                    await MeuFirebase.apagarCulto(culto, id: id);
+                    await MeuFirebase.apagarCulto(culto, id: reference.id);
                     Modular.to.pop(); // Fecha progresso
                     Modular.to.maybePop(); // Fecha dialog
                     Modular.to.navigate(AppRotas.HOME);
@@ -168,25 +167,15 @@ class Dialogos {
           // Botão criar
           ElevatedButton.icon(
             icon: const Icon(Icons.save),
-            label: const Text('SALVAR'),
+            label: Text(reference == null ? 'CRIAR' : 'ATUALIZAR'),
             onPressed: () async {
-              Modular.to.pop(); // Fecha dialog
-              // Abre progresso
-              Mensagem.aguardar(context: context);
               // Salva os dados no firebase
-              try {
-                await FirebaseFirestore.instance
-                    .collection(Culto.collection)
-                    .doc(id)
-                    .update({
-                  'dataCulto': culto.dataCulto,
-                  'ocasiao': culto.ocasiao,
-                  'obs': culto.obs
-                });
-              } catch (e) {
-                await MeuFirebase.salvarCulto(culto, id: id);
+              if (reference == null) {
+                await MeuFirebase.criarCulto(culto);
+              } else {
+                await MeuFirebase.atualizarCulto(culto, reference);
               }
-              Modular.to.pop(); // Fecha progresso
+              Modular.to.pop(); // Fecha dialog
             },
           ),
         ],

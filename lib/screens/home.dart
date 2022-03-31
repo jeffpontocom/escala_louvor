@@ -6,7 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 
-import '../rotas.dart';
+import '/rotas.dart';
 import '/global.dart';
 import '/preferencias.dart';
 import '/functions/notificacoes.dart';
@@ -101,7 +101,7 @@ class _HomePageState extends State<HomePage> {
     // FlutterLocalNotificationsPlugin will not be initialize and you will get error
     Notificacoes.carregarInstancia(context);
     MeuFirebase.obterSnapshotIgreja(Preferencias.igrejaAtual).then((value) {
-      bool inscrito = Global.integranteLogado
+      bool inscrito = Global.integranteLogado.value
               ?.data()
               ?.igrejas
               ?.map((e) => e.toString())
@@ -121,8 +121,8 @@ class _HomePageState extends State<HomePage> {
                 FirebaseAuth.instance.currentUser?.uid)
             .asStream(),
         builder: (_, snapshotIntegrante) {
-          Global.integranteLogado = snapshotIntegrante.data;
-          dev.log('Integrante ID: ${Global.integranteLogado?.id}',
+          Global.integranteLogado.value = snapshotIntegrante.data;
+          dev.log('Integrante ID: ${Global.integranteLogado.value?.id}',
               name: 'log:home');
           // Aguardando dados do integrante
           if (!snapshotIntegrante.hasData) {

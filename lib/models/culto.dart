@@ -158,9 +158,9 @@ class Culto {
     if (equipe == null || equipe!.isEmpty) {
       return false;
     }
-    for (var instrumentosEquipe in equipe!.values.toList()) {
-      for (var integrante in instrumentosEquipe) {
-        if (integrante.toString() == integrante.toString()) {
+    for (var integrantesEscalados in equipe!.values.toList()) {
+      for (var escalado in integrantesEscalados) {
+        if (escalado.toString() == integrante.toString()) {
           return true;
         }
       }
