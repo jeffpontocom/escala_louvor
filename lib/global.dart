@@ -9,7 +9,7 @@ class Global {
   static const String appName = 'Escala do Louvor';
   static const String appVersion = '0.1.0';
 
-  // Services
+  // Notificadores
   static ValueNotifier<DocumentSnapshot<Integrante>?> integranteLogado =
       ValueNotifier(null);
   static ValueNotifier<DocumentSnapshot<Igreja>?> igrejaSelecionada =

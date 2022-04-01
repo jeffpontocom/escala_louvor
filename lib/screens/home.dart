@@ -116,22 +116,19 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     dev.log('HOME PAGE Build');
-    return StreamBuilder<DocumentSnapshot<Integrante>?>(
-        stream: MeuFirebase.obterSnapshotIntegrante(
-                FirebaseAuth.instance.currentUser?.uid)
-            .asStream(),
-        builder: (_, snapshotIntegrante) {
-          Global.integranteLogado.value = snapshotIntegrante.data;
+    return ValueListenableBuilder<DocumentSnapshot<Integrante>?>(
+        valueListenable: Global.integranteLogado,
+        builder: (context, snapshotIntegrante, _) {
           dev.log('Integrante ID: ${Global.integranteLogado.value?.id}',
               name: 'log:home');
           // Aguardando dados do integrante
-          if (!snapshotIntegrante.hasData) {
+          if (snapshotIntegrante?.data() == null) {
             return const Scaffold(
               body: Center(child: CircularProgressIndicator()),
             );
           }
           // Falha ao obter dados do integrante
-          if (snapshotIntegrante.hasError) {
+          if (!(snapshotIntegrante?.exists ?? true)) {
             return const Scaffold(
               body: Center(child: Text('Falha: integrante não localizado!')),
             );
@@ -177,7 +174,7 @@ class _HomePageState extends State<HomePage> {
                     // Ações
                     actions: [
                       // Tela administrador
-                      (snapshotIntegrante.data?.data()?.ehAdm ?? false)
+                      (snapshotIntegrante?.data()?.ehAdm ?? false)
                           ? IconButton(
                               onPressed: () => Modular.to.pushNamed('/admin'),
                               icon: const Icon(Icons.admin_panel_settings),
@@ -190,7 +187,7 @@ class _HomePageState extends State<HomePage> {
                         icon: CircleAvatar(
                           child: const Icon(Icons.person),
                           foregroundImage: MyNetwork.getImageFromUrl(
-                                  snapshotIntegrante.data?.data()?.fotoUrl, 12)
+                                  snapshotIntegrante?.data()?.fotoUrl, 12)
                               ?.image,
                         ),
                       ),
@@ -218,7 +215,8 @@ class _HomePageState extends State<HomePage> {
                         Mensagem.bottomDialog(
                           context: context,
                           titulo: 'Selecionar igreja ou local',
-                          conteudo: ViewIgrejas(),
+                          conteudo:
+                              const ViewIgrejas(), // TODO: ver se com const ou sem
                         );
                       },
                       child: Column(
@@ -242,6 +240,14 @@ class _HomePageState extends State<HomePage> {
                       FloatingActionButtonLocation.endDocked,
                 );
               });
+          /* StreamBuilder<DocumentSnapshot<Integrante>?>(
+        stream: MeuFirebase.obterSnapshotIntegrante(
+                FirebaseAuth.instance.currentUser?.uid)
+            .asStream(),
+        builder: (_, snapshotIntegrante) {
+          Global.integranteLogado.value = snapshotIntegrante.data;
+          
+              }); */
         });
   }
 

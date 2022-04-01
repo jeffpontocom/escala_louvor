@@ -553,7 +553,7 @@ class _ViewCultoState extends State<ViewCulto> {
                   color: Colors.grey.withOpacity(0.5),
                 ),
                 borderRadius: BorderRadius.circular(12),
-                color: (Global.integranteLogado != null &&
+                color: (Global.integranteLogado.value != null &&
                         integrante?.id == Global.integranteLogado.value?.id)
                     ? Colors.amber.withOpacity(0.25)
                     : null,
@@ -658,7 +658,7 @@ class _ViewCultoState extends State<ViewCulto> {
                         color: Colors.grey.withOpacity(0.5),
                       ),
                       borderRadius: BorderRadius.circular(12),
-                      color: (Global.integranteLogado != null &&
+                      color: (Global.integranteLogado.value != null &&
                               integrante?.id ==
                                   Global.integranteLogado.value?.id)
                           ? Colors.amber.withOpacity(0.25)

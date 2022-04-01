@@ -42,7 +42,7 @@ class MyApp extends StatelessWidget {
           if (snapshotUser.hasData && snapshotUser.data != null) {
             MeuFirebase.escutarIntegranteLogado(snapshotUser.data!.uid);
           } else {
-            Global.integranteLogado == null;
+            Global.integranteLogado.value == null;
           }
           return MaterialApp.router(
             title: 'Escala do Louvor',

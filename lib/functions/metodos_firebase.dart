@@ -33,13 +33,22 @@ class MeuFirebase {
             toFirestore: (pacote, _) => pacote.toJson())
         .snapshots()
         .listen((event) async {
+      dev.log('Integrante logado alterado: ${event.id}');
+      /* if (Global.integranteLogado.value?.data()?.funcoes !=
+          event.data()?.funcoes) {
+        dev.log('Funções alteradas');
+        Global.integranteLogado.value = event;
+        Global.integranteLogado.notifyListeners();
+      } else {
+        Global.integranteLogado.value = event;
+      } */
       Global.integranteLogado.value = event;
-      // Se não houver mais igrejas vinculadas, então resetar igreja selecionada.
+      // Se não houver mais igrejas vinculadas, então redefinir igreja selecionada.
       var igrejas = event.data()?.igrejas;
       if (igrejas == null || igrejas.isEmpty) {
         Global.igrejaSelecionada.value = null;
       } else {
-        // Se nas igrejas inscritas não houver a igreja selecionada, então resetar a igreja selecionada.
+        // Se nas igrejas inscritas não houver a igreja selecionada, então redefinir a igreja selecionada.
         if (!(igrejas
             .map((e) => e.toString())
             .contains(Global.igrejaSelecionada.value?.reference.toString()))) {
@@ -315,7 +324,7 @@ class MeuFirebase {
 
   static Future<bool> definirDisponibilidadeParaOCulto(
       DocumentReference<Culto> reference) async {
-    if (Global.integranteLogado == null) {
+    if (Global.integranteLogado.value == null) {
       dev.log('Valores nulos');
       return false;
     }
@@ -356,7 +365,7 @@ class MeuFirebase {
 
   static Future<bool> definirRestricaoParaOCulto(
       DocumentReference<Culto> reference) async {
-    if (Global.integranteLogado == null) {
+    if (Global.integranteLogado.value == null) {
       dev.log('Valores nulos');
       return false;
     }
