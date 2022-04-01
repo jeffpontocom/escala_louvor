@@ -35,6 +35,7 @@ dependencies:
   flutter_modular: ^4.2.0
   flutter_local_notifications: ^9.4.0
   firebase_auth: ^3.3.11
+  firebase_auth_desktop: ^0.1.1-dev.6
   firebase_core: ^1.13.1  
   firebase_core_desktop: ^0.1.1-dev.3
   firebase_messaging: ^11.2.11

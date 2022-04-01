@@ -1,7 +1,9 @@
 import 'dart:developer' as dev;
-import 'dart:io';
+import 'dart:io' show Platform;
 
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_auth_desktop/firebase_auth_desktop.dart'
+    if (Platform.isWindows) 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
