@@ -1,51 +1,45 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/material.dart';
 
 import 'grupo.dart';
 import 'igreja.dart';
 import 'instrumento.dart';
 
 enum Funcao {
-  administrador,
+  recrutador,
   dirigente,
   coordenador,
-  integrante,
-  leitor,
-  sudo,
+  musico,
+  liturgo,
 }
 
-String funcaoToString(Funcao funcao) {
+String funcaoGetString(Funcao funcao) {
   switch (funcao) {
-    case Funcao.administrador:
-      return 'Administrador';
+    case Funcao.recrutador:
+      return 'Recrutador';
     case Funcao.dirigente:
       return 'Dirigente';
     case Funcao.coordenador:
       return 'Coordenador técnico';
-    case Funcao.integrante:
-      return 'Integrante';
-    case Funcao.leitor:
-      return 'Leitor';
-    case Funcao.sudo:
-      return 'SUDO';
+    case Funcao.musico:
+      return 'Músico';
+    case Funcao.liturgo:
+      return 'Liturgo';
   }
 }
 
-int funcaoToInt(String funcao) {
-  switch (funcao.toLowerCase()) {
-    case 'administrador':
-      return 0;
-    case 'dirigente':
-      return 1;
-    case 'coordenador':
-      return 2;
-    case 'integrante':
-      return 3;
-    case 'leitor':
-      return 4;
-    case 'sudo':
-      return 5;
-    default:
-      return 4;
+IconData funcaoGetIcon(Funcao funcao) {
+  switch (funcao) {
+    case Funcao.recrutador:
+      return Icons.paste;
+    case Funcao.dirigente:
+      return Icons.mic;
+    case Funcao.coordenador:
+      return Icons.support_agent;
+    case Funcao.musico:
+      return Icons.music_note;
+    case Funcao.liturgo:
+      return Icons.list_alt;
   }
 }
 
@@ -62,6 +56,7 @@ class Integrante {
   List<DocumentReference<Grupo>>? grupos;
   List<DocumentReference<Instrumento>>? instrumentos;
   String? obs;
+  late bool adm;
   late bool ativo;
 
   Integrante({
@@ -75,6 +70,7 @@ class Integrante {
     this.grupos,
     this.instrumentos,
     this.obs,
+    this.adm = false,
     this.ativo = true,
   });
 
@@ -90,6 +86,7 @@ class Integrante {
           grupos: _getGrupos(json['grupos']),
           instrumentos: _getInstrumentos(json['instrumentos']),
           obs: (json['obs']) as String?,
+          adm: (json['adm'] ?? false) as bool,
           ativo: (json['ativo'] ?? true) as bool,
         );
 
@@ -105,6 +102,7 @@ class Integrante {
       'grupos': grupos,
       'instrumentos': instrumentos,
       'obs': obs,
+      'adm': adm,
       'ativo': ativo,
     };
   }
@@ -118,19 +116,16 @@ class Integrante {
   static Funcao _getFuncao(int code) {
     switch (code) {
       case 0:
-        return Funcao.administrador;
+        return Funcao.recrutador;
       case 1:
         return Funcao.dirigente;
       case 2:
         return Funcao.coordenador;
       case 3:
-        return Funcao.integrante;
+        return Funcao.musico;
       case 4:
-        return Funcao.leitor;
-      case 5:
-        return Funcao.sudo;
       default:
-        return Funcao.leitor;
+        return Funcao.liturgo;
     }
   }
 
@@ -181,23 +176,23 @@ class Integrante {
   }
 
   /* BOOLEANS  */
-  bool get ehAdm {
-    return funcoes?.contains(Funcao.administrador) ?? false;
+  bool get ehRecrutador {
+    return adm || (funcoes?.contains(Funcao.recrutador) ?? false);
   }
 
   bool get ehDirigente {
-    return funcoes?.contains(Funcao.dirigente) ?? false;
+    return adm || (funcoes?.contains(Funcao.dirigente) ?? false);
   }
 
   bool get ehCoordenador {
-    return funcoes?.contains(Funcao.coordenador) ?? false;
+    return adm || (funcoes?.contains(Funcao.coordenador) ?? false);
   }
 
-  bool get ehIntegrante {
-    return funcoes?.contains(Funcao.integrante) ?? false;
+  bool get ehMusico {
+    return adm || (funcoes?.contains(Funcao.musico) ?? false);
   }
 
-  bool get ehLeitor {
-    return funcoes?.contains(Funcao.leitor) ?? false;
+  bool get ehLiturgo {
+    return adm || (funcoes?.contains(Funcao.liturgo) ?? false);
   }
 }

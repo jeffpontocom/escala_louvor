@@ -1,7 +1,6 @@
 import 'dart:developer' as dev;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:escala_louvor/screens/views/view_igrejas.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
@@ -17,6 +16,7 @@ import '/screens/pages/home_agenda.dart';
 import '/screens/pages/home_canticos.dart';
 import '/screens/pages/home_chats.dart';
 import '/screens/pages/home_escalas.dart';
+import '/screens/views/view_igrejas.dart';
 import '/utils/estilos.dart';
 import '/utils/mensagens.dart';
 import '/utils/utils.dart';
@@ -33,41 +33,36 @@ class _HomePageState extends State<HomePage> {
   /* VARIÁVEIS */
   late int _telaSelecionada;
 
-  String get titulo {
+  String get _titulo {
     switch (_telaSelecionada) {
       case 0:
-        return 'Escala do Louvor';
+        return 'Escalas do Louvor';
       case 1:
-        return 'Minhas escalas';
+        return 'Agenda da Igreja';
       case 2:
         return 'Chat dos eventos';
       case 3:
-        return 'Todos do cânticos';
+        return 'Cânticos e Hinos';
       default:
         return 'Nenhuma tela';
     }
   }
 
-  Widget get corpo {
+  Widget get _corpo {
     switch (_telaSelecionada) {
       case 0:
-        // ignore: prefer_const_constructors
         return TelaEscalas(id: widget.escala);
       case 1:
-        // ignore: prefer_const_constructors
-        return TelaAgenda();
+        return const TelaAgenda();
       case 2:
-        // ignore: prefer_const_constructors
-        return TelaChat();
+        return const TelaChat();
       case 3:
-        // ignore: prefer_const_constructors
-        return TelaCanticos();
+        return const TelaCanticos();
       default:
         return const Center(child: Text('Nenhuma tela selecionada'));
     }
   }
 
-  /// Bottom NavigationBar Itens
   final List<BottomNavigationBarItem> _navigationItens = [
     const BottomNavigationBarItem(
       icon: Icon(Icons.access_time),
@@ -92,7 +87,6 @@ class _HomePageState extends State<HomePage> {
   ];
 
   /* SISTEMA */
-  late Stream<DocumentSnapshot<Integrante>?> integranteStream;
   @override
   void initState() {
     super.initState();
@@ -100,7 +94,9 @@ class _HomePageState extends State<HomePage> {
     // Its Important to place this line after runApp() otherwise
     // FlutterLocalNotificationsPlugin will not be initialize and you will get error
     Notificacoes.carregarInstancia(context);
+    // Preenche igreja selecionada pela igreja preferencial
     MeuFirebase.obterSnapshotIgreja(Preferencias.igrejaAtual).then((value) {
+      // Verifica se usuário logado está inscrito na igreja
       bool inscrito = Global.integranteLogado.value
               ?.data()
               ?.igrejas
@@ -115,7 +111,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    dev.log('HOME PAGE Build');
+    // Escuta alterações no usuário logado
     return ValueListenableBuilder<DocumentSnapshot<Integrante>?>(
         valueListenable: Global.integranteLogado,
         builder: (context, snapshotIntegrante, _) {
@@ -133,11 +129,11 @@ class _HomePageState extends State<HomePage> {
               body: Center(child: Text('Falha: integrante não localizado!')),
             );
           }
-          // Sucesso. Escutar Igreja em contexto
+          // Sucesso. Escutar igreja preferencial
           return ValueListenableBuilder<DocumentSnapshot<Igreja>?>(
               valueListenable: Global.igrejaSelecionada,
               builder: (context, igrejaContexto, _) {
-                // Nenhum Igreja em contexto
+                // Nenhuma igreja preferencial. Abrir tela de seleção
                 if (igrejaContexto == null) {
                   return Scaffold(
                     body: SafeArea(
@@ -156,7 +152,7 @@ class _HomePageState extends State<HomePage> {
                     ),
                   );
                 }
-                // Com Igreja em contexto
+                // Com igreja selecionada
                 return Scaffold(
                   // APP BAR
                   appBar: AppBar(
@@ -167,14 +163,14 @@ class _HomePageState extends State<HomePage> {
                     ),
                     // Título da aplicação
                     title: Text(
-                      titulo,
+                      _titulo,
                       style: Estilo.appBarTitulo,
                     ),
                     titleSpacing: 0,
                     // Ações
                     actions: [
                       // Tela administrador
-                      (snapshotIntegrante?.data()?.ehAdm ?? false)
+                      (snapshotIntegrante?.data()?.ehRecrutador ?? false)
                           ? IconButton(
                               onPressed: () => Modular.to.pushNamed('/admin'),
                               icon: const Icon(Icons.admin_panel_settings),
@@ -194,7 +190,7 @@ class _HomePageState extends State<HomePage> {
                     ],
                   ),
                   // CORPO
-                  body: corpo,
+                  body: _corpo,
                   // NAVIGATION BAR
                   bottomNavigationBar: BottomNavigationBar(
                     items: _navigationItens,
@@ -215,8 +211,7 @@ class _HomePageState extends State<HomePage> {
                         Mensagem.bottomDialog(
                           context: context,
                           titulo: 'Selecionar igreja ou local',
-                          conteudo:
-                              const ViewIgrejas(), // TODO: ver se com const ou sem
+                          conteudo: const ViewIgrejas(),
                         );
                       },
                       child: Column(
@@ -240,116 +235,6 @@ class _HomePageState extends State<HomePage> {
                       FloatingActionButtonLocation.endDocked,
                 );
               });
-          /* StreamBuilder<DocumentSnapshot<Integrante>?>(
-        stream: MeuFirebase.obterSnapshotIntegrante(
-                FirebaseAuth.instance.currentUser?.uid)
-            .asStream(),
-        builder: (_, snapshotIntegrante) {
-          Global.integranteLogado.value = snapshotIntegrante.data;
-          
-              }); */
         });
   }
-
-  /* Widget get _igrejas {
-    return FutureBuilder<QuerySnapshot<Igreja>>(
-        future: MeuFirebase.obterListaIgrejas(ativo: true),
-        builder: (context, snapshot) {
-          if (!snapshot.hasData) {
-            return const Center(
-              child: CircularProgressIndicator(),
-              heightFactor: 4,
-            );
-          }
-          var igrejas = snapshot.data?.docs;
-          return Center(
-            child: Padding(
-              padding: const EdgeInsets.only(left: 12, right: 12, bottom: 24),
-              child: Wrap(
-                spacing: 16,
-                runSpacing: 8,
-                // Lista
-                children: List.generate(
-                  igrejas?.length ?? 0,
-                  (index) {
-                    return ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 150),
-                      // Card da Igreja
-                      child: Card(
-                        clipBehavior: Clip.antiAlias,
-                        color: igrejas?[index].reference.toString() ==
-                                Global.igrejaSelecionada.value?.reference
-                                    .toString()
-                            ? Colors.amber.withOpacity(0.5)
-                            : null,
-                        shape: RoundedRectangleBorder(
-                          side: BorderSide(color: Colors.grey.withOpacity(0.5)),
-                          borderRadius:
-                              const BorderRadius.all(Radius.circular(16)),
-                        ),
-                        child: InkWell(
-                          radius: 16,
-                          customBorder: const RoundedRectangleBorder(
-                            side: BorderSide(color: Colors.grey),
-                            borderRadius: BorderRadius.all(
-                              Radius.circular(16),
-                            ),
-                          ),
-                          onTap: () async {
-                            Mensagem.aguardar(context: context);
-                            String? id = igrejas?[index].reference.id;
-                            Preferencias.igrejaAtual = id;
-                            Modular.to.pop(); // fecha progresso
-                            Modular.to.pop(); // fecha dialog
-                            Global.igrejaSelecionada.value =
-                                await MeuFirebase.obterSnapshotIgreja(id);
-                          },
-                          child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // Foto da igreja
-                                SizedBox(
-                                  height: 150,
-                                  child: MyNetwork.getImageFromUrl(
-                                          igrejas?[index].data().fotoUrl,
-                                          null) ??
-                                      const Center(child: Icon(Icons.church)),
-                                ),
-                                // Sigla
-                                const SizedBox(height: 8),
-                                Padding(
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 12),
-                                    child: Text(
-                                      igrejas?[index]
-                                              .data()
-                                              .sigla
-                                              .toUpperCase() ??
-                                          '',
-                                      style: const TextStyle(
-                                          fontSize: 20,
-                                          fontWeight: FontWeight.bold),
-                                    )),
-
-                                // Nome
-                                const SizedBox(height: 4),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 12),
-                                  child:
-                                      Text(igrejas?[index].data().nome ?? ''),
-                                ),
-                                const SizedBox(height: 12),
-                              ]),
-                        ),
-                      ),
-                    );
-                  },
-                  growable: false,
-                ).toList(),
-              ),
-            ),
-          );
-        });
-  } */
 }

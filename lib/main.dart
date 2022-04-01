@@ -1,9 +1,6 @@
 import 'dart:developer' as dev;
-import 'dart:io' show Platform;
 
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_auth_desktop/firebase_auth_desktop.dart'
-    if (Platform.isWindows) 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
@@ -21,12 +18,13 @@ import 'rotas.dart';
 void main() async {
   setPathUrlStrategy(); // remove o hash '#' das URLs
   WidgetsFlutterBinding.ensureInitialized();
-  bool needsWeb = Platform.isLinux | Platform.isWindows;
+  /* bool needsWeb = Platform.isLinux | Platform.isWindows;
   await Firebase.initializeApp(
     options: needsWeb
         ? DefaultFirebaseOptions.web
         : DefaultFirebaseOptions.currentPlatform,
-  );
+  ); */
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await Preferencias.carregarInstancia();
   runApp(
     ModularApp(

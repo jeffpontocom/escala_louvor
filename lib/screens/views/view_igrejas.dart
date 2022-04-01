@@ -60,7 +60,7 @@ class ViewIgrejas extends StatelessWidget {
                   (index) {
                     // Card da Igreja
                     return ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 150),
+                      constraints: const BoxConstraints(maxWidth: 160),
                       child: Card(
                         clipBehavior: Clip.antiAlias,
                         color: inscritas[index].reference.toString() ==
@@ -96,6 +96,7 @@ class ViewIgrejas extends StatelessWidget {
                                 // Foto da igreja
                                 SizedBox(
                                   height: 150,
+                                  width: 160,
                                   child: MyNetwork.getImageFromUrl(
                                           inscritas[index].data().fotoUrl,
                                           null) ??
@@ -121,7 +122,11 @@ class ViewIgrejas extends StatelessWidget {
                                 Padding(
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 12),
-                                  child: Text(inscritas[index].data().nome),
+                                  child: SelectableText(
+                                    inscritas[index].data().nome,
+                                    maxLines: 3,
+                                    minLines: 3,
+                                  ),
                                 ),
                                 const SizedBox(height: 12),
                               ]),

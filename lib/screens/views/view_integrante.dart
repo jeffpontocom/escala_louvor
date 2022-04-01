@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:escala_louvor/global.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 
@@ -24,6 +25,7 @@ class ViewIntegrante extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    TextEditingController nascimento = TextEditingController();
     return Column(
       children: [
         Expanded(
@@ -32,47 +34,39 @@ class ViewIntegrante extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             children: [
               // Funções
-              editMode
-                  ? Padding(
-                      padding: const EdgeInsets.only(top: 8, bottom: 16),
-                      child: LayoutBuilder(builder: (context, constraints) {
-                        return StatefulBuilder(
-                          builder: (_, innerState) {
-                            return ToggleButtons(
-                              borderRadius:
-                                  const BorderRadius.all(Radius.circular(8)),
-                              constraints: BoxConstraints(
-                                  minWidth: (constraints.maxWidth - 6) / 5,
-                                  minHeight: 56),
-                              color: Colors.grey,
-                              children: [
-                                _iconeComLegenda(
-                                    Icons.admin_panel_settings, 'Adm'),
-                                _iconeComLegenda(Icons.mic, 'Dirigente'),
-                                _iconeComLegenda(
-                                    Icons.music_note, 'Coordenador'),
-                                _iconeComLegenda(
-                                    Icons.emoji_people, 'Integrante'),
-                                _iconeComLegenda(
-                                    Icons.chrome_reader_mode, 'Leitor'),
-                              ],
-                              isSelected: [
-                                integrante.funcoes
-                                        ?.contains(Funcao.administrador) ??
-                                    false,
-                                integrante.funcoes
-                                        ?.contains(Funcao.dirigente) ??
-                                    false,
-                                integrante.funcoes
-                                        ?.contains(Funcao.coordenador) ??
-                                    false,
-                                integrante.funcoes
-                                        ?.contains(Funcao.integrante) ??
-                                    false,
-                                integrante.funcoes?.contains(Funcao.leitor) ??
-                                    false,
-                              ],
-                              onPressed: (index) {
+              Padding(
+                padding: const EdgeInsets.only(top: 8, bottom: 16),
+                child: LayoutBuilder(builder: (context, constraints) {
+                  return StatefulBuilder(
+                    builder: (_, innerState) {
+                      return ToggleButtons(
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(8)),
+                        constraints: BoxConstraints(
+                            minWidth: (constraints.maxWidth - 6) / 5,
+                            maxWidth: (constraints.maxWidth - 6) / 5,
+                            minHeight: 56),
+                        color: Colors.grey,
+                        selectedColor: Colors.orange,
+                        children: List.generate(
+                          Funcao.values.length,
+                          (index) => _iconeComLegenda(
+                            funcaoGetIcon(Funcao.values[index]),
+                            funcaoGetString(Funcao.values[index]),
+                          ),
+                        ).toList(),
+                        isSelected: [
+                          integrante.funcoes?.contains(Funcao.recrutador) ??
+                              false,
+                          integrante.funcoes?.contains(Funcao.dirigente) ??
+                              false,
+                          integrante.funcoes?.contains(Funcao.coordenador) ??
+                              false,
+                          integrante.funcoes?.contains(Funcao.musico) ?? false,
+                          integrante.funcoes?.contains(Funcao.liturgo) ?? false,
+                        ],
+                        onPressed: Global.integranteLogado.value!.data()!.adm
+                            ? (index) {
                                 innerState(
                                   (() {
                                     var funcao = Funcao.values[index];
@@ -84,23 +78,31 @@ class ViewIntegrante extends StatelessWidget {
                                             : integrante.funcoes!.add(funcao);
                                   }),
                                 );
-                              },
-                            );
-                          },
-                        );
-                      }),
-                    )
-                  : const SizedBox(height: 24),
+                              }
+                            : (index) {},
+                      );
+                    },
+                  );
+                }),
+              ),
 
               // Informações básicas
               Row(
                 children: [
-                  // Foto
                   StatefulBuilder(
                       builder: (innerContext, StateSetter innerState) {
+                    // preencha data de nascimento
+                    nascimento.text = integrante.dataNascimento == null
+                        ? editMode
+                            ? 'Selecionar'
+                            : 'Pergunte'
+                        : MyInputs.mascaraData
+                            .format(integrante.dataNascimento!.toDate());
+                    // interface
                     return Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
+                        // Foto
                         CircleAvatar(
                           child: IconButton(
                               iconSize: 48,
@@ -128,7 +130,42 @@ class ViewIntegrante extends StatelessWidget {
                         ),
                         const SizedBox(height: 8),
                         // Data de Nascimento
-                        ActionChip(
+                        SizedBox(
+                          width: 150,
+                          child: TextFormField(
+                            controller: nascimento,
+                            enabled: editMode,
+                            readOnly: true,
+                            style: editMode
+                                ? null
+                                : const TextStyle(
+                                    fontSize: 20, fontWeight: FontWeight.bold),
+                            decoration: const InputDecoration(
+                                labelText: 'Nascimento',
+                                disabledBorder: InputBorder.none,
+                                floatingLabelBehavior:
+                                    FloatingLabelBehavior.always,
+                                prefixIcon: Icon(Icons.cake)),
+                            onTap: editMode
+                                ? () async {
+                                    final DateTime? pick = await showDatePicker(
+                                        context: context,
+                                        initialDate: integrante.dataNascimento
+                                                ?.toDate() ??
+                                            DateTime.now(),
+                                        firstDate: DateTime(1930),
+                                        lastDate: DateTime(
+                                            DateTime.now().year, 12, 31));
+                                    if (pick != null) {
+                                      innerState(() =>
+                                          integrante.dataNascimento =
+                                              Timestamp.fromDate(pick));
+                                    }
+                                  }
+                                : () {},
+                          ),
+                        ),
+                        /* ActionChip(
                           avatar: Icon(Icons.cake,
                               color: Theme.of(context).colorScheme.primary),
                           backgroundColor: Colors.transparent,
@@ -162,7 +199,7 @@ class ViewIntegrante extends StatelessWidget {
                                   }
                                 }
                               : () {},
-                        ),
+                        ), */
                       ],
                     );
                   }),
@@ -273,8 +310,7 @@ class ViewIntegrante extends StatelessWidget {
                   children: [
                     // Ativo
                     novoCadastro ||
-                            (integrante.funcoes
-                                    ?.contains(Funcao.administrador) ??
+                            (integrante.funcoes?.contains(Funcao.recrutador) ??
                                 false)
                         ? const SizedBox()
                         : StatefulBuilder(builder: (_, innerState) {
@@ -333,13 +369,15 @@ class ViewIntegrante extends StatelessWidget {
   }
 
   Widget _iconeComLegenda(IconData iconData, String legenda) {
-    return Wrap(
-      direction: Axis.vertical,
-      crossAxisAlignment: WrapCrossAlignment.center,
-      spacing: 4,
+    return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Icon(iconData),
-        Text(legenda),
+        const SizedBox(height: 4),
+        Text(
+          legenda,
+          overflow: TextOverflow.ellipsis,
+        ),
       ],
     );
   }
