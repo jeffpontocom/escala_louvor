@@ -18,12 +18,6 @@ import 'rotas.dart';
 void main() async {
   setPathUrlStrategy(); // remove o hash '#' das URLs
   WidgetsFlutterBinding.ensureInitialized();
-  /* bool needsWeb = Platform.isLinux | Platform.isWindows;
-  await Firebase.initializeApp(
-    options: needsWeb
-        ? DefaultFirebaseOptions.web
-        : DefaultFirebaseOptions.currentPlatform,
-  ); */
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await Preferencias.carregarInstancia();
   runApp(
@@ -40,49 +34,62 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Escuta alterações no usuário autenticado
     return StreamBuilder<User?>(
         stream: FirebaseAuth.instance.userChanges(),
         builder: (_, snapshotUser) {
+          // Pelas configurações de rota Modular usuário não logados são
+          // direcionados diretamente a tela de login
           dev.log(
               'FirebaseAuth alterado - usuário ${snapshotUser.data?.email ?? 'não logado!'}');
-          if (snapshotUser.hasData && snapshotUser.data != null) {
-            MeuFirebase.escutarIntegranteLogado(snapshotUser.data!.uid);
+          // Se usuário autenticado
+          dev.log(snapshotUser.connectionState.name);
+          if (snapshotUser.connectionState == ConnectionState.waiting) {
+            return MaterialApp.router(
+              // Navegação Modular
+              routeInformationParser: Modular.routeInformationParser,
+              routerDelegate: Modular.routerDelegate,
+            );
           } else {
-            Global.integranteLogado.value == null;
+            MeuFirebase.escutarIntegranteLogado(snapshotUser.data?.uid);
+            // APP
+            return MaterialApp.router(
+              title: 'Escala do Louvor',
+              // Tema claro
+              theme: ThemeData(
+                primarySwatch: Colors.blue,
+                colorScheme: ColorScheme.light(
+                  primary: Colors.blue,
+                  secondary: Colors.blue.shade600,
+                ),
+                materialTapTargetSize:
+                    kIsWeb ? MaterialTapTargetSize.padded : null,
+              ),
+              // Tema Escuro
+              darkTheme: ThemeData(
+                brightness: Brightness.dark,
+                primarySwatch: Colors.blue,
+                colorScheme: ColorScheme.dark(
+                  primary: Colors.blue,
+                  secondary: Colors.blue.shade400,
+                ),
+                materialTapTargetSize:
+                    kIsWeb ? MaterialTapTargetSize.padded : null,
+              ),
+              // Behaviors
+              scrollBehavior: MyCustomScrollBehavior(),
+              // Suporte a lingua português nos elementos globais
+              localizationsDelegates: const [
+                GlobalMaterialLocalizations.delegate,
+                GlobalCupertinoLocalizations.delegate,
+              ],
+              supportedLocales: const [Locale('pt')],
+              locale: const Locale('pt_BR'),
+              // Navegação Modular
+              routeInformationParser: Modular.routeInformationParser,
+              routerDelegate: Modular.routerDelegate,
+            );
           }
-          return MaterialApp.router(
-            title: 'Escala do Louvor',
-            theme: ThemeData(
-              primarySwatch: Colors.blue,
-              colorScheme: ColorScheme.light(
-                primary: Colors.blue,
-                secondary: Colors.blue.shade600,
-              ),
-              materialTapTargetSize:
-                  kIsWeb ? MaterialTapTargetSize.padded : null,
-            ),
-            darkTheme: ThemeData(
-              brightness: Brightness.dark,
-              primarySwatch: Colors.blue,
-              colorScheme: ColorScheme.dark(
-                primary: Colors.blue,
-                secondary: Colors.blue.shade400,
-              ),
-              materialTapTargetSize:
-                  kIsWeb ? MaterialTapTargetSize.padded : null,
-            ),
-            scrollBehavior: MyCustomScrollBehavior(),
-            // Suporte a lingua português nos elementos globais
-            localizationsDelegates: const [
-              GlobalMaterialLocalizations.delegate,
-              GlobalCupertinoLocalizations.delegate,
-            ],
-            supportedLocales: const [Locale('pt')],
-            locale: const Locale('pt_BR'),
-            // Navegação
-            routeInformationParser: Modular.routeInformationParser,
-            routerDelegate: Modular.routerDelegate,
-          );
         });
   }
 }

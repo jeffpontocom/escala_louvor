@@ -23,7 +23,10 @@ import '/utils/mensagens.dart';
 class MeuFirebase {
   /* STREAMS  */
 
-  static void escutarIntegranteLogado(String id) {
+  static void escutarIntegranteLogado(String? id) {
+    if (id == null) {
+      Global.integranteLogado.value = null;
+    }
     FirebaseFirestore.instance
         .collection(Integrante.collection)
         .doc(id)
