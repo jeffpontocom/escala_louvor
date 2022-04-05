@@ -28,8 +28,22 @@ class _ViewCultoState extends State<ViewCulto> {
   late Culto mCulto;
   late Integrante logado;
 
-  bool get _ehEscalavel {
-    return logado.ehDirigente || logado.ehCoordenador || logado.ehMusico;
+  bool get _podeSerEscalado {
+    return logado.ehDirigente || logado.ehCoordenador || logado.ehComponente;
+  }
+
+  bool get ehODirigente {
+    if (mCulto.dirigente == null) {
+      return false;
+    }
+    return (mCulto.dirigente?.id == Global.integranteLogado?.id);
+  }
+
+  bool get ehOCoordenador {
+    if (mCulto.coordenador == null) {
+      return false;
+    }
+    return (mCulto.coordenador?.id == Global.integranteLogado?.id);
   }
 
   /* SISTEMA */
@@ -51,7 +65,7 @@ class _ViewCultoState extends State<ViewCulto> {
           mCulto = snapshot.data!.data()!;
           logado = Global.integranteLogado!.data()!;
           dev.log(
-              'VIEW CULTO Build: ${DateFormat.MEd('pt_BR').format(mCulto.dataCulto.toDate())}');
+              'Building view: Culto ${DateFormat.MEd('pt_BR').format(mCulto.dataCulto.toDate())}');
           return Column(
             children: [
               // Cabeçalho
@@ -63,7 +77,9 @@ class _ViewCultoState extends State<ViewCulto> {
                     // Dados sobre o culto
                     Expanded(child: _cultoData),
                     // Botão de disponibilidade
-                    _ehEscalavel ? _buttonDisponibilidade : const SizedBox(),
+                    _podeSerEscalado
+                        ? _buttonDisponibilidade
+                        : const SizedBox(),
                   ],
                 ),
               ),
@@ -117,20 +133,22 @@ class _ViewCultoState extends State<ViewCulto> {
                           Row(
                             children: [
                               const Expanded(child: Text('CÂNTICOS')),
-                              logado.ehDirigente || logado.ehCoordenador
-                                  ? ActionChip(
-                                      avatar: const Icon(Icons.add),
-                                      label: const Text('Selecionar'),
-                                      onPressed: () {})
-                                  : const SizedBox(),
+                              logado.adm || ehODirigente
+                                  ? IconButton(
+                                      onPressed: () {},
+                                      icon: const Icon(Icons.add_to_photos,
+                                          color: Colors.grey),
+                                    )
+                                  : const SizedBox(
+                                      height: kMinInteractiveDimension),
                             ],
                           ),
                           // Ajuda
-                          logado.ehDirigente || logado.ehCoordenador
+                          logado.adm || ehODirigente
                               ? Padding(
                                   padding: EdgeInsets.zero,
                                   child: Text(
-                                    'Segure e arraste para reordenar (somente dirigentes)',
+                                    'Segure e arraste para reordenar (somente dirigente)',
                                     textAlign: TextAlign.center,
                                     style:
                                         Theme.of(context).textTheme.bodySmall,
@@ -152,29 +170,26 @@ class _ViewCultoState extends State<ViewCulto> {
                         child: Text('OBSERVAÇÕES')),
                     _observacoes,
                     const Divider(),
-                    // Botões de ação do administrador
+                    // Botões de ação
                     Padding(
                       padding: const EdgeInsets.all(12),
-                      child: Wrap(
-                        spacing: 12,
-                        runSpacing: 4,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          logado.ehRecrutador
-                              ? ElevatedButton.icon(
-                                  onPressed: () => Dialogos.editarCulto(
-                                      context, mCulto,
-                                      reference: widget.culto),
-                                  label: const Text('Editar registro'),
-                                  icon: const Icon(Icons.edit_calendar),
-                                )
-                              : const SizedBox(),
-                          ElevatedButton.icon(
+                          const Text('AÇÕES'),
+                          const SizedBox(height: 8),
+                          TextButton.icon(
                             onPressed: null,
-                            label: const Text('Status da equipe'),
+                            label: const Text(
+                                'Verificar disponibilidades da equipe'),
                             icon: const Icon(Icons.groups),
                           ),
-                          logado.ehRecrutador
-                              ? OutlinedButton.icon(
+                          logado.adm ||
+                                  logado.ehRecrutador ||
+                                  ehODirigente ||
+                                  ehOCoordenador
+                              ? TextButton.icon(
                                   onPressed: () async {
                                     Mensagem.aguardar(
                                         context: context); // abre progresso
@@ -183,6 +198,18 @@ class _ViewCultoState extends State<ViewCulto> {
                                   },
                                   label: const Text('Notificar escalados'),
                                   icon: const Icon(Icons.notifications),
+                                )
+                              : const SizedBox(),
+                          logado.adm ||
+                                  logado.ehRecrutador ||
+                                  ehODirigente ||
+                                  ehOCoordenador
+                              ? TextButton.icon(
+                                  onPressed: () => Dialogos.editarCulto(
+                                      context, mCulto,
+                                      reference: widget.culto),
+                                  label: const Text('Editar dados do evento'),
+                                  icon: const Icon(Icons.edit_calendar),
                                 )
                               : const SizedBox(),
                         ],
@@ -333,11 +360,16 @@ class _ViewCultoState extends State<ViewCulto> {
         )),
         const SizedBox(width: 8),
         // Botão de ação para dirigentes
-        logado.ehRecrutador || logado.ehDirigente || logado.ehCoordenador
-            ? IconButton(
-                onPressed: () => _definirHoraDoEnsaio(),
-                icon: const Icon(Icons.more_time, color: Colors.grey),
-              )
+        logado.adm || ehODirigente || ehOCoordenador
+            ? mCulto.dataEnsaio == null
+                ? IconButton(
+                    onPressed: () => _definirHoraDoEnsaio(),
+                    icon: const Icon(Icons.more_time, color: Colors.grey),
+                  )
+                : IconButton(
+                    onPressed: () => widget.culto.update({'dataEnsaio': null}),
+                    icon: const Icon(Icons.clear, color: Colors.grey),
+                  )
             : const SizedBox(height: kMinInteractiveDimension),
         const SizedBox(width: 12),
       ],
@@ -387,28 +419,30 @@ class _ViewCultoState extends State<ViewCulto> {
                     MeuFirebase.abrirArquivoPdf(context, mCulto.liturgiaUrl)),
         const Expanded(child: SizedBox()),
         // Botão de ação para dirigentes
-        logado.ehRecrutador ||
-                logado.ehDirigente ||
-                logado.ehCoordenador ||
-                logado.ehLiturgo
-            ? IconButton(
-                onPressed: () async {
-                  String? url =
-                      await MeuFirebase.carregarArquivoPdf(pasta: 'liturgias');
-                  if (url != null && url.isNotEmpty) {
-                    widget.culto.update({'liturgiaUrl': url}).then(
-                        (value) => null, onError: (_) {
-                      Mensagem.simples(
-                          context: context,
-                          mensagem: 'Falha ao atualizar o campo');
-                    });
-                  }
-                },
-                icon: const Icon(
-                  Icons.upload_file,
-                  color: Colors.grey,
-                ),
-              )
+        logado.adm || ehODirigente || ehOCoordenador || logado.ehLiturgo
+            ? mCulto.liturgiaUrl == null
+                ? IconButton(
+                    onPressed: () async {
+                      String? url = await MeuFirebase.carregarArquivoPdf(
+                          pasta: 'liturgias');
+                      if (url != null && url.isNotEmpty) {
+                        widget.culto.update({'liturgiaUrl': url}).then(
+                            (value) => null, onError: (_) {
+                          Mensagem.simples(
+                              context: context,
+                              mensagem: 'Falha ao atualizar o campo');
+                        });
+                      }
+                    },
+                    icon: const Icon(
+                      Icons.upload_file,
+                      color: Colors.grey,
+                    ),
+                  )
+                : IconButton(
+                    onPressed: () => widget.culto.update({'liturgiaUrl': null}),
+                    icon: const Icon(Icons.clear, color: Colors.grey),
+                  )
             : const SizedBox(height: kMinInteractiveDimension),
         const SizedBox(width: 12),
       ],
@@ -537,6 +571,8 @@ class _ViewCultoState extends State<ViewCulto> {
           escalados.add(_cardIntegranteInstrumento(integrante, instrumentoId));
         }
       }
+      // TODO: Ordenar escalados conforme ordem dos instrumento
+      //escalados.sort();
     }
     return Padding(
       padding: const EdgeInsets.only(left: 12, right: 12, top: 0, bottom: 8),
@@ -548,7 +584,7 @@ class _ViewCultoState extends State<ViewCulto> {
             children: [
               // Icone
               Icon(
-                funcaoGetIcon(Funcao.musico),
+                funcaoGetIcon(Funcao.componente),
                 size: 20,
               ),
               const SizedBox(width: 4),
@@ -675,7 +711,7 @@ class _ViewCultoState extends State<ViewCulto> {
                   onTap: () =>
                       Modular.to.pushNamed('/perfil?id=${integrante?.id}'),
                   child: Container(
-                    width: 172,
+                    width: 172, //TODO: Definir largura por tamanho da tela
                     padding: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
                       border: Border.all(
@@ -804,69 +840,93 @@ class _ViewCultoState extends State<ViewCulto> {
           instrumentosIntegrantes) {
     Mensagem.bottomDialog(
       context: context,
-      icon: funcaoGetIcon(Funcao.musico),
-      titulo: 'Selecionar ${funcaoGetString(Funcao.musico)}s',
+      icon: funcaoGetIcon(Funcao.componente),
+      titulo: 'Selecionar ${funcaoGetString(Funcao.componente).toLowerCase()}',
+      // Busca por instrumentos ativos
       conteudo: FutureBuilder<QuerySnapshot<Instrumento>>(
           future: MeuFirebase.obterListaInstrumentos(ativo: true),
           builder: (_, snapInstr) {
+            // Aguardando
             if (!snapInstr.hasData) {
               return const Center(child: CircularProgressIndicator());
             }
+            // Colhendo instrumentos
             var instrumentos = snapInstr.data?.docs;
+            // Busca por integrantes ativos na função componente da equipe
             return FutureBuilder<QuerySnapshot<Integrante>>(
                 future: MeuFirebase.obterListaIntegrantes(
-                    ativo: true, funcao: Funcao.musico.index),
+                    ativo: true, funcao: Funcao.componente.index),
                 builder: (context, snapIntegrantes) {
-                  if (!snapIntegrantes.hasData) {
+                  // Aguardando
+                  if (snapIntegrantes.connectionState ==
+                      ConnectionState.waiting) {
                     return const Center(child: CircularProgressIndicator());
                   }
+                  if (snapIntegrantes.hasError) {
+                    return const Padding(
+                      padding: EdgeInsets.all(24),
+                      child: Text('Falha ao buscar integrantes!'),
+                    );
+                  }
+                  if (!snapIntegrantes.hasData ||
+                      (snapIntegrantes.data?.docs.isEmpty ?? true)) {
+                    return const Padding(
+                      padding: EdgeInsets.all(24),
+                      child: Text('Nenhum integrante disponível'),
+                    );
+                  }
+                  // Colhendo integrantes
                   List<QueryDocumentSnapshot<Integrante>>? integrantes =
                       snapIntegrantes.data?.docs;
+                  // Builder da lista
                   return StatefulBuilder(builder: (context, innerState) {
+                    // Lista resultados por instrumento
                     return ListView(
                       shrinkWrap: true,
-                      children: snapIntegrantes.hasData
-                          ? List.generate(instrumentos?.length ?? 0, (index) {
-                              var instrumento = instrumentos![index].data();
-                              return Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 24, vertical: 4),
+                      children:
+                          List.generate(instrumentos?.length ?? 0, (index) {
+                        var instrumento = instrumentos![index].data();
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 12),
+                          child: Row(children: [
+                            // Instrumento
+                            LayoutBuilder(builder: (context, constraints) {
+                              return SizedBox(
+                                width: 80,
                                 child: Column(
-                                    mainAxisSize: MainAxisSize.min,
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      ListTile(
-                                        contentPadding: EdgeInsets.zero,
-                                        horizontalTitleGap: 0,
-                                        leading: Image.asset(
-                                          instrumento.iconAsset,
-                                          width: 20,
-                                          color: Theme.of(context)
-                                              .colorScheme
-                                              .onBackground,
-                                          colorBlendMode: BlendMode.srcATop,
-                                        ),
-                                        title: Text(instrumento.nome),
-                                      ),
-                                      Wrap(
-                                        spacing: 4,
-                                        runSpacing: 4,
-                                        children:
-                                            _integrantesDisponiveisNoInstrumento(
-                                                integrantes,
-                                                instrumentos[index]),
-                                      ),
-                                      const SizedBox(height: 12),
-                                    ]),
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    Image.asset(
+                                      instrumento.iconAsset,
+                                      width: 20,
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onBackground,
+                                      colorBlendMode: BlendMode.srcATop,
+                                    ),
+                                    Text(
+                                      instrumento.nome,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                  ],
+                                ),
                               );
-                            }).toList()
-                          : const [
-                              Padding(
-                                padding: EdgeInsets.all(24),
-                                child: Text('Nenhum integrante disponível'),
+                            }),
+                            const SizedBox(width: 12),
+                            // Integrantes
+                            Expanded(
+                              child: Wrap(
+                                spacing: 4,
+                                runSpacing: 4,
+                                children: _integrantesDisponiveisNoInstrumento(
+                                    integrantes, instrumentos[index]),
                               ),
-                            ],
+                            ),
+                          ]),
+                        );
+                      }).toList(),
                     );
                   });
                 });
@@ -878,6 +938,7 @@ class _ViewCultoState extends State<ViewCulto> {
       List<QueryDocumentSnapshot<Integrante>>? integrantes,
       QueryDocumentSnapshot<Instrumento> instrumentoRef) {
     //dev.log('Instrumento: ${instrumentoRef.data().nome}');
+    // Ninguém disponível para nenhum instrumento
     if (integrantes == null || integrantes.isEmpty) {
       return const [Text('Ninguém disponível no momento!')];
     }
@@ -900,7 +961,7 @@ class _ViewCultoState extends State<ViewCulto> {
           }
         }
       }
-
+      // Ninguém disponível no instrumento
       if (integrantesDoInstrumento.isEmpty) {
         return const [Text('Ninguém disponivel!')];
       }
@@ -922,7 +983,9 @@ class _ViewCultoState extends State<ViewCulto> {
             label: Text(nomeCurto),
             selected: selected,
             selectedColor: Theme.of(context).colorScheme.primary,
-            onSelected: (value) async {
+            onSelected:
+                // TODO: Verificar se integrante está em outro instrumento para habilitar seleção
+                (value) async {
               setState((() => loading = true));
               if (value) {
                 await widget.culto.update({
@@ -951,15 +1014,18 @@ class _ViewCultoState extends State<ViewCulto> {
     showDialog(
         context: context,
         builder: (context) {
+          // Buscar integrantes ativos que possuem determinada função
           return FutureBuilder<QuerySnapshot<Integrante>>(
               future: MeuFirebase.obterListaIntegrantes(
                   ativo: true, funcao: funcao.index),
               builder: (context, snap) {
+                // Construtor Stateful
                 return StatefulBuilder(builder: (context, innerState) {
+                  // Identifica o integrante selecionado (se houver)
                   String? selecionado = funcao == Funcao.dirigente
                       ? mCulto.dirigente.toString()
                       : mCulto.coordenador.toString();
-
+                  // Monta a lista de integrantes disponiveis
                   List<QueryDocumentSnapshot<Integrante>> disponiveis = [];
                   if (snap.hasData) {
                     for (var integrante in snap.data!.docs) {
@@ -970,51 +1036,64 @@ class _ViewCultoState extends State<ViewCulto> {
                       }
                     }
                   }
-
+                  // Builder do dialog
                   return SimpleDialog(
-                    title: Text('Selecionar ${funcaoGetString(funcao)}'),
+                    title: Text(
+                        'Selecionar ${funcaoGetString(funcao).toLowerCase()}'),
                     contentPadding:
                         const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     children: [
-                      snap.hasData
-                          ? Wrap(
-                              spacing: 8,
-                              children: disponiveis.isNotEmpty
-                                  ? List.generate(disponiveis.length, (index) {
-                                      var integrante = disponiveis[index];
-                                      return ChoiceChip(
-                                          selected: selecionado ==
-                                              integrante.reference.toString(),
-                                          selectedColor: Theme.of(context)
-                                              .colorScheme
-                                              .primary,
-                                          onSelected: (value) async {
-                                            if (value) {
-                                              await widget.culto.update({
-                                                funcao.name:
-                                                    integrante.reference
-                                              });
-                                            } else {
-                                              await widget.culto
-                                                  .update({funcao.name: null});
-                                            }
-                                            Modular.to.pop(); // fecha o dialog
-                                          },
-                                          label: Text(integrante
-                                              .data()
-                                              .nome
-                                              .split(' ')
-                                              .first));
-                                    }).toList()
-                                  : const [
-                                      Padding(
-                                        padding: EdgeInsets.all(24),
-                                        child: Text(
-                                            'Nenhum integrante disponível'),
-                                      )
-                                    ],
+                      // Com resultados
+                      snap.connectionState == ConnectionState.waiting
+                          ? const Padding(
+                              padding: EdgeInsets.symmetric(
+                                  vertical: 24, horizontal: 12),
+                              child: Text('Verificando integrantes...'),
                             )
-                          : const Text('Verificando usuários...'),
+                          : snap.hasError
+                              ? const Padding(
+                                  padding: EdgeInsets.symmetric(
+                                      vertical: 24, horizontal: 12),
+                                  child: Text('Falha ao buscar integrantes!'),
+                                )
+                              : disponiveis.isEmpty
+                                  ? const Padding(
+                                      padding: EdgeInsets.symmetric(
+                                          vertical: 24, horizontal: 12),
+                                      child:
+                                          Text('Nenhum integrante disponível!'),
+                                    )
+                                  : Wrap(
+                                      spacing: 8,
+                                      children: List.generate(
+                                          disponiveis.length, (index) {
+                                        var integrante = disponiveis[index];
+                                        return ChoiceChip(
+                                            selected: selecionado ==
+                                                integrante.reference.toString(),
+                                            selectedColor: Theme.of(context)
+                                                .colorScheme
+                                                .primary,
+                                            onSelected: (value) async {
+                                              if (value) {
+                                                await widget.culto.update({
+                                                  funcao.name:
+                                                      integrante.reference
+                                                });
+                                              } else {
+                                                await widget.culto.update(
+                                                    {funcao.name: null});
+                                              }
+                                              Modular.to
+                                                  .pop(); // fecha o dialog
+                                            },
+                                            label: Text(integrante
+                                                .data()
+                                                .nome
+                                                .split(' ')
+                                                .first));
+                                      }).toList(),
+                                    ),
                     ],
                   );
                 });

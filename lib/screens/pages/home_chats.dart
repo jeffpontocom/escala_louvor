@@ -10,17 +10,22 @@ class TelaChat extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: const [
+          children: [
             // Logotipo
-            Image(
+            const Image(
               image: AssetImage('assets/images/chat.png'),
               height: 256,
               width: 256,
             ),
             // Informação
-            Text(
-              'Em breve chats para os cultos/eventos em que você está escalado',
+            const Text(
+              'Chats para os cultos/eventos em que você está escalado.\n',
               textAlign: TextAlign.center,
+            ),
+            Text(
+              'Em breve!',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.titleLarge,
             ),
           ],
         ));

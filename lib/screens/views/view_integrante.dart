@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:escala_louvor/global.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
+import 'package:intl/intl.dart';
 
 import '/functions/metodos_firebase.dart';
 import '/models/igreja.dart';
@@ -56,16 +57,12 @@ class ViewIntegrante extends StatelessWidget {
                             funcaoGetString(Funcao.values[index]),
                           ),
                         ).toList(),
-                        isSelected: [
-                          integrante.funcoes?.contains(Funcao.recrutador) ??
-                              false,
-                          integrante.funcoes?.contains(Funcao.dirigente) ??
-                              false,
-                          integrante.funcoes?.contains(Funcao.coordenador) ??
-                              false,
-                          integrante.funcoes?.contains(Funcao.musico) ?? false,
-                          integrante.funcoes?.contains(Funcao.liturgo) ?? false,
-                        ],
+                        isSelected: List.generate(
+                            Funcao.values.length,
+                            (index) =>
+                                integrante.funcoes
+                                    ?.contains(Funcao.values[index]) ??
+                                false),
                         onPressed: Global.integranteLogado!.data()!.adm &&
                                 editMode
                             ? (index) {
@@ -87,7 +84,6 @@ class ViewIntegrante extends StatelessWidget {
                   );
                 }),
               ),
-
               // Informações básicas
               Row(
                 crossAxisAlignment: CrossAxisAlignment.end,
@@ -98,8 +94,8 @@ class ViewIntegrante extends StatelessWidget {
                     nascimento.text = integrante.dataNascimento == null
                         ? editMode
                             ? 'Selecionar'
-                            : 'Pergunte'
-                        : MyInputs.mascaraData
+                            : '-'
+                        : DateFormat.MMMd('pt_BR')
                             .format(integrante.dataNascimento!.toDate());
                     // interface
                     return Column(
@@ -138,12 +134,18 @@ class ViewIntegrante extends StatelessWidget {
                             controller: nascimento,
                             enabled: editMode,
                             readOnly: true,
-                            decoration: const InputDecoration(
-                                labelText: 'Nascimento',
+                            decoration: InputDecoration(
+                                labelText: 'Aniversário',
                                 disabledBorder: InputBorder.none,
                                 floatingLabelBehavior:
                                     FloatingLabelBehavior.always,
-                                prefixIcon: Icon(Icons.cake)),
+                                prefixIcon: integrante.dataNascimento == null ||
+                                        !editMode
+                                    ? const Icon(Icons.cake)
+                                    : IconButton(
+                                        onPressed: (() => innerState(() =>
+                                            integrante.dataNascimento = null)),
+                                        icon: const Icon(Icons.clear))),
                             onTap: editMode
                                 ? () async {
                                     final DateTime? pick = await showDatePicker(
@@ -272,11 +274,9 @@ class ViewIntegrante extends StatelessWidget {
                 child: Row(
                   children: [
                     // Ativo
-                    novoCadastro ||
-                            (integrante.funcoes?.contains(Funcao.recrutador) ??
-                                false)
-                        ? const SizedBox()
-                        : StatefulBuilder(builder: (_, innerState) {
+                    !novoCadastro &&
+                            (Global.integranteLogado?.data()?.adm ?? false)
+                        ? StatefulBuilder(builder: (_, innerState) {
                             return ChoiceChip(
                                 label: Text(integrante.ativo
                                     ? 'Desativar cadastro'
@@ -291,7 +291,8 @@ class ViewIntegrante extends StatelessWidget {
                                       id: id);
                                   Modular.to.pop(); // Fecha dialog
                                 });
-                          }),
+                          })
+                        : const SizedBox(),
                     const Expanded(child: SizedBox()),
                     // Botão criar
                     ElevatedButton.icon(

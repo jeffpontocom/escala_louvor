@@ -1,7 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:escala_louvor/functions/metodos_firebase.dart';
+import 'package:escala_louvor/global.dart';
+import 'package:escala_louvor/models/integrante.dart';
 import 'package:escala_louvor/screens/views/dialogos.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'package:url_launcher/url_launcher.dart';
@@ -16,18 +17,8 @@ class TelaCanticos extends StatefulWidget {
 }
 
 class _TelaCanticosState extends State<TelaCanticos> {
-  bool mostrarCanticos = true;
-  bool mostrarHinos = true;
-
-  bool? get somenteHinos {
-    if (mostrarCanticos && !mostrarHinos) {
-      return false;
-    } else if (!mostrarCanticos && mostrarHinos) {
-      return true;
-    } else {
-      return null;
-    }
-  }
+  Integrante? logado = Global.integranteLogado?.data();
+  bool? somenteHinos;
 
   @override
   Widget build(BuildContext context) {
@@ -41,43 +32,43 @@ class _TelaCanticosState extends State<TelaCanticos> {
           color: Colors.grey.withOpacity(0.15),
           child: Row(
             children: [
-              // Fitros
-              const Text('APRESENTAR:'),
+              // Filtros
+              const Text('Apresentar:'),
               const SizedBox(width: 8),
-              Expanded(
-                  child: Wrap(
-                children: [
-                  FilterChip(
-                    label: const Text('Cânticos'),
-                    selected: mostrarCanticos,
-                    onSelected: (value) {
-                      setState(() {
-                        mostrarCanticos = value;
-                      });
-                    },
-                  ),
-                  const SizedBox(width: 8),
-                  FilterChip(
-                    label: const Text('Hinos'),
-                    selected: mostrarHinos,
-                    onSelected: (value) {
-                      setState(() {
-                        mostrarHinos = value;
-                      });
-                    },
-                  ),
-                ],
-              )),
-              const SizedBox(width: 12),
+              RawChip(
+                label: Text(somenteHinos == null
+                    ? 'Toda a lista'
+                    : somenteHinos == true
+                        ? 'Somente hinos'
+                        : 'Somente cânticos'),
+                onPressed: () {
+                  setState(() {
+                    switch (somenteHinos) {
+                      case null:
+                        somenteHinos = true;
+                        break;
+                      case true:
+                        somenteHinos = false;
+                        break;
+                      default:
+                        somenteHinos = null;
+                        break;
+                    }
+                  });
+                },
+              ),
+              const Expanded(child: SizedBox()),
               // Botão adicionar
-              ActionChip(
-                  avatar: const Icon(Icons.add),
-                  label: const Text('Novo'),
-                  backgroundColor: Theme.of(context).colorScheme.primary,
-                  onPressed: () {
-                    var cantico = Cantico(nome: '');
-                    Dialogos.editarCantico(context, cantico);
-                  })
+              (logado?.ehDirigente ?? false) || (logado?.ehCoordenador ?? false)
+                  ? ActionChip(
+                      avatar: const Icon(Icons.add),
+                      label: const Text('Novo'),
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      onPressed: () {
+                        var cantico = Cantico(nome: '');
+                        Dialogos.editarCantico(context, cantico);
+                      })
+                  : const SizedBox(),
             ],
           ),
         ),
@@ -91,9 +82,11 @@ class _TelaCanticosState extends State<TelaCanticos> {
             decoration: InputDecoration(
               prefixIcon: const Icon(Icons.search),
               suffixIcon: IconButton(
-                icon: const Icon(Icons.clear),
-                onPressed: () => _f.clear(),
-              ),
+                  icon: const Icon(Icons.clear),
+                  onPressed: () {
+                    _f.clear();
+                    _filtro.value = '';
+                  }),
               hintText: 'Buscar...',
             ),
             onChanged: (value) {
@@ -118,16 +111,16 @@ class _TelaCanticosState extends State<TelaCanticos> {
                     padding: const EdgeInsets.all(64),
                     child: Column(
                       mainAxisAlignment: MainAxisAlignment.center,
-                      children: const [
+                      children: [
                         // Imagem
-                        Image(
+                        const Image(
                           image: AssetImage('assets/images/song.png'),
                           height: 256,
                           width: 256,
                         ),
                         // Informação
                         Text(
-                          'Nenhum cântico ou hino cadastrado',
+                          'Nenhum ${somenteHinos == null ? "cântico ou hino" : somenteHinos == true ? "hino" : "cântico"} cadastrado',
                           textAlign: TextAlign.center,
                         ),
                       ],
@@ -152,16 +145,16 @@ class _TelaCanticosState extends State<TelaCanticos> {
                           padding: const EdgeInsets.all(64),
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
-                            children: const [
+                            children: [
                               // Imagem
-                              Image(
+                              const Image(
                                 image: AssetImage('assets/images/song.png'),
                                 height: 256,
                                 width: 256,
                               ),
                               // Informação
                               Text(
-                                'Nenhum cântico ou hino encontrado na busca',
+                                'Nenhum ${somenteHinos == null ? "cântico ou hino" : somenteHinos == true ? "hino" : "cântico"} encontrado na busca',
                                 textAlign: TextAlign.center,
                               ),
                             ],

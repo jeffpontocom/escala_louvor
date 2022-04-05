@@ -9,8 +9,8 @@ enum Funcao {
   recrutador,
   dirigente,
   coordenador,
-  musico,
   liturgo,
+  componente,
 }
 
 String funcaoGetString(Funcao funcao) {
@@ -21,10 +21,10 @@ String funcaoGetString(Funcao funcao) {
       return 'Dirigente';
     case Funcao.coordenador:
       return 'Coordenador técnico';
-    case Funcao.musico:
-      return 'Músico';
     case Funcao.liturgo:
       return 'Liturgo';
+    case Funcao.componente:
+      return 'Componente da equipe';
   }
 }
 
@@ -36,10 +36,10 @@ IconData funcaoGetIcon(Funcao funcao) {
       return Icons.mic;
     case Funcao.coordenador:
       return Icons.support_agent;
-    case Funcao.musico:
-      return Icons.music_note;
     case Funcao.liturgo:
       return Icons.list_alt;
+    case Funcao.componente:
+      return Icons.perm_contact_cal;
   }
 }
 
@@ -122,10 +122,10 @@ class Integrante {
       case 2:
         return Funcao.coordenador;
       case 3:
-        return Funcao.musico;
+        return Funcao.liturgo;
       case 4:
       default:
-        return Funcao.liturgo;
+        return Funcao.componente;
     }
   }
 
@@ -188,11 +188,11 @@ class Integrante {
     return adm || (funcoes?.contains(Funcao.coordenador) ?? false);
   }
 
-  bool get ehMusico {
-    return adm || (funcoes?.contains(Funcao.musico) ?? false);
-  }
-
   bool get ehLiturgo {
     return adm || (funcoes?.contains(Funcao.liturgo) ?? false);
+  }
+
+  bool get ehComponente {
+    return adm || (funcoes?.contains(Funcao.componente) ?? false);
   }
 }

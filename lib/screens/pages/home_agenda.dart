@@ -178,8 +178,8 @@ class TelaAgenda extends StatelessWidget {
               // Botão criar novo registro de culto
               (Global.integranteLogado?.data()?.ehRecrutador ?? false)
                   ? ActionChip(
-                      avatar: const Icon(Icons.add_circle),
-                      label: const Text('Culto'),
+                      avatar: const Icon(Icons.add),
+                      label: const Text('Novo'),
                       backgroundColor: Theme.of(context).colorScheme.primary,
                       onPressed: () {
                         // Tratamento de erros
@@ -386,15 +386,12 @@ class TelaAgenda extends StatelessWidget {
                                                 innerState(() {});
                                               },
                                       ),
-                                      IconButton(
-                                        onPressed: () => Modular.to.navigate(
-                                            '${AppRotas.HOME}?escala=${cultos[index].id}'),
-                                        icon: const Icon(
-                                            Icons.double_arrow_rounded),
-                                        tooltip: 'Ver detalhes',
-                                      ),
                                     ],
                                   ),
+                                  onTap: () {
+                                    Modular.to.navigate(
+                                        '${AppRotas.HOME}?escala=${cultos[index].id}');
+                                  },
                                 );
                               });
                             }, growable: false)
