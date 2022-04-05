@@ -38,7 +38,7 @@ class ViewIntegrante extends StatelessWidget {
                 padding: const EdgeInsets.only(top: 8, bottom: 16),
                 child: LayoutBuilder(builder: (context, constraints) {
                   return StatefulBuilder(
-                    builder: (_, innerState) {
+                    builder: (context, innerState) {
                       return ToggleButtons(
                         borderRadius:
                             const BorderRadius.all(Radius.circular(8)),
@@ -48,6 +48,7 @@ class ViewIntegrante extends StatelessWidget {
                             minHeight: 56),
                         color: Colors.grey,
                         selectedColor: Colors.orange,
+                        fillColor: Colors.orange.withOpacity(0.15),
                         children: List.generate(
                           Funcao.values.length,
                           (index) => _iconeComLegenda(
@@ -65,13 +66,14 @@ class ViewIntegrante extends StatelessWidget {
                           integrante.funcoes?.contains(Funcao.musico) ?? false,
                           integrante.funcoes?.contains(Funcao.liturgo) ?? false,
                         ],
-                        onPressed: Global.integranteLogado.value!.data()!.adm
+                        onPressed: Global.integranteLogado!.data()!.adm &&
+                                editMode
                             ? (index) {
                                 innerState(
                                   (() {
                                     var funcao = Funcao.values[index];
-                                    integrante.funcoes == null ||
-                                            integrante.funcoes!.isEmpty
+                                    integrante.funcoes ??= [];
+                                    integrante.funcoes!.isEmpty
                                         ? integrante.funcoes?.add(funcao)
                                         : integrante.funcoes!.contains(funcao)
                                             ? integrante.funcoes!.remove(funcao)
@@ -88,6 +90,7 @@ class ViewIntegrante extends StatelessWidget {
 
               // Informações básicas
               Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   StatefulBuilder(
                       builder: (innerContext, StateSetter innerState) {
@@ -128,18 +131,13 @@ class ViewIntegrante extends StatelessWidget {
                           backgroundColor: Colors.grey.withOpacity(0.5),
                           radius: 48,
                         ),
-                        const SizedBox(height: 8),
                         // Data de Nascimento
                         SizedBox(
-                          width: 150,
+                          width: MediaQuery.of(context).size.width / 3,
                           child: TextFormField(
                             controller: nascimento,
                             enabled: editMode,
                             readOnly: true,
-                            style: editMode
-                                ? null
-                                : const TextStyle(
-                                    fontSize: 20, fontWeight: FontWeight.bold),
                             decoration: const InputDecoration(
                                 labelText: 'Nascimento',
                                 disabledBorder: InputBorder.none,
@@ -165,41 +163,6 @@ class ViewIntegrante extends StatelessWidget {
                                 : () {},
                           ),
                         ),
-                        /* ActionChip(
-                          avatar: Icon(Icons.cake,
-                              color: Theme.of(context).colorScheme.primary),
-                          backgroundColor: Colors.transparent,
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                              side: BorderSide(
-                                  color: editMode
-                                      ? Colors.grey.shade300
-                                      : Colors.transparent)),
-                          label: Text(
-                            integrante.dataNascimento == null
-                                ? editMode
-                                    ? 'Selecionar'
-                                    : 'Pergunte'
-                                : MyInputs.mascaraData.format(
-                                    integrante.dataNascimento!.toDate()),
-                          ),
-                          onPressed: editMode
-                              ? () async {
-                                  final DateTime? pick = await showDatePicker(
-                                      context: context,
-                                      initialDate:
-                                          integrante.dataNascimento?.toDate() ??
-                                              DateTime.now(),
-                                      firstDate: DateTime(1930),
-                                      lastDate: DateTime(
-                                          DateTime.now().year, 12, 31));
-                                  if (pick != null) {
-                                    innerState(() => integrante.dataNascimento =
-                                        Timestamp.fromDate(pick));
-                                  }
-                                }
-                              : () {},
-                        ), */
                       ],
                     );
                   }),
@@ -216,8 +179,8 @@ class ViewIntegrante extends StatelessWidget {
                               ? null
                               : const TextStyle(
                                   fontSize: 20, fontWeight: FontWeight.bold),
-                          decoration: const InputDecoration(
-                            labelText: 'Nome',
+                          decoration: InputDecoration(
+                            labelText: editMode ? 'Nome' : null,
                             disabledBorder: InputBorder.none,
                             floatingLabelBehavior: FloatingLabelBehavior.always,
                           ),
@@ -369,16 +332,19 @@ class ViewIntegrante extends StatelessWidget {
   }
 
   Widget _iconeComLegenda(IconData iconData, String legenda) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(iconData),
-        const SizedBox(height: 4),
-        Text(
-          legenda,
-          overflow: TextOverflow.ellipsis,
-        ),
-      ],
+    return Padding(
+      padding: const EdgeInsets.all(4),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(iconData),
+          const SizedBox(height: 4),
+          Text(
+            legenda,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
     );
   }
 

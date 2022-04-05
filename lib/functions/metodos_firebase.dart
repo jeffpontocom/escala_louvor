@@ -3,6 +3,7 @@ import 'dart:developer' as dev;
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:escala_louvor/models/cantico.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -23,7 +24,20 @@ import '/utils/mensagens.dart';
 class MeuFirebase {
   /* STREAMS  */
 
-  static void escutarIntegranteLogado(String? id) {
+  static Stream<DocumentSnapshot<Integrante>?> escutarIntegranteLogado() {
+    var userId = FirebaseAuth.instance.currentUser?.uid;
+    //
+    return FirebaseFirestore.instance
+        .collection(Integrante.collection)
+        .doc(userId)
+        .withConverter<Integrante>(
+            fromFirestore: (snapshot, _) =>
+                Integrante.fromJson(snapshot.data()!),
+            toFirestore: (pacote, _) => pacote.toJson())
+        .snapshots();
+  }
+
+  /* static void escutarIntegranteLogado(String? id) {
     if (id == null) {
       Global.integranteLogado.value = null;
     }
@@ -63,7 +77,7 @@ class MeuFirebase {
         } else {}
       }
     });
-  }
+  } */
 
   /// Stream para escutar base de dados das Igrejas
   static Stream<QuerySnapshot<Igreja>> escutarIgrejas({bool? ativas}) {
@@ -124,6 +138,19 @@ class MeuFirebase {
         .orderBy('dataCulto')
         .withConverter<Culto>(
           fromFirestore: (snapshot, _) => Culto.fromJson(snapshot.data()!),
+          toFirestore: (model, _) => model.toJson(),
+        )
+        .snapshots();
+  }
+
+  /// Stream para escutar base de dados das Igrejas
+  static Stream<QuerySnapshot<Cantico>> escutarCanticos(bool? somenteHinos) {
+    return FirebaseFirestore.instance
+        .collection(Cantico.collection)
+        .where('isHino', isEqualTo: somenteHinos)
+        .orderBy('nome')
+        .withConverter<Cantico>(
+          fromFirestore: (snapshot, _) => Cantico.fromJson(snapshot.data()!),
           toFirestore: (model, _) => model.toJson(),
         )
         .snapshots();
@@ -306,6 +333,43 @@ class MeuFirebase {
         .delete();
   }
 
+  /// Criar Culto
+  static Future criarCantico(Cantico cantico) async {
+    FirebaseFirestore.instance
+        .collection(Cantico.collection)
+        .withConverter<Cantico>(
+          fromFirestore: (snapshot, _) => Cantico.fromJson(snapshot.data()!),
+          toFirestore: (model, _) => model.toJson(),
+        )
+        .doc()
+        .set(cantico);
+  }
+
+  /// Atualizar Culto
+  static Future atualizarCantico(
+      Cantico cantico, DocumentReference<Cantico> reference) async {
+    reference.update({
+      'nome': cantico.nome,
+      'autor': cantico.autor,
+      'cifraUrl': cantico.cifraUrl,
+      'youTubeUrl': cantico.youTubeUrl,
+      'letra': cantico.letra,
+      'isHino': cantico.isHino,
+    });
+  }
+
+  /// Atualizar ou Criar Culto
+  static Future apagarCantico(Cantico culto, {String? id}) async {
+    FirebaseFirestore.instance
+        .collection(Cantico.collection)
+        .withConverter<Cantico>(
+          fromFirestore: (snapshot, _) => Cantico.fromJson(snapshot.data()!),
+          toFirestore: (model, _) => model.toJson(),
+        )
+        .doc(id)
+        .delete();
+  }
+
   /// Criar novo usuário
   static Future<UserCredential?> criarUsuario(
       {required String email, required String senha}) async {
@@ -327,7 +391,7 @@ class MeuFirebase {
 
   static Future<bool> definirDisponibilidadeParaOCulto(
       DocumentReference<Culto> reference) async {
-    if (Global.integranteLogado.value == null) {
+    if (Global.integranteLogado == null) {
       dev.log('Valores nulos');
       return false;
     }
@@ -337,13 +401,13 @@ class MeuFirebase {
             .data()!
             .disponiveis
             ?.map((e) => e.toString())
-            .contains(Global.integranteLogado.value!.reference.toString()) ??
+            .contains(Global.integranteLogado!.reference.toString()) ??
         false;
     if (exist) {
       try {
         await culto.reference.update({
           'disponiveis':
-              FieldValue.arrayRemove([Global.integranteLogado.value!.reference])
+              FieldValue.arrayRemove([Global.integranteLogado!.reference])
         });
         dev.log('Removido com Sucesso');
         return true;
@@ -355,7 +419,7 @@ class MeuFirebase {
       try {
         await culto.reference.update({
           'disponiveis':
-              FieldValue.arrayUnion([Global.integranteLogado.value!.reference])
+              FieldValue.arrayUnion([Global.integranteLogado!.reference])
         });
         dev.log('Adicionado com Sucesso');
         return true;
@@ -368,7 +432,7 @@ class MeuFirebase {
 
   static Future<bool> definirRestricaoParaOCulto(
       DocumentReference<Culto> reference) async {
-    if (Global.integranteLogado.value == null) {
+    if (Global.integranteLogado == null) {
       dev.log('Valores nulos');
       return false;
     }
@@ -378,13 +442,13 @@ class MeuFirebase {
             .data()!
             .restritos
             ?.map((e) => e.toString())
-            .contains(Global.integranteLogado.value!.reference.toString()) ??
+            .contains(Global.integranteLogado!.reference.toString()) ??
         false;
     if (exist) {
       try {
         await culto.reference.update({
           'restritos':
-              FieldValue.arrayRemove([Global.integranteLogado.value!.reference])
+              FieldValue.arrayRemove([Global.integranteLogado!.reference])
         });
         dev.log('Removido com Sucesso');
         return true;
@@ -396,7 +460,7 @@ class MeuFirebase {
       try {
         await culto.reference.update({
           'restritos':
-              FieldValue.arrayUnion([Global.integranteLogado.value!.reference])
+              FieldValue.arrayUnion([Global.integranteLogado!.reference])
         });
         dev.log('Adicionado com Sucesso');
         return true;
@@ -476,9 +540,9 @@ class MeuFirebase {
   }
 
   /// Carregar arquivo PDF
-  static Future<String?> carregarArquivoPdf() async {
+  static Future<String?> carregarArquivoPdf({required String pasta}) async {
     String url = '';
-    // Abrir seleção de foto
+    // Abrir seleção
     try {
       final result = await FilePicker.platform.pickFiles(
         type: FileType.custom,
@@ -492,7 +556,7 @@ class MeuFirebase {
         final fileExtension = result.files.first.extension;
         dev.log(fileName);
         // Salvar na Cloud Firestore
-        var ref = FirebaseStorage.instance.ref('liturgias/$fileName');
+        var ref = FirebaseStorage.instance.ref('$pasta/$fileName');
         if (kIsWeb) {
           await ref.putData(fileBytes!,
               SettableMetadata(contentType: 'application/$fileExtension'));

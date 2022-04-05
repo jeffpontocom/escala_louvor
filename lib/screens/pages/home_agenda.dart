@@ -15,113 +15,141 @@ import '/utils/utils.dart';
 
 class TelaAgenda extends StatelessWidget {
   const TelaAgenda({Key? key}) : super(key: key);
-  static final ValueNotifier<DateTime> _dataSelecionada =
-      ValueNotifier(DateTime.now());
 
   @override
   Widget build(BuildContext context) {
-    final ValueNotifier<Map<DateTime, String>> meusEventos = ValueNotifier({});
-    final agora = DateTime.now();
-    final hoje = DateTime(agora.year, agora.month, agora.day);
-    var _dataCorrente = DateTime.now();
-    var _dataFoco = DateTime(_dataCorrente.year, _dataCorrente.month);
-    var _dataMin = DateTime(_dataFoco.year, _dataFoco.month);
-    var _dataMax = DateTime(_dataFoco.year, _dataFoco.month + 6, 0);
-    CalendarFormat format = CalendarFormat.month;
+    final _agora = DateTime.now();
+    var _format = CalendarFormat.month;
+    var _diaSelecionado = _agora;
+    var _diaEmFoco = _agora;
 
-    final ValueNotifier<DateTime> mesCorrente =
-        ValueNotifier(DateTime(_dataCorrente.year, _dataCorrente.month));
+    /// Notificador para calendário
+    final ValueNotifier<Map<DateTime, String>> _meusEventos = ValueNotifier({});
+
+    /// Notificador para lista de eventos
+    final ValueNotifier<DateTime> _mesCorrente =
+        ValueNotifier(DateTime(_agora.year, _agora.month));
+
+    void _setMesCorrente(DateTime dia) {
+      _mesCorrente.value = DateTime(dia.year, dia.month);
+    }
+
+    bool _ehMesmoDia(DateTime dia1, DateTime dia2) {
+      return (dia1.year == dia2.year) &&
+          (dia1.month == dia2.month) &&
+          (dia1.day == dia2.day);
+    }
 
     return Column(
       children: [
         // Calendário
         ValueListenableBuilder<Map<DateTime, String>>(
-            valueListenable: meusEventos,
-            builder: (context, datas, _) {
-              return StatefulBuilder(builder: ((context, setState) {
+            valueListenable: _meusEventos,
+            builder: (context, eventos, _) {
+              return StatefulBuilder(builder: (context, setState) {
                 return TableCalendar(
-                  focusedDay: _dataFoco,
-                  firstDay: _dataMin,
-                  lastDay: _dataMax,
-                  currentDay: _dataCorrente,
-                  locale: 'pt_BR',
-                  startingDayOfWeek: StartingDayOfWeek.monday,
-                  calendarFormat: format,
-                  calendarStyle: CalendarStyle(
-                    todayDecoration: const BoxDecoration(
-                      color: Colors.grey,
-                      shape: BoxShape.circle,
-                    ),
-                    weekendTextStyle: TextStyle(
-                        color: Theme.of(context).colorScheme.secondary),
-                    outsideTextStyle:
-                        TextStyle(color: Colors.grey.withOpacity(0.5)),
-                    markerDecoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                        color: Theme.of(context).colorScheme.primary),
-                    holidayDecoration: const BoxDecoration(
-                      border: Border.fromBorderSide(
-                        BorderSide(color: Colors.amber, width: 1.4),
-                      ),
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  availableCalendarFormats: const {
-                    CalendarFormat.month: 'Mês',
-                    CalendarFormat.twoWeeks: 'Quinzena',
-                  },
-                  onFormatChanged: (value) {
+                  focusedDay: _diaEmFoco,
+                  firstDay: DateTime(_agora.year, _agora.month),
+                  lastDay: DateTime(_agora.year, _agora.month + 6, 0),
+                  onFormatChanged: (format) {
                     setState((() {
-                      format = value;
+                      _format = format;
                     }));
                   },
-                  onDaySelected: (data1, data2) {
+                  onPageChanged: (diaEmFoco) {
                     setState(() {
-                      _dataFoco = DateTime(data1.year, data1.month);
-                      _dataCorrente = data1;
-                      _dataSelecionada.value = _dataCorrente;
+                      _diaEmFoco = diaEmFoco;
+                      _setMesCorrente(diaEmFoco);
                     });
                   },
-                  holidayPredicate: (data) {
-                    var isAniversario = false;
-                    datas.entries
-                        .where((element) => element.value == 'aniversario')
-                        .forEach((element) {
-                      isAniversario = (element.key.day == data.day &&
-                          element.key.month == data.month);
+                  onDaySelected: (diaSelecionado, diaEmFoco) {
+                    setState(() {
+                      _diaEmFoco = diaEmFoco;
+                      _diaSelecionado = diaSelecionado;
+                      _setMesCorrente(diaSelecionado);
                     });
-                    return isAniversario;
                   },
-                  onPageChanged: (data) {
-                    mesCorrente.value = DateTime(data.year, data.month);
+                  selectedDayPredicate: (dia) {
+                    return _ehMesmoDia(dia, _diaSelecionado);
+                  },
+                  holidayPredicate: (dia) {
+                    var datas = eventos.entries
+                        .where((element) => element.value == 'aniversario');
+                    for (var data in datas) {
+                      if (_ehMesmoDia(dia, data.key)) {
+                        return true;
+                      }
+                    }
+                    return false;
                   },
                   eventLoader: (data) {
                     List cultos = [];
-                    datas.entries
+                    eventos.entries
                         .where((element) => element.value == 'culto')
                         .forEach((element) {
-                      if (element.key.isAfter(data) &&
-                          element.key.isBefore(
-                            data.add(
-                              const Duration(days: 1),
-                            ),
-                          )) {
+                      if (_ehMesmoDia(data, element.key)) {
                         cultos.add(element.value);
                       }
                     });
                     return cultos;
                   },
+                  locale: 'pt_BR',
+                  startingDayOfWeek: StartingDayOfWeek.monday,
+                  calendarFormat: _format,
+                  availableCalendarFormats: const {
+                    CalendarFormat.month: 'Mês',
+                    CalendarFormat.twoWeeks: 'Quinzena',
+                  },
+                  calendarStyle: CalendarStyle(
+                    weekendTextStyle: TextStyle(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .onBackground
+                            .withOpacity(0.7)),
+                    outsideTextStyle:
+                        TextStyle(color: Colors.grey.withOpacity(0.5)),
+                    todayDecoration: BoxDecoration(
+                        color: null,
+                        border: Border.fromBorderSide(
+                          BorderSide(
+                              color: Theme.of(context).colorScheme.primary,
+                              width: 1.4),
+                        ),
+                        shape: BoxShape.circle),
+                    todayTextStyle:
+                        TextStyle(color: Theme.of(context).colorScheme.primary),
+                    selectedDecoration: BoxDecoration(
+                        color: Theme.of(context)
+                            .colorScheme
+                            .primary
+                            .withOpacity(0.75),
+                        border: Border.fromBorderSide(
+                          BorderSide(
+                              color: Theme.of(context).colorScheme.primary,
+                              width: 1.4),
+                        ),
+                        shape: BoxShape.circle),
+                    holidayDecoration: const BoxDecoration(
+                        border: Border.fromBorderSide(
+                            BorderSide(color: Colors.amber, width: 1.4)),
+                        shape: BoxShape.circle),
+                    holidayTextStyle: const TextStyle(color: Colors.amber),
+                    markerDecoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(12),
+                        color: Theme.of(context).colorScheme.primary),
+                  ),
                 );
-              }));
+              });
             }),
         const Divider(height: 1),
         // Linha com legenda e botão de criação de culto
         Container(
           color: Colors.grey.withOpacity(0.25),
           padding: const EdgeInsets.symmetric(horizontal: 12),
+          height: kMinInteractiveDimension,
           child: Row(
             children: [
-              // Legenda
+              // Legenda cultos
               Container(
                 margin: const EdgeInsets.only(right: 4),
                 decoration: BoxDecoration(
@@ -132,6 +160,7 @@ class TelaAgenda extends StatelessWidget {
               ),
               const Text('Cultos'),
               const SizedBox(width: 12),
+              // Legenda aniversários
               Container(
                 margin: const EdgeInsets.only(right: 4),
                 decoration: const BoxDecoration(
@@ -147,25 +176,29 @@ class TelaAgenda extends StatelessWidget {
               // Espaço em branco
               const Expanded(child: SizedBox()),
               // Botão criar novo registro de culto
-              ActionChip(
-                  avatar: const Icon(Icons.add_circle),
-                  label: const Text('Culto'),
-                  backgroundColor: Theme.of(context).colorScheme.primary,
-                  onPressed: () {
-                    // Tratamento de erros
-                    if (Global.igrejaSelecionada.value == null) {
-                      Mensagem.simples(
-                          context: context,
-                          mensagem:
-                              'Isso não deveria ter acontecido. Sem igreja selecionada.');
-                      return;
-                    }
-                    var culto = Culto(
-                      dataCulto: Timestamp.fromDate(_dataSelecionada.value),
-                      igreja: Global.igrejaSelecionada.value!.reference,
-                    );
-                    Dialogos.editarCulto(context, culto);
-                  }),
+              (Global.integranteLogado?.data()?.ehRecrutador ?? false)
+                  ? ActionChip(
+                      avatar: const Icon(Icons.add_circle),
+                      label: const Text('Culto'),
+                      backgroundColor: Theme.of(context).colorScheme.primary,
+                      onPressed: () {
+                        // Tratamento de erros
+                        if (Global.igrejaSelecionada.value == null) {
+                          Mensagem.simples(
+                              context: context,
+                              mensagem:
+                                  'Isso não deveria ter acontecido. Sem igreja selecionada.');
+                          return;
+                        }
+                        var dataInicial = DateTime(_diaSelecionado.year,
+                            _diaSelecionado.month, _diaSelecionado.day, 9, 30);
+                        var culto = Culto(
+                          dataCulto: Timestamp.fromDate(dataInicial),
+                          igreja: Global.igrejaSelecionada.value!.reference,
+                        );
+                        Dialogos.editarCulto(context, culto);
+                      })
+                  : const SizedBox(),
             ],
           ),
         ),
@@ -181,20 +214,25 @@ class TelaAgenda extends StatelessWidget {
                   stream:
                       MeuFirebase.obterListaIntegrantes(ativo: true).asStream(),
                   builder: (context, snapshot) {
+                    _meusEventos.value
+                        .removeWhere((key, value) => value == 'aniversario');
                     if (snapshot.hasData) {
                       var integrantes = snapshot.data!.docs;
                       return ValueListenableBuilder<DateTime>(
-                        valueListenable: mesCorrente,
+                        valueListenable: _mesCorrente,
                         builder: (context, dataMin, _) {
                           List<QueryDocumentSnapshot<Integrante>>
                               aniversariantes = [];
                           aniversariantes.addAll(integrantes.where((element) =>
                               element.data().dataNascimento?.toDate().month ==
-                              mesCorrente.value.month));
+                              _mesCorrente.value.month));
+                          // Notificar após carregamento da interface
+                          WidgetsBinding.instance?.addPostFrameCallback(
+                              (_) => _meusEventos.notifyListeners());
                           if (aniversariantes.isEmpty) {
                             return Center(
                               child: Text(
-                                  'Nenhum aniversariante em ${DateFormat.MMMM('pt_BR').format(mesCorrente.value)}'),
+                                  'Nenhum aniversariante em ${DateFormat.MMMM('pt_BR').format(_mesCorrente.value)}'),
                             );
                           }
                           return ListView(
@@ -210,7 +248,7 @@ class TelaAgenda extends StatelessWidget {
                                   dn = DateTime(DateTime.now().toLocal().year,
                                       dn.month, dn.day);
                                   data = DateFormat.Md('pt_BR').format(dn);
-                                  meusEventos.value
+                                  _meusEventos.value
                                       .putIfAbsent(dn, () => 'aniversario');
                                 }
                                 return Padding(
@@ -245,14 +283,14 @@ class TelaAgenda extends StatelessWidget {
             Expanded(
               child: StreamBuilder<QuerySnapshot<Culto>>(
                   stream: MeuFirebase.escutarCultos(
-                      dataMinima: Timestamp.fromDate(hoje),
+                      dataMinima: Timestamp.fromDate(_agora),
                       igreja: Global.igrejaSelecionada.value?.reference),
                   builder: (context, snapshot) {
+                    _meusEventos.value
+                        .removeWhere((key, value) => value == 'culto');
                     if (snapshot.hasData) {
-                      //var cultos = snapshot.data!.docs;
-
                       return ValueListenableBuilder<DateTime>(
-                          valueListenable: mesCorrente,
+                          valueListenable: _mesCorrente,
                           builder: (context, data, _) {
                             var cultos = snapshot.data!.docs
                                 .where((element) =>
@@ -261,6 +299,9 @@ class TelaAgenda extends StatelessWidget {
                                     element.data().dataCulto.toDate().month ==
                                         data.month)
                                 .toList();
+                            // Notificar após carregamento da interface
+                            WidgetsBinding.instance?.addPostFrameCallback(
+                                (_) => _meusEventos.notifyListeners());
                             if (cultos.isEmpty) {
                               return const Center(
                                 child: Text(
@@ -278,22 +319,20 @@ class TelaAgenda extends StatelessWidget {
                                   DateFormat.yMEd('pt_BR').format(dataCulto);
                               var horaFormatada =
                                   DateFormat.Hm('pt_BR').format(dataCulto);
-                              meusEventos.value
+                              _meusEventos.value
                                   .putIfAbsent(dataCulto, () => 'culto');
                               // Analise do usuario logado em cada culto
                               bool escalado = culto.usuarioEscalado(
-                                  Global.integranteLogado.value?.reference);
+                                  Global.integranteLogado?.reference);
                               bool disponivel = culto.usuarioDisponivel(
-                                  Global.integranteLogado.value?.reference);
+                                  Global.integranteLogado?.reference);
                               bool restrito = culto.usuarioRestrito(
-                                  Global.integranteLogado.value?.reference);
-
+                                  Global.integranteLogado?.reference);
                               // Tile
                               return StatefulBuilder(
                                   builder: (context, innerState) {
                                 return ListTile(
                                   title: Text(culto.ocasiao ?? 'Culto'),
-                                  //horizontalTitleGap: 0,
                                   subtitle:
                                       Text('$dataFormatada às $horaFormatada'),
                                   trailing: Row(
@@ -308,20 +347,25 @@ class TelaAgenda extends StatelessWidget {
                                                   : restrito
                                                       ? 'Restrito'
                                                       : 'Indefinido',
-                                          style: Theme.of(context)
-                                              .textTheme
-                                              .caption,
+                                          overflow: TextOverflow.ellipsis,
                                         ),
-                                        icon: Icon(
-                                          Icons.emoji_people,
-                                          color: escalado
+                                        icon: const Icon(Icons.emoji_people),
+                                        style: OutlinedButton.styleFrom(
+                                          elevation: 0,
+                                          primary: escalado ||
+                                                  disponivel ||
+                                                  restrito
+                                              ? Colors.white
+                                              : Colors.grey.withOpacity(0.5),
+                                          backgroundColor: escalado
                                               ? Colors.green
                                               : disponivel
                                                   ? Colors.blue
                                                   : restrito
                                                       ? Colors.red
-                                                      : Colors.grey
-                                                          .withOpacity(0.5),
+                                                      : Colors.transparent,
+                                          maximumSize: const Size(96, 36),
+                                          minimumSize: const Size(96, 36),
                                         ),
                                         onPressed: escalado || restrito
                                             ? () {}
@@ -345,7 +389,8 @@ class TelaAgenda extends StatelessWidget {
                                       IconButton(
                                         onPressed: () => Modular.to.navigate(
                                             '${AppRotas.HOME}?escala=${cultos[index].id}'),
-                                        icon: const Icon(Icons.dvr_rounded),
+                                        icon: const Icon(
+                                            Icons.double_arrow_rounded),
                                         tooltip: 'Ver detalhes',
                                       ),
                                     ],
@@ -356,7 +401,6 @@ class TelaAgenda extends StatelessWidget {
                                     .toList());
                           });
                     }
-
                     return const Center(child: CircularProgressIndicator());
                   }),
             ),

@@ -49,7 +49,7 @@ class _ViewCultoState extends State<ViewCulto> {
           }
           // Conteúdo
           mCulto = snapshot.data!.data()!;
-          logado = Global.integranteLogado.value!.data()!;
+          logado = Global.integranteLogado!.data()!;
           dev.log(
               'VIEW CULTO Build: ${DateFormat.MEd('pt_BR').format(mCulto.dataCulto.toDate())}');
           return Column(
@@ -110,8 +110,41 @@ class _ViewCultoState extends State<ViewCulto> {
                     ),
                     const Divider(),
                     // Canticos
-                    const Padding(
-                        padding: EdgeInsets.all(12), child: Text('CÂNTICOS')),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: Column(
+                        children: [
+                          Row(
+                            children: [
+                              const Expanded(child: Text('CÂNTICOS')),
+                              logado.ehDirigente || logado.ehCoordenador
+                                  ? ActionChip(
+                                      avatar: const Icon(Icons.add),
+                                      label: const Text('Selecionar'),
+                                      onPressed: () {})
+                                  : const SizedBox(),
+                            ],
+                          ),
+                          // Ajuda
+                          logado.ehDirigente || logado.ehCoordenador
+                              ? Padding(
+                                  padding: EdgeInsets.zero,
+                                  child: Text(
+                                    'Segure e arraste para reordenar (somente dirigentes)',
+                                    textAlign: TextAlign.center,
+                                    style:
+                                        Theme.of(context).textTheme.bodySmall,
+                                  ),
+                                )
+                              : const SizedBox(),
+                          // Lista
+                          Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 12),
+                            child: _listaDeCanticos,
+                          ),
+                        ],
+                      ),
+                    ),
                     const Divider(),
                     // Observações
                     const Padding(
@@ -208,11 +241,11 @@ class _ViewCultoState extends State<ViewCulto> {
     bool alterar = false;
     return StatefulBuilder(builder: (context, setState) {
       bool escalado =
-          mCulto.usuarioEscalado(Global.integranteLogado.value?.reference);
+          mCulto.usuarioEscalado(Global.integranteLogado?.reference);
       bool disponivel =
-          mCulto.usuarioDisponivel(Global.integranteLogado.value?.reference);
+          mCulto.usuarioDisponivel(Global.integranteLogado?.reference);
       bool restrito =
-          mCulto.usuarioRestrito(Global.integranteLogado.value?.reference);
+          mCulto.usuarioRestrito(Global.integranteLogado?.reference);
       return OutlinedButton(
         onPressed: escalado || restrito
             ? () {}
@@ -360,7 +393,8 @@ class _ViewCultoState extends State<ViewCulto> {
                 logado.ehLiturgo
             ? IconButton(
                 onPressed: () async {
-                  String? url = await MeuFirebase.carregarArquivoPdf();
+                  String? url =
+                      await MeuFirebase.carregarArquivoPdf(pasta: 'liturgias');
                   if (url != null && url.isNotEmpty) {
                     widget.culto.update({'liturgiaUrl': url}).then(
                         (value) => null, onError: (_) {
@@ -568,8 +602,8 @@ class _ViewCultoState extends State<ViewCulto> {
                   color: Colors.grey.withOpacity(0.5),
                 ),
                 borderRadius: BorderRadius.circular(12),
-                color: (Global.integranteLogado.value != null &&
-                        integrante?.id == Global.integranteLogado.value?.id)
+                color: (Global.integranteLogado != null &&
+                        integrante?.id == Global.integranteLogado?.id)
                     ? Colors.amber.withOpacity(0.25)
                     : null,
               ),
@@ -649,9 +683,8 @@ class _ViewCultoState extends State<ViewCulto> {
                         color: Colors.grey.withOpacity(0.5),
                       ),
                       borderRadius: BorderRadius.circular(12),
-                      color: (Global.integranteLogado.value != null &&
-                              integrante?.id ==
-                                  Global.integranteLogado.value?.id)
+                      color: (Global.integranteLogado != null &&
+                              integrante?.id == Global.integranteLogado?.id)
                           ? Colors.amber.withOpacity(0.25)
                           : null,
                     ),
@@ -720,6 +753,40 @@ class _ViewCultoState extends State<ViewCulto> {
                 );
               });
         });
+  }
+
+  Widget get _listaDeCanticos {
+    List<Widget> _list = [];
+    return ReorderableListView(
+      shrinkWrap: true,
+      children: _list,
+      onReorder: (int old, int current) async {
+        dev.log('${old.toString()} | ${current.toString()}');
+        // dragging from top to bottom
+        if (old < current) {
+          Widget startItem = _list[old];
+          // 0 para 4 (i = 0; i < 4-1 ; i++)
+          for (int i = old; i < current - 1; i++) {
+            _list[i] = _list[i + 1];
+            //references[i + 1].update({'ordem': i});
+          }
+          _list[current - 1] = startItem;
+          //references[old].update({'ordem': current - 1});
+        }
+        // dragging from bottom to top
+        else if (old > current) {
+          Widget startItem = _list[old];
+          // 4 para 0 (i = 4; i > 0 ; i--)
+          for (int i = old; i > current; i--) {
+            _list[i] = _list[i - 1];
+            // references[i - 1].update({'ordem': i});
+          }
+          _list[current] = startItem;
+          //references[old].update({'ordem': current});
+        }
+        //innerState(() {});
+      },
+    );
   }
 
   /// Seção observações

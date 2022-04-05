@@ -35,7 +35,7 @@ class ViewIgrejas extends StatelessWidget {
           }
           List<QueryDocumentSnapshot<Igreja>> inscritas = [];
           for (var igreja in igrejas) {
-            if (Global.integranteLogado.value
+            if (Global.integranteLogado
                     ?.data()
                     ?.igrejas
                     ?.map((e) => e.toString())
@@ -84,7 +84,7 @@ class ViewIgrejas extends StatelessWidget {
                           onTap: () async {
                             Mensagem.aguardar(context: context);
                             String? id = inscritas[index].reference.id;
-                            Preferencias.igrejaAtual = id;
+                            Preferencias.igreja = id;
                             Global.igrejaSelecionada.value =
                                 await MeuFirebase.obterSnapshotIgreja(id);
                             Modular.to.pop(); // fecha progresso
@@ -144,7 +144,7 @@ class ViewIgrejas extends StatelessWidget {
 
   Widget _listaDeIgrejasParaInscricao(
       List<QueryDocumentSnapshot<Igreja>> igrejas) {
-    Integrante integrante = Global.integranteLogado.value!.data()!;
+    Integrante integrante = Global.integranteLogado!.data()!;
     return StatefulBuilder(builder: (context, innerState) {
       return Center(
           child: Column(
@@ -229,7 +229,7 @@ class ViewIgrejas extends StatelessWidget {
             onPressed: (integrante.igrejas?.isNotEmpty ?? false)
                 ? () async {
                     await MeuFirebase.salvarIntegrante(integrante,
-                        id: Global.integranteLogado.value!.id);
+                        id: Global.integranteLogado!.id);
                     Global.igrejaSelecionada.value = igrejas.firstWhere(
                         (element) =>
                             element.reference.toString() ==

@@ -43,26 +43,49 @@ class _TelaEscalasState extends State<TelaEscalas>
             igreja: Global.igrejaSelecionada.value?.reference,
             dataMinima: _hoje),
         builder: ((context, snapshot) {
+          // Falha ao obter lista de cultos
           if (snapshot.hasError) {
             return const Center(
                 child: Text('Falha! Comunicar o desenvolvedor.'));
           }
-          if (!snapshot.hasData) {
+          // Carregando lista de cultos
+          if (snapshot.connectionState == ConnectionState.waiting ||
+              !snapshot.hasData) {
             return const Center(child: CircularProgressIndicator());
           }
+          // Adicionado cultos encontrados
           _listaCultos.clear();
           for (var snap in snapshot.data!.docs) {
             _listaCultos.add(snap);
           }
+          // Interface vazia
           if (_listaCultos.isEmpty) {
-            return Center(
-              child: Text(
-                'Nenhuma agenda para\n\n${Global.igrejaSelecionada.value?.data()?.nome ?? ''}',
-                style: Theme.of(context).textTheme.headlineSmall,
-                textAlign: TextAlign.center,
-              ),
-            );
+            return Padding(
+                padding: const EdgeInsets.all(64),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    // Logotipo
+                    const Image(
+                      image: AssetImage('assets/images/church.png'),
+                      height: 256,
+                      width: 256,
+                    ),
+                    // Informação
+                    const Text(
+                      'Nenhuma agenda para\n',
+                      textAlign: TextAlign.center,
+                    ),
+                    // Igreja
+                    Text(
+                      Global.igrejaSelecionada.value?.data()?.nome ?? '',
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                  ],
+                ));
           }
+          // Controlador de abas
           _tabController =
               TabController(length: snapshot.data?.size ?? 0, vsync: this);
           if (widget.id != null) {
@@ -72,6 +95,7 @@ class _TelaEscalasState extends State<TelaEscalas>
               _tabController.animateTo(index);
             }
           }
+          // Interface preenchida
           return Column(
             children: [
               // Controle de acesso aos cultos cadastrados

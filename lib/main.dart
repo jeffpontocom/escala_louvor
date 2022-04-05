@@ -10,8 +10,7 @@ import 'package:flutter_modular/flutter_modular.dart';
 import 'package:url_strategy/url_strategy.dart';
 
 import 'firebase_options.dart';
-import 'functions/metodos_firebase.dart';
-import 'global.dart';
+import 'functions/notificacoes.dart';
 import 'preferencias.dart';
 import 'rotas.dart';
 
@@ -27,6 +26,9 @@ void main() async {
       debugMode: !kReleaseMode,
     ),
   );
+  // Its Important to place this line after runApp() otherwise
+  // FlutterLocalNotificationsPlugin will not be initialize and you will get error
+  Notificacoes.carregarInstancia();
 }
 
 class MyApp extends StatelessWidget {
@@ -35,61 +37,53 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Escuta alterações no usuário autenticado
+    // Pelas configurações de rota Modular usuário não logados são
+    // direcionados diretamente a tela de login
     return StreamBuilder<User?>(
         stream: FirebaseAuth.instance.userChanges(),
         builder: (_, snapshotUser) {
-          // Pelas configurações de rota Modular usuário não logados são
-          // direcionados diretamente a tela de login
-          dev.log(
-              'FirebaseAuth alterado - usuário ${snapshotUser.data?.email ?? 'não logado!'}');
-          // Se usuário autenticado
-          dev.log(snapshotUser.connectionState.name);
-          if (snapshotUser.connectionState == ConnectionState.waiting) {
-            return MaterialApp.router(
-              // Navegação Modular
-              routeInformationParser: Modular.routeInformationParser,
-              routerDelegate: Modular.routerDelegate,
-            );
-          } else {
-            MeuFirebase.escutarIntegranteLogado(snapshotUser.data?.uid);
-            // APP
-            return MaterialApp.router(
-              title: 'Escala do Louvor',
-              // Tema claro
-              theme: ThemeData(
-                primarySwatch: Colors.blue,
-                colorScheme: ColorScheme.light(
-                  primary: Colors.blue,
-                  secondary: Colors.blue.shade600,
-                ),
-                materialTapTargetSize:
-                    kIsWeb ? MaterialTapTargetSize.padded : null,
-              ),
-              // Tema Escuro
-              darkTheme: ThemeData(
-                brightness: Brightness.dark,
-                primarySwatch: Colors.blue,
-                colorScheme: ColorScheme.dark(
-                  primary: Colors.blue,
-                  secondary: Colors.blue.shade400,
-                ),
-                materialTapTargetSize:
-                    kIsWeb ? MaterialTapTargetSize.padded : null,
-              ),
-              // Behaviors
-              scrollBehavior: MyCustomScrollBehavior(),
-              // Suporte a lingua português nos elementos globais
-              localizationsDelegates: const [
-                GlobalMaterialLocalizations.delegate,
-                GlobalCupertinoLocalizations.delegate,
-              ],
-              supportedLocales: const [Locale('pt')],
-              locale: const Locale('pt_BR'),
-              // Navegação Modular
-              routeInformationParser: Modular.routeInformationParser,
-              routerDelegate: Modular.routerDelegate,
-            );
+          dev.log('MyApp: ${snapshotUser.connectionState.name}');
+          if (snapshotUser.connectionState == ConnectionState.active) {
+            dev.log(
+                'Firebase Auth: ${snapshotUser.data?.email ?? 'não logado!'}');
           }
+          // APP
+          return MaterialApp.router(
+            title: 'Escala do Louvor',
+            // Tema claro
+            theme: ThemeData(
+              primarySwatch: Colors.blue,
+              colorScheme: ColorScheme.light(
+                primary: Colors.blue,
+                secondary: Colors.blue.shade600,
+              ),
+              materialTapTargetSize:
+                  kIsWeb ? MaterialTapTargetSize.padded : null,
+            ),
+            // Tema Escuro
+            darkTheme: ThemeData(
+              brightness: Brightness.dark,
+              primarySwatch: Colors.blue,
+              colorScheme: ColorScheme.dark(
+                primary: Colors.blue,
+                secondary: Colors.blue.shade400,
+              ),
+              materialTapTargetSize:
+                  kIsWeb ? MaterialTapTargetSize.padded : null,
+            ),
+            // Behaviors
+            scrollBehavior: MyCustomScrollBehavior(),
+            // Suporte a lingua português nos elementos globais
+            localizationsDelegates: const [
+              GlobalMaterialLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
+            supportedLocales: const [Locale('pt')],
+            locale: const Locale('pt_BR'),
+            // Navegação Modular
+            routeInformationParser: Modular.routeInformationParser,
+            routerDelegate: Modular.routerDelegate,
+          );
         });
   }
 }

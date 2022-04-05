@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 
 import '../../functions/metodos_firebase.dart';
 import '../../global.dart';
+import '../../models/cantico.dart';
 import '../../models/culto.dart';
 import '../../utils/mensagens.dart';
 
@@ -174,6 +175,152 @@ class Dialogos {
                 await MeuFirebase.criarCulto(culto);
               } else {
                 await MeuFirebase.atualizarCulto(culto, reference);
+              }
+              Modular.to.pop(); // Fecha dialog
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Editar Cantico
+  static void editarCantico(BuildContext context, Cantico cantico,
+      {DocumentReference<Cantico>? reference}) async {
+    return Mensagem.bottomDialog(
+      context: context,
+      titulo: 'Editar Cântico/Hino',
+      conteudo: ListView(
+          shrinkWrap: true,
+          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+          children: [
+            StatefulBuilder(builder: (_, innerState) {
+              return Row(
+                children: [
+                  // Cifra
+                  const Text('CIFRA:'),
+                  const SizedBox(width: 12),
+                  // Botão para abrir arquivo
+                  cantico.cifraUrl == null
+                      ? Text(
+                          'Nenhum arquivo carregado',
+                          style: Theme.of(context).textTheme.caption,
+                        )
+                      : TextButton(
+                          child: const Text('Ver arquivo'),
+                          style: TextButton.styleFrom(padding: EdgeInsets.zero),
+                          onPressed: () => MeuFirebase.abrirArquivoPdf(
+                              context, cantico.cifraUrl)),
+                  const SizedBox(width: 24),
+                  // Botão de ação limpar
+                  cantico.cifraUrl == null
+                      ? const SizedBox()
+                      : IconButton(
+                          onPressed: () async {
+                            innerState(() => cantico.cifraUrl = null);
+                          },
+                          icon: const Icon(Icons.clear, color: Colors.grey),
+                        ),
+                  // Botão de ação carregar arquivo
+                  IconButton(
+                    onPressed: () async {
+                      String? url =
+                          await MeuFirebase.carregarArquivoPdf(pasta: 'cifras');
+                      if (url != null && url.isNotEmpty) {
+                        innerState(() => cantico.cifraUrl = url);
+                      }
+                    },
+                    icon: const Icon(Icons.upload_file),
+                  ),
+                  // Espaço
+                  const Expanded(child: SizedBox()),
+                  // é hino
+                  const Text('É HINO?'),
+                  Checkbox(
+                      tristate: false,
+                      value: cantico.isHino,
+                      activeColor: Theme.of(context).colorScheme.primary,
+                      onChanged: (value) {
+                        innerState((() => cantico.isHino = value ?? false));
+                      }),
+                ],
+              );
+            }),
+            const SizedBox(height: 12),
+            // Nome ou título
+            TextFormField(
+              initialValue: cantico.nome,
+              decoration: const InputDecoration(
+                labelText: 'Título',
+                floatingLabelBehavior: FloatingLabelBehavior.always,
+              ),
+              onChanged: (value) {
+                cantico.nome = value;
+              },
+            ),
+            // Autor(es)
+            TextFormField(
+              initialValue: cantico.autor,
+              decoration: const InputDecoration(
+                labelText: 'Autor(es)',
+                floatingLabelBehavior: FloatingLabelBehavior.always,
+              ),
+              onChanged: (value) {
+                cantico.autor = value;
+              },
+            ),
+            // YouTube Url
+            TextFormField(
+              initialValue: cantico.youTubeUrl,
+              decoration: const InputDecoration(
+                labelText: 'Link do vídeo',
+                floatingLabelBehavior: FloatingLabelBehavior.always,
+              ),
+              onChanged: (value) {
+                cantico.youTubeUrl = value;
+              },
+            ),
+            // Letra
+            TextFormField(
+              initialValue: cantico.letra,
+              minLines: 5,
+              maxLines: 15,
+              decoration: const InputDecoration(
+                labelText: 'Letra',
+                floatingLabelBehavior: FloatingLabelBehavior.always,
+              ),
+              onChanged: (value) {
+                cantico.letra = value;
+              },
+            ),
+          ]),
+      rodape: Row(
+        children: [
+          reference == null
+              ? const SizedBox()
+              : ElevatedButton.icon(
+                  icon: const Icon(Icons.delete),
+                  label: const Text('APAGAR'),
+                  style: ElevatedButton.styleFrom(primary: Colors.red),
+                  onPressed: () async {
+                    // Abre progresso
+                    Mensagem.aguardar(context: context);
+                    await MeuFirebase.apagarCantico(cantico, id: reference.id);
+                    Modular.to.pop(); // Fecha progresso
+                    Modular.to.maybePop(); // Fecha dialog
+                  },
+                ),
+          const Expanded(child: SizedBox()),
+          // Botão criar
+          ElevatedButton.icon(
+            icon: const Icon(Icons.save),
+            label: Text(reference == null ? 'CRIAR' : 'ATUALIZAR'),
+            onPressed: () async {
+              // Salva os dados no firebase
+              if (reference == null) {
+                await MeuFirebase.criarCantico(cantico);
+              } else {
+                await MeuFirebase.atualizarCantico(cantico, reference);
               }
               Modular.to.pop(); // Fecha dialog
             },

@@ -28,11 +28,11 @@ class Notificacoes {
   late Stream<String> _tokenStream;
 
   void setToken(String? token) async {
-    dev.log('FCM TokenToken: $token');
+    dev.log('FCM Token: $token');
     instancia._token = token;
   }
 
-  static Future carregarInstancia(BuildContext context) async {
+  static Future carregarInstancia() async {
     instancia = Notificacoes._();
 
     // Set the background messaging handler early on, as a named top-level function
@@ -93,7 +93,7 @@ class Notificacoes {
     instancia._tokenStream = FirebaseMessaging.instance.onTokenRefresh;
     instancia._tokenStream.listen(instancia.setToken);
 
-    instancia._ouvirMensagens(context);
+    instancia._ouvirMensagens();
   }
 
   /// Tratamento para segundo plano
@@ -120,7 +120,7 @@ class Notificacoes {
   } */
 
   /// Ouvir
-  void _ouvirMensagens(BuildContext context) {
+  void _ouvirMensagens() {
     dev.log('Ouvindo mensagens');
 
     // Verifica se há alguma mensagem ao abrir o app
@@ -158,13 +158,11 @@ class Notificacoes {
           ),
         );
       }
-      showDialog(
-          context: context,
-          builder: ((BuildContext context) {
-            return DialogoMensagem(
-                titulo: notification?.title ?? 'Mensagem',
-                corpo: notification?.body ?? 'Sem conteúdo');
-          }));
+      StatefulBuilder(builder: ((context, setState) {
+        return DialogoMensagem(
+            titulo: notification?.title ?? 'Mensagem',
+            corpo: notification?.body ?? 'Sem conteúdo');
+      }));
     });
 
     /// Recebimento em segundo plano

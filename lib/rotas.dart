@@ -22,7 +22,8 @@ class AppRotas extends Module {
   final List<ModularRoute> routes = [
     ChildRoute(
       HOME,
-      child: (_, args) => HomePage(escala: args.queryParams['escala']),
+      //child: (_, args) => HomePage(escala: args.queryParams['escala']),
+      child: (_, args) => HomePage(),
       guards: [NotAuthGuard()],
     ),
     ChildRoute(
@@ -54,7 +55,7 @@ class AppRotas extends Module {
       transition: TransitionType.leftToRightWithFade,
       guards: [AuthGuard(), HasQueryGuard()],
     ), */
-    WildcardRoute(child: (_, __) => const HomePage()),
+    WildcardRoute(child: (_, __) => HomePage()),
   ];
 }
 

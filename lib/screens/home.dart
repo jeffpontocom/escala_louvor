@@ -7,8 +7,6 @@ import 'package:flutter_modular/flutter_modular.dart';
 
 import '/rotas.dart';
 import '/global.dart';
-import '/preferencias.dart';
-import '/functions/notificacoes.dart';
 import '/functions/metodos_firebase.dart';
 import '/models/integrante.dart';
 import '/models/igreja.dart';
@@ -18,223 +16,231 @@ import '/screens/pages/home_chats.dart';
 import '/screens/pages/home_escalas.dart';
 import '/screens/views/view_igrejas.dart';
 import '/utils/estilos.dart';
-import '/utils/mensagens.dart';
 import '/utils/utils.dart';
 
-class HomePage extends StatefulWidget {
-  final String? escala;
-  const HomePage({Key? key, this.escala}) : super(key: key);
+enum Paginas { escala, agenda, chat, cantico }
 
-  @override
-  State<HomePage> createState() => _HomePageState();
-}
+class HomePage extends StatelessWidget {
+  HomePage({Key? key}) : super(key: key);
 
-class _HomePageState extends State<HomePage> {
-  /* VARIÁVEIS */
-  late int _telaSelecionada;
-
-  String get _titulo {
-    switch (_telaSelecionada) {
-      case 0:
-        return 'Escalas do Louvor';
-      case 1:
-        return 'Agenda da Igreja';
-      case 2:
-        return 'Chat dos eventos';
-      case 3:
-        return 'Cânticos e Hinos';
-      default:
-        return 'Nenhuma tela';
-    }
-  }
-
-  Widget get _corpo {
-    switch (_telaSelecionada) {
-      case 0:
-        return TelaEscalas(id: widget.escala);
-      case 1:
-        return const TelaAgenda();
-      case 2:
-        return const TelaChat();
-      case 3:
-        return const TelaCanticos();
-      default:
-        return const Center(child: Text('Nenhuma tela selecionada'));
-    }
-  }
-
-  final List<BottomNavigationBarItem> _navigationItens = [
-    const BottomNavigationBarItem(
-      icon: Icon(Icons.access_time),
-      label: 'Escalas',
-    ),
-    const BottomNavigationBarItem(
-      icon: Icon(Icons.calendar_month),
-      label: 'Agenda',
-    ),
-    const BottomNavigationBarItem(
-      icon: Icon(Icons.chat),
-      label: 'Chat',
-    ),
-    const BottomNavigationBarItem(
-      icon: Icon(Icons.music_note),
-      label: 'Cânticos',
-    ),
-    const BottomNavigationBarItem(
-      icon: SizedBox(),
-      label: '',
-    )
-  ];
-
-  /* SISTEMA */
-  @override
-  void initState() {
-    super.initState();
-    _telaSelecionada = 0;
-    // Its Important to place this line after runApp() otherwise
-    // FlutterLocalNotificationsPlugin will not be initialize and you will get error
-    Notificacoes.carregarInstancia(context);
-    // Preenche igreja selecionada pela igreja preferencial
-    MeuFirebase.obterSnapshotIgreja(Preferencias.igrejaAtual).then((value) {
-      // Verifica se usuário logado está inscrito na igreja
-      bool inscrito = Global.integranteLogado.value
-              ?.data()
-              ?.igrejas
-              ?.map((e) => e.toString())
-              .contains(value?.reference.toString()) ??
-          false;
-      if (inscrito) {
-        Global.igrejaSelecionada.value = value;
-      }
-    });
-  }
+  // Selecionar de pagina
+  int _paginaSelecionada = 0;
+  String? _viewId;
 
   @override
   Widget build(BuildContext context) {
-    // Escuta alterações no usuário logado
-    return ValueListenableBuilder<DocumentSnapshot<Integrante>?>(
-        valueListenable: Global.integranteLogado,
-        builder: (context, snapshotIntegrante, _) {
-          dev.log('Integrante ID: ${Global.integranteLogado.value?.id}',
-              name: 'log:home');
-          // Aguardando dados do integrante
-          if (snapshotIntegrante?.data() == null) {
-            return const Scaffold(
-              body: Center(child: CircularProgressIndicator()),
-            );
+    // Ouvinte para integrante logado
+    return StreamBuilder<DocumentSnapshot<Integrante>?>(
+        stream: MeuFirebase.escutarIntegranteLogado(),
+        builder: (_, logado) {
+          dev.log('Home: ${logado.connectionState.name}');
+          if (logado.connectionState == ConnectionState.active) {
+            dev.log(
+                'Firebase Integrante: ${logado.data?.data()?.nome ?? 'não logado!'}');
           }
-          // Falha ao obter dados do integrante
-          if (!(snapshotIntegrante?.exists ?? true)) {
-            return const Scaffold(
-              body: Center(child: Text('Falha: integrante não localizado!')),
-            );
+          if (!logado.hasData) {
+            if (logado.connectionState == ConnectionState.waiting) {
+              return _scaffoldCarregando;
+            } else {
+              return _scaffoldSemIntegranteLogado;
+            }
           }
-          // Sucesso. Escutar igreja preferencial
+          Global.integranteLogado = logado.data;
+          // Ouvinte para igreja selecionada
           return ValueListenableBuilder<DocumentSnapshot<Igreja>?>(
               valueListenable: Global.igrejaSelecionada,
-              builder: (context, igrejaContexto, _) {
-                // Nenhuma igreja preferencial. Abrir tela de seleção
-                if (igrejaContexto == null) {
-                  return Scaffold(
-                    body: SafeArea(
-                      child: Column(
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.all(24),
-                            child: Text(
-                              'Selecionar Igreja ou local',
-                              style: Theme.of(context).textTheme.titleLarge,
-                            ),
-                          ),
-                          const Expanded(child: Center(child: ViewIgrejas())),
-                        ],
-                      ),
-                    ),
-                  );
+              child: _scaffoldSemIgrejaSelecionada,
+              builder: (context, igreja, child) {
+                if (igreja == null) {
+                  return child!;
                 }
-                // Com igreja selecionada
-                return Scaffold(
-                  // APP BAR
-                  appBar: AppBar(
-                    // Ícone da aplicação
-                    leading: Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Image.asset('assets/icons/ic_launcher.png'),
-                    ),
-                    // Título da aplicação
-                    title: Text(
-                      _titulo,
-                      style: Estilo.appBarTitulo,
-                    ),
-                    titleSpacing: 0,
-                    // Ações
-                    actions: [
-                      // Tela administrador
-                      (snapshotIntegrante?.data()?.ehRecrutador ?? false)
-                          ? IconButton(
-                              onPressed: () => Modular.to.pushNamed('/admin'),
-                              icon: const Icon(Icons.admin_panel_settings),
-                            )
-                          : const SizedBox(),
-                      // Tela perfil do usuário
-                      IconButton(
-                        onPressed: () => Modular.to.pushNamed(
-                            '${AppRotas.PERFIL}?id=${FirebaseAuth.instance.currentUser?.uid ?? ''}'),
-                        icon: CircleAvatar(
-                          child: const Icon(Icons.person),
-                          foregroundImage: MyNetwork.getImageFromUrl(
-                                  snapshotIntegrante?.data()?.fotoUrl, 12)
-                              ?.image,
-                        ),
-                      ),
-                    ],
-                  ),
-                  // CORPO
-                  body: _corpo,
-                  // NAVIGATION BAR
-                  bottomNavigationBar: BottomNavigationBar(
-                    items: _navigationItens,
-                    currentIndex: _telaSelecionada,
-                    selectedItemColor: Colors.blue,
-                    unselectedItemColor: Colors.grey.withOpacity(0.5),
-                    type: BottomNavigationBarType.shifting,
-                    onTap: (index) {
-                      if (index == 4) return;
-                      setState(() {
-                        _telaSelecionada = index;
-                      });
-                    },
-                  ),
-                  // FLOAT ACTION
-                  floatingActionButton: FloatingActionButton(
-                      onPressed: () {
-                        Mensagem.bottomDialog(
-                          context: context,
-                          titulo: 'Selecionar igreja ou local',
-                          conteudo: const ViewIgrejas(),
-                        );
-                      },
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(
-                            Icons.church,
-                            color: Colors.white,
-                          ),
-                          Text(
-                            Global.igrejaSelecionada.value?.data()?.sigla ?? '',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontWeight: FontWeight.bold,
-                              letterSpacing: 0,
-                            ),
-                          )
-                        ],
-                      )),
-                  floatingActionButtonLocation:
-                      FloatingActionButtonLocation.endDocked,
-                );
+                // Verifica se usuário logado está inscrito na igreja
+                bool inscrito = logado.data
+                        ?.data()
+                        ?.igrejas
+                        ?.map((e) => e.toString())
+                        .contains(igreja.reference.toString()) ??
+                    false;
+                if (!inscrito) {
+                  return child!;
+                }
+                // Scaffold
+                return _scaffold(logado.data!, igreja);
               });
         });
+  }
+
+  Widget _scaffold(
+      DocumentSnapshot<Integrante> logado, DocumentSnapshot<Igreja> igreja) {
+    // Páginas não podem ser #[const] pois precisam ser atualizadas perante
+    // uma atualização nos dados do integrante logado ou da igreja selecionada
+    List<Widget> paginas = [
+      TelaEscalas(id: _viewId),
+      TelaAgenda(),
+      TelaChat(),
+      TelaCanticos(),
+    ];
+
+    List<String> titulos = const [
+      'Escalas do Louvor',
+      'Agenda da Igreja',
+      'Chat dos eventos',
+      'Cânticos e Hinos',
+      'Nenhuma tela',
+    ];
+
+    List<BottomNavigationBarItem> _navigationItens = const [
+      BottomNavigationBarItem(icon: Icon(Icons.access_time), label: 'Escalas'),
+      BottomNavigationBarItem(
+          icon: Icon(Icons.calendar_month), label: 'Agenda'),
+      BottomNavigationBarItem(icon: Icon(Icons.chat), label: 'Chat'),
+      BottomNavigationBarItem(icon: Icon(Icons.music_note), label: 'Cânticos'),
+      BottomNavigationBarItem(icon: SizedBox(), label: '')
+    ];
+
+    return StatefulBuilder(builder: (context, setState) {
+      return Scaffold(
+        appBar: AppBar(
+          // Ícone da aplicação
+          leading: Padding(
+            padding: const EdgeInsets.all(12),
+            child: Image.asset('assets/icons/ic_launcher.png'),
+          ),
+          // Título da aplicação
+          title: Text(
+            titulos[_paginaSelecionada],
+            style: Estilo.appBarTitulo,
+          ),
+          titleSpacing: 0,
+          // Ações
+          actions: [
+            // Tela administrador
+            (logado.data()?.adm ?? false)
+                ? IconButton(
+                    onPressed: () => Modular.to.pushNamed('/admin'),
+                    icon: const Icon(Icons.admin_panel_settings),
+                  )
+                : const SizedBox(),
+            // Tela perfil do usuário
+            IconButton(
+              onPressed: () => Modular.to.pushNamed(
+                  '${AppRotas.PERFIL}?id=${FirebaseAuth.instance.currentUser?.uid ?? ''}'),
+              icon: CircleAvatar(
+                child: const Icon(Icons.person),
+                foregroundImage:
+                    MyNetwork.getImageFromUrl(logado.data()?.fotoUrl, 12)
+                        ?.image,
+              ),
+            ),
+          ],
+        ),
+        // CORPO
+        body: paginas[_paginaSelecionada],
+        // NAVIGATION BAR
+        bottomNavigationBar: BottomNavigationBar(
+          items: _navigationItens,
+          currentIndex: _paginaSelecionada,
+          selectedItemColor: Colors.blue,
+          unselectedItemColor: Colors.grey.withOpacity(0.5),
+          type: BottomNavigationBarType.shifting,
+          onTap: (index) {
+            if (index == 4) return;
+            setState(() {
+              _paginaSelecionada = index;
+            });
+          },
+        ),
+        // FLOAT ACTION
+        floatingActionButton: FloatingActionButton(
+            onPressed: () {
+              showModalBottomSheet(
+                  context: context,
+                  builder: (context) {
+                    return _scaffoldSemIgrejaSelecionada;
+                  });
+            },
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const Icon(
+                  Icons.church,
+                  color: Colors.white,
+                ),
+                Text(
+                  Global.igrejaSelecionada.value?.data()?.sigla ?? '',
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'Offside',
+                    letterSpacing: 0,
+                  ),
+                )
+              ],
+            )),
+        floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
+      );
+    });
+  }
+
+  Widget get _scaffoldCarregando {
+    return Scaffold(
+      body: Padding(
+        padding: const EdgeInsets.all(64),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            // Gif de carregamento
+            Image.asset('assets/icons/ic_launcher.png',
+                width: 128, height: 128),
+            // Texto de carregamento
+            const Text('Carregando dados do usuário...',
+                textAlign: TextAlign.center),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget get _scaffoldSemIntegranteLogado {
+    return Scaffold(
+      body: Padding(
+        padding: const EdgeInsets.all(64),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: const [
+            // Icone de erro
+            Icon(Icons.error, color: Colors.red, size: 128),
+            // Texto de carregamento
+            Text(
+              'Falha ao carregar dados do usuário. Feche o aplicativo e tente novamente,',
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget get _scaffoldSemIgrejaSelecionada {
+    return Scaffold(
+      body: SafeArea(
+        child: Column(
+          children: const [
+            Padding(
+              padding: EdgeInsets.all(24),
+              child: Text(
+                'Selecionar Igreja ou local',
+                style: TextStyle(fontSize: 22),
+              ),
+            ),
+            Expanded(
+              child: Center(child: ViewIgrejas()),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

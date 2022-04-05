@@ -10,8 +10,7 @@ class Global {
   static const String appVersion = '0.1.0';
 
   // Notificadores
-  static ValueNotifier<DocumentSnapshot<Integrante>?> integranteLogado =
-      ValueNotifier(null);
+  static DocumentSnapshot<Integrante>? integranteLogado;
   static ValueNotifier<DocumentSnapshot<Igreja>?> igrejaSelecionada =
       ValueNotifier(null);
 }
