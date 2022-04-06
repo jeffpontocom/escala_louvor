@@ -63,7 +63,8 @@ class ViewIntegrante extends StatelessWidget {
                                 integrante.funcoes
                                     ?.contains(Funcao.values[index]) ??
                                 false),
-                        onPressed: Global.integranteLogado!.data()!.adm &&
+                        onPressed: (Global.integranteLogado?.data()?.adm ??
+                                    false) &&
                                 editMode
                             ? (index) {
                                 innerState(
@@ -92,9 +93,7 @@ class ViewIntegrante extends StatelessWidget {
                       builder: (innerContext, StateSetter innerState) {
                     // preencha data de nascimento
                     nascimento.text = integrante.dataNascimento == null
-                        ? editMode
-                            ? 'Selecionar'
-                            : '-'
+                        ? ''
                         : DateFormat.MMMd('pt_BR')
                             .format(integrante.dataNascimento!.toDate());
                     // interface

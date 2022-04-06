@@ -1,8 +1,10 @@
 // ignore_for_file: constant_identifier_names
 
 import 'package:escala_louvor/screens/tela_notificacoes.dart';
+import 'package:escala_louvor/screens/tela_pdf_view.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_modular/flutter_modular.dart';
+import 'package:http/http.dart';
 
 import 'screens/tela_admin.dart';
 import 'screens/home.dart';
@@ -14,6 +16,7 @@ class AppRotas extends Module {
   static const String LOGIN = '/login';
   static const String PERFIL = '/perfil';
   static const String ADMIN = '/admin';
+  static const String ARQUIVOS = '/arquivos';
 
   @override
   final List<Bind> binds = [];
@@ -43,6 +46,11 @@ class AppRotas extends Module {
       child: (_, __) => const AdminPage(),
       guards: [NotAuthGuard()],
       //transition: TransitionType.downToUp,
+    ),
+    ChildRoute(
+      ARQUIVOS,
+      child: (_, args) => TelaPdfView(arquivos: args.data),
+      transition: TransitionType.downToUp,
     ),
     ChildRoute(
       '/notificacoes',

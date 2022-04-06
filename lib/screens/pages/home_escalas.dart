@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:escala_louvor/functions/metodos_firebase.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
+import 'package:intl/intl.dart';
 
 import '/global.dart';
 import '/models/culto.dart';
@@ -165,30 +166,56 @@ class _TelaEscalasState extends State<TelaEscalas>
   }
 
   Widget get _listaDeCultos {
-    return Scrollbar(
-      isAlwaysShown: true,
-      child: OrientationBuilder(
-        builder: (context, orientation) {
-          return ListView(
-            shrinkWrap: true,
-            children: List.generate(
-              _tabController.length,
-              (index) {
-                return TextButton(
-                  onPressed: () {
-                    // fecha o bottomDialog
-                    Modular.to.pop();
-                    // vai até a pagina selecionada
-                    _tabController.animateTo(
-                      index,
-                      duration: const Duration(milliseconds: 600),
-                    );
-                  },
-                  child: Text(MyInputs.mascaraData
-                      .format(_listaCultos[index].data()!.dataCulto.toDate())),
-                );
-              },
+    String logadoRef = Global.integranteLogado!.reference.toString();
+    return ListView(
+      shrinkWrap: true,
+      children: List.generate(
+        _tabController.length,
+        (index) {
+          Culto culto = _listaCultos[index].data()!;
+          return ListTile(
+            dense: true,
+            visualDensity: VisualDensity.compact,
+            trailing: Text(culto.ocasiao ?? ''),
+            title: Text(
+                DateFormat.MMMMEEEEd('pt_BR').format(culto.dataCulto.toDate())),
+            subtitle:
+                Text(DateFormat.Hm('pt_BR').format(culto.dataCulto.toDate())),
+            leading: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                color: (culto.equipe?.values
+                                .toList()
+                                .map((e) => e.toString())
+                                .contains(logadoRef) ??
+                            false) ||
+                        (culto.dirigente.toString() == logadoRef) ||
+                        (culto.coordenador.toString() == logadoRef)
+                    ? Colors.green
+                    : (culto.disponiveis?.map((e) => e.toString()).contains(
+                                Global.integranteLogado?.reference
+                                    .toString()) ??
+                            false)
+                        ? Colors.blue
+                        : (culto.restritos?.map((e) => e.toString()).contains(
+                                    Global.integranteLogado?.reference
+                                        .toString()) ??
+                                false)
+                            ? Colors.red
+                            : Colors.grey.withOpacity(0.5),
+              ),
+              width: 16,
+              height: 16,
             ),
+            onTap: () {
+              // fecha o bottomDialog
+              Modular.to.pop();
+              // vai até a pagina selecionada
+              _tabController.animateTo(
+                index,
+                duration: const Duration(milliseconds: 600),
+              );
+            },
           );
         },
       ),

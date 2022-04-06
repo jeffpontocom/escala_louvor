@@ -1,10 +1,14 @@
 import 'dart:developer' as dev;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:escala_louvor/screens/pages/home_canticos.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+import '../../models/cantico.dart';
 import '/functions/metodos_firebase.dart';
 import '/functions/notificacoes.dart';
 import '/global.dart';
@@ -26,6 +30,7 @@ class ViewCulto extends StatefulWidget {
 class _ViewCultoState extends State<ViewCulto> {
   /* VARIÁVEIS */
   late Culto mCulto;
+  late DocumentSnapshot<Culto> mSnapshot;
   late Integrante logado;
 
   bool get _podeSerEscalado {
@@ -63,6 +68,7 @@ class _ViewCultoState extends State<ViewCulto> {
           }
           // Conteúdo
           mCulto = snapshot.data!.data()!;
+          mSnapshot = snapshot.data!;
           logado = Global.integranteLogado!.data()!;
           dev.log(
               'Building view: Culto ${DateFormat.MEd('pt_BR').format(mCulto.dataCulto.toDate())}');
@@ -132,10 +138,12 @@ class _ViewCultoState extends State<ViewCulto> {
                         children: [
                           Row(
                             children: [
+                              // Título da seção
                               const Expanded(child: Text('CÂNTICOS')),
+                              // Botão de adição
                               logado.adm || ehODirigente
                                   ? IconButton(
-                                      onPressed: () {},
+                                      onPressed: () => _adicionarCanticos(),
                                       icon: const Icon(Icons.add_to_photos,
                                           color: Colors.grey),
                                     )
@@ -155,14 +163,12 @@ class _ViewCultoState extends State<ViewCulto> {
                                   ),
                                 )
                               : const SizedBox(),
-                          // Lista
-                          Padding(
-                            padding: const EdgeInsets.symmetric(vertical: 12),
-                            child: _listaDeCanticos,
-                          ),
                         ],
                       ),
                     ),
+                    // Lista
+                    _listaDeCanticos,
+                    const SizedBox(height: 12),
                     const Divider(),
                     // Observações
                     const Padding(
@@ -415,8 +421,8 @@ class _ViewCultoState extends State<ViewCulto> {
             : TextButton(
                 child: const Text('Ver documento'),
                 style: TextButton.styleFrom(padding: EdgeInsets.zero),
-                onPressed: () =>
-                    MeuFirebase.abrirArquivoPdf(context, mCulto.liturgiaUrl)),
+                onPressed: () => MeuFirebase.abrirArquivosPdf(
+                    context, [mCulto.liturgiaUrl!])),
         const Expanded(child: SizedBox()),
         // Botão de ação para dirigentes
         logado.adm || ehODirigente || ehOCoordenador || logado.ehLiturgo
@@ -793,33 +799,121 @@ class _ViewCultoState extends State<ViewCulto> {
 
   Widget get _listaDeCanticos {
     List<Widget> _list = [];
+    if (mCulto.canticos == null || mCulto.canticos!.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.all(12),
+        child: Text('Nenhum cântico selecionado'),
+      );
+    }
+    _list = List.generate(mCulto.canticos!.length, (index) {
+      return FutureBuilder<DocumentSnapshot<Cantico>?>(
+          key: Key('Future${mCulto.canticos![index]}'),
+          future: MeuFirebase.obterSnapshotCantico(mCulto.canticos![index].id),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: LinearProgressIndicator());
+            }
+            if (!snapshot.hasData || snapshot.hasError) {
+              return const Text('Falha ao carregar dados do cântico');
+            }
+            return ListTile(
+              visualDensity: VisualDensity.compact,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 4),
+              leading: IconButton(
+                  onPressed: () {
+                    Dialogos.verLetraDoCantico(context, snapshot.data!.data()!);
+                  },
+                  icon: const Icon(Icons.abc)),
+              horizontalTitleGap: 4,
+              title: Text(
+                snapshot.data?.data()?.nome ?? '[Erro]',
+                overflow: TextOverflow.ellipsis,
+              ),
+              subtitle: Text(
+                snapshot.data?.data()?.autor ?? '',
+                overflow: TextOverflow.ellipsis,
+              ),
+              trailing: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  // Cifra
+                  IconButton(
+                      onPressed: snapshot.data?.data()?.cifraUrl == null
+                          ? null
+                          : () {
+                              MeuFirebase.abrirArquivosPdf(
+                                  context, [snapshot.data!.data()!.cifraUrl!]);
+                            },
+                      icon: const Icon(Icons.queue_music)),
+                  // YouTube
+                  IconButton(
+                      onPressed: () async {
+                        if (!await launch(
+                            snapshot.data?.data()?.youTubeUrl ?? '')) {
+                          throw 'Could not launch youTubeUrl';
+                        }
+                      },
+                      icon: const Icon(Icons.ondemand_video)),
+                  // Menu
+                  logado.adm || ehODirigente || ehOCoordenador
+                      ? PopupMenuButton(
+                          onSelected: (value) {
+                            if (value == 'edit') {
+                              Dialogos.editarCantico(
+                                  context, snapshot.data!.data()!,
+                                  reference: snapshot.data!.reference);
+                            }
+                          },
+                          itemBuilder: (_) {
+                            return const [
+                              PopupMenuItem(
+                                child: Text('Editar'),
+                                value: 'edit',
+                              ),
+                              PopupMenuItem(
+                                child: Text('Adicionar ao culto...'),
+                                value: 'add',
+                              ),
+                            ];
+                          },
+                        )
+                      : const SizedBox(),
+                  const SizedBox(width: kIsWeb ? 24 : 0),
+                ],
+              ),
+            );
+          });
+    });
     return ReorderableListView(
       shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
       children: _list,
+      buildDefaultDragHandles: ehODirigente || logado.adm,
       onReorder: (int old, int current) async {
         dev.log('${old.toString()} | ${current.toString()}');
         // dragging from top to bottom
+        Widget startItem = _list[old];
+        var startCantico = mCulto.canticos![old];
         if (old < current) {
-          Widget startItem = _list[old];
           // 0 para 4 (i = 0; i < 4-1 ; i++)
           for (int i = old; i < current - 1; i++) {
             _list[i] = _list[i + 1];
-            //references[i + 1].update({'ordem': i});
+            mCulto.canticos![i] = mCulto.canticos![i + 1];
           }
           _list[current - 1] = startItem;
-          //references[old].update({'ordem': current - 1});
+          mCulto.canticos![current - 1] = startCantico;
         }
         // dragging from bottom to top
         else if (old > current) {
-          Widget startItem = _list[old];
           // 4 para 0 (i = 4; i > 0 ; i--)
           for (int i = old; i > current; i--) {
             _list[i] = _list[i - 1];
-            // references[i - 1].update({'ordem': i});
+            mCulto.canticos![i] = mCulto.canticos![i - 1];
           }
           _list[current] = startItem;
-          //references[old].update({'ordem': current});
+          mCulto.canticos![current] = startCantico;
         }
+        widget.culto.update({'canticos': mCulto.canticos});
         //innerState(() {});
       },
     );
@@ -1099,5 +1193,14 @@ class _ViewCultoState extends State<ViewCulto> {
                 });
               });
         });
+  }
+
+  void _adicionarCanticos() {
+    Mensagem.bottomDialog(
+      context: context,
+      titulo: 'Cânticos do culto',
+      icon: Icons.music_note,
+      conteudo: TelaCanticos(culto: mSnapshot),
+    );
   }
 }

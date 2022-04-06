@@ -191,8 +191,8 @@ class HomePage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             // Gif de carregamento
-            Image.asset('assets/icons/ic_launcher.png',
-                width: 128, height: 128),
+            Image.asset('assets/icons/ic_launcher.png', width: 64, height: 64),
+            const SizedBox(height: 24),
             // Texto de carregamento
             const Text('Carregando dados do usuário...',
                 textAlign: TextAlign.center),
@@ -211,10 +211,11 @@ class HomePage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: const [
             // Icone de erro
-            Icon(Icons.error, color: Colors.red, size: 128),
+            Icon(Icons.error, color: Colors.red, size: 64),
+            SizedBox(height: 24),
             // Texto de carregamento
             Text(
-              'Falha ao carregar dados do usuário. Feche o aplicativo e tente novamente,',
+              'Falha ao carregar dados do usuário.\nFeche o aplicativo e tente novamente.',
               textAlign: TextAlign.center,
             ),
           ],
@@ -231,7 +232,7 @@ class HomePage extends StatelessWidget {
             Padding(
               padding: EdgeInsets.all(24),
               child: Text(
-                'Selecionar Igreja ou local',
+                'Selecionar igreja ou local',
                 style: TextStyle(fontSize: 22),
               ),
             ),

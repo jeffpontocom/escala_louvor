@@ -209,8 +209,8 @@ class Dialogos {
                       : TextButton(
                           child: const Text('Ver arquivo'),
                           style: TextButton.styleFrom(padding: EdgeInsets.zero),
-                          onPressed: () => MeuFirebase.abrirArquivoPdf(
-                              context, cantico.cifraUrl)),
+                          onPressed: () => MeuFirebase.abrirArquivosPdf(
+                              context, [cantico.cifraUrl!])),
                   const SizedBox(width: 24),
                   // Botão de ação limpar
                   cantico.cifraUrl == null
@@ -326,6 +326,61 @@ class Dialogos {
             },
           ),
         ],
+      ),
+    );
+  }
+
+  static void verLetraDoCantico(BuildContext context, Cantico cantico) {
+    ValueNotifier<double> fontSize = ValueNotifier(20);
+    var minFontSize = 15.0;
+    var maxFontSize = 50.0;
+    late double _textSizeBefore;
+    late double _textSizeAfter;
+    return Mensagem.bottomDialog(
+      context: context,
+      titulo: cantico.nome,
+      conteudo: GestureDetector(
+        // Captura de gestos para alterar tamanho da fonte
+        onScaleStart: (details) {
+          _textSizeAfter = fontSize.value;
+          _textSizeBefore = fontSize.value;
+        },
+        onScaleUpdate: (details) {
+          _textSizeAfter = _textSizeBefore * details.verticalScale;
+          if (_textSizeAfter > minFontSize && _textSizeAfter < maxFontSize) {
+            fontSize.value = _textSizeAfter;
+          }
+        },
+        onScaleEnd: (details) {
+          if (_textSizeAfter < minFontSize) {
+            _textSizeAfter = minFontSize;
+          }
+          if (_textSizeAfter > maxFontSize) {
+            _textSizeAfter = maxFontSize;
+          }
+          fontSize.value = _textSizeAfter;
+        },
+        // Pagina principal
+        child: ValueListenableBuilder<double>(
+            valueListenable: fontSize,
+            builder: (context, size, _) {
+              return ListView(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 48, vertical: 12),
+                shrinkWrap: true,
+                children: [
+                  // Autor
+                  Text(cantico.autor ?? ''),
+                  // Letra
+                  const SizedBox(height: 24),
+                  Text(
+                    cantico.letra ?? '',
+                    style: TextStyle(fontSize: size),
+                  ),
+                  const SizedBox(height: 48),
+                ],
+              );
+            }),
       ),
     );
   }

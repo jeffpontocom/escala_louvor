@@ -16,6 +16,14 @@ import '/utils/utils.dart';
 class TelaAgenda extends StatelessWidget {
   const TelaAgenda({Key? key}) : super(key: key);
 
+  Integrante get logado {
+    return Global.integranteLogado!.data()!;
+  }
+
+  bool get _podeSerEscalado {
+    return logado.ehDirigente || logado.ehCoordenador || logado.ehComponente;
+  }
+
   @override
   Widget build(BuildContext context) {
     final _agora = DateTime.now();
@@ -176,7 +184,7 @@ class TelaAgenda extends StatelessWidget {
               // Espaço em branco
               const Expanded(child: SizedBox()),
               // Botão criar novo registro de culto
-              (Global.integranteLogado?.data()?.ehRecrutador ?? false)
+              (logado.ehRecrutador)
                   ? ActionChip(
                       avatar: const Icon(Icons.add),
                       label: const Text('Novo'),
@@ -335,59 +343,62 @@ class TelaAgenda extends StatelessWidget {
                                   title: Text(culto.ocasiao ?? 'Culto'),
                                   subtitle:
                                       Text('$dataFormatada às $horaFormatada'),
-                                  trailing: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      OutlinedButton.icon(
-                                        label: Text(
-                                          escalado
-                                              ? 'Escalado'
-                                              : disponivel
-                                                  ? 'Disponível'
-                                                  : restrito
-                                                      ? 'Restrito'
-                                                      : 'Indefinido',
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                        icon: const Icon(Icons.emoji_people),
-                                        style: OutlinedButton.styleFrom(
-                                          elevation: 0,
-                                          primary: escalado ||
-                                                  disponivel ||
-                                                  restrito
-                                              ? Colors.white
-                                              : Colors.grey.withOpacity(0.5),
-                                          backgroundColor: escalado
-                                              ? Colors.green
-                                              : disponivel
-                                                  ? Colors.blue
-                                                  : restrito
-                                                      ? Colors.red
-                                                      : Colors.transparent,
-                                          maximumSize: const Size(96, 36),
-                                          minimumSize: const Size(96, 36),
-                                        ),
-                                        onPressed: escalado || restrito
-                                            ? () {}
-                                            : () async {
-                                                await MeuFirebase
-                                                    .definirDisponibilidadeParaOCulto(
-                                                        cultos[index]
-                                                            .reference);
-                                                innerState(() {});
-                                              },
-                                        onLongPress: escalado || disponivel
-                                            ? () {}
-                                            : () async {
-                                                await MeuFirebase
-                                                    .definirRestricaoParaOCulto(
-                                                        cultos[index]
-                                                            .reference);
-                                                innerState(() {});
-                                              },
-                                      ),
-                                    ],
-                                  ),
+                                  trailing:
+                                      // Botão disponibilidade
+                                      _podeSerEscalado
+                                          ? OutlinedButton.icon(
+                                              label: Text(
+                                                escalado
+                                                    ? 'Escalado'
+                                                    : disponivel
+                                                        ? 'Disponível'
+                                                        : restrito
+                                                            ? 'Restrito'
+                                                            : 'Indefinido',
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                              icon: const Icon(
+                                                  Icons.emoji_people),
+                                              style: OutlinedButton.styleFrom(
+                                                elevation: 0,
+                                                primary: escalado ||
+                                                        disponivel ||
+                                                        restrito
+                                                    ? Colors.white
+                                                    : Colors.grey
+                                                        .withOpacity(0.5),
+                                                backgroundColor: escalado
+                                                    ? Colors.green
+                                                    : disponivel
+                                                        ? Colors.blue
+                                                        : restrito
+                                                            ? Colors.red
+                                                            : Colors
+                                                                .transparent,
+                                                maximumSize: const Size(96, 36),
+                                                minimumSize: const Size(96, 36),
+                                              ),
+                                              onPressed: escalado || restrito
+                                                  ? () {}
+                                                  : () async {
+                                                      await MeuFirebase
+                                                          .definirDisponibilidadeParaOCulto(
+                                                              cultos[index]
+                                                                  .reference);
+                                                      innerState(() {});
+                                                    },
+                                              onLongPress:
+                                                  escalado || disponivel
+                                                      ? () {}
+                                                      : () async {
+                                                          await MeuFirebase
+                                                              .definirRestricaoParaOCulto(
+                                                                  cultos[index]
+                                                                      .reference);
+                                                          innerState(() {});
+                                                        },
+                                            )
+                                          : const SizedBox(),
                                   onTap: () {
                                     Modular.to.navigate(
                                         '${AppRotas.HOME}?escala=${cultos[index].id}');

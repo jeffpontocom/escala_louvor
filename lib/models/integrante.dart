@@ -74,20 +74,20 @@ class Integrante {
     this.ativo = true,
   });
 
-  Integrante.fromJson(Map<String, Object?> json)
+  Integrante.fromJson(Map<String, Object?>? json)
       : this(
-          nome: (json['nome'] ?? '') as String,
-          email: (json['email'] ?? '') as String,
-          fotoUrl: (json['fotoUrl']) as String?,
-          telefone: (json['telefone']) as String?,
-          dataNascimento: (json['dataNascimento']) as Timestamp?,
-          funcoes: _getFuncoes(json['funcoes']),
-          igrejas: _getIgrejas(json['igrejas']),
-          grupos: _getGrupos(json['grupos']),
-          instrumentos: _getInstrumentos(json['instrumentos']),
-          obs: (json['obs']) as String?,
-          adm: (json['adm'] ?? false) as bool,
-          ativo: (json['ativo'] ?? true) as bool,
+          nome: (json?['nome'] ?? '') as String,
+          email: (json?['email'] ?? '') as String,
+          fotoUrl: (json?['fotoUrl']) as String?,
+          telefone: (json?['telefone']) as String?,
+          dataNascimento: (json?['dataNascimento']) as Timestamp?,
+          funcoes: _getFuncoes(json?['funcoes']),
+          igrejas: _getIgrejas(json?['igrejas']),
+          grupos: _getGrupos(json?['grupos']),
+          instrumentos: _getInstrumentos(json?['instrumentos']),
+          obs: (json?['obs']) as String?,
+          adm: (json?['adm'] ?? false) as bool,
+          ativo: (json?['ativo'] ?? true) as bool,
         );
 
   Map<String, Object?> toJson() {
@@ -177,22 +177,22 @@ class Integrante {
 
   /* BOOLEANS  */
   bool get ehRecrutador {
-    return adm || (funcoes?.contains(Funcao.recrutador) ?? false);
+    return (funcoes?.contains(Funcao.recrutador) ?? false);
   }
 
   bool get ehDirigente {
-    return adm || (funcoes?.contains(Funcao.dirigente) ?? false);
+    return (funcoes?.contains(Funcao.dirigente) ?? false);
   }
 
   bool get ehCoordenador {
-    return adm || (funcoes?.contains(Funcao.coordenador) ?? false);
+    return (funcoes?.contains(Funcao.coordenador) ?? false);
   }
 
   bool get ehLiturgo {
-    return adm || (funcoes?.contains(Funcao.liturgo) ?? false);
+    return (funcoes?.contains(Funcao.liturgo) ?? false);
   }
 
   bool get ehComponente {
-    return adm || (funcoes?.contains(Funcao.componente) ?? false);
+    return (funcoes?.contains(Funcao.componente) ?? false);
   }
 }

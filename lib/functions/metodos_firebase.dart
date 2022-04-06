@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:escala_louvor/models/cantico.dart';
+import 'package:escala_louvor/rotas.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -11,7 +12,9 @@ import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_modular/flutter_modular.dart';
 import 'package:http/http.dart' as http;
+import 'package:http/http.dart';
 import 'package:printing/printing.dart';
 
 import '/global.dart';
@@ -26,13 +29,12 @@ class MeuFirebase {
 
   static Stream<DocumentSnapshot<Integrante>?> escutarIntegranteLogado() {
     var userId = FirebaseAuth.instance.currentUser?.uid;
-    //
     return FirebaseFirestore.instance
         .collection(Integrante.collection)
         .doc(userId)
         .withConverter<Integrante>(
             fromFirestore: (snapshot, _) =>
-                Integrante.fromJson(snapshot.data()!),
+                Integrante.fromJson(snapshot.data()),
             toFirestore: (pacote, _) => pacote.toJson())
         .snapshots();
   }
@@ -244,6 +246,22 @@ class MeuFirebase {
         .doc(id)
         .withConverter<Culto>(
           fromFirestore: (snapshot, _) => Culto.fromJson(snapshot.data()!),
+          toFirestore: (model, _) => model.toJson(),
+        )
+        .get();
+  }
+
+  /// Cantico especifico
+  static Future<DocumentSnapshot<Cantico>?> obterSnapshotCantico(
+      String? id) async {
+    if (id == null) {
+      return null;
+    }
+    return await FirebaseFirestore.instance
+        .collection(Cantico.collection)
+        .doc(id)
+        .withConverter<Cantico>(
+          fromFirestore: (snapshot, _) => Cantico.fromJson(snapshot.data()!),
           toFirestore: (model, _) => model.toJson(),
         )
         .get();
@@ -579,24 +597,19 @@ class MeuFirebase {
   }
 
   /// Abrir arquivo PDF
-  static void abrirArquivoPdf(BuildContext context, String? url) async {
-    if (url == null || url.isEmpty) return;
-    dev.log('TODO: abrir PDF');
+  static void abrirArquivosPdf(BuildContext context, List<String>? urls) async {
+    if (urls == null || urls.isEmpty) return;
     try {
-      var data = await http.get(Uri.parse(url));
-      Mensagem.showPdf(
-        context: context,
-        titulo: 'Arquivo',
-        conteudo: PdfPreview(
-          build: (format) {
-            return data.bodyBytes;
-          },
-          canDebug: false,
-          canChangeOrientation: false,
-          canChangePageFormat: false,
-        ),
-      );
+      Mensagem.aguardar(context: context);
+      List<Response> arquivos = [];
+      for (var url in urls) {
+        var data = await http.get(Uri.parse(url));
+        arquivos.add(data);
+      }
+      Modular.to.pop(); // fecha progresso
+      Modular.to.pushNamed(AppRotas.ARQUIVOS, arguments: arquivos);
     } catch (e) {
+      Modular.to.maybePop(); // fecha progresso
       throw Exception("Error opening url file");
     }
   }

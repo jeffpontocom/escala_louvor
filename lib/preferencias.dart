@@ -9,7 +9,7 @@ class Preferencias {
   /// Recupera os dados salvos na seção anterior
   static Future<void> carregarInstancia() async {
     preferences = await SharedPreferences.getInstance();
-    _carregarIgrejaPreSelecionada();
+    await _carregarIgrejaPreSelecionada();
   }
 
   // PREFERENCIAS PRINCIPAIS
@@ -24,9 +24,8 @@ class Preferencias {
     }
   }
 
-  static _carregarIgrejaPreSelecionada() {
-    MeuFirebase.obterSnapshotIgreja(igreja).then((value) {
-      Global.igrejaSelecionada.value = value;
-    });
+  static _carregarIgrejaPreSelecionada() async {
+    var value = await MeuFirebase.obterSnapshotIgreja(igreja);
+    Global.igrejaSelecionada.value = value;
   }
 }

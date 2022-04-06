@@ -3,14 +3,18 @@ import 'package:escala_louvor/functions/metodos_firebase.dart';
 import 'package:escala_louvor/global.dart';
 import 'package:escala_louvor/models/integrante.dart';
 import 'package:escala_louvor/screens/views/dialogos.dart';
+import 'package:escala_louvor/utils/mensagens.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_modular/flutter_modular.dart';
 
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../models/cantico.dart';
+import '../../models/culto.dart';
 
 class TelaCanticos extends StatefulWidget {
-  const TelaCanticos({Key? key}) : super(key: key);
+  final DocumentSnapshot<Culto>? culto;
+  const TelaCanticos({Key? key, this.culto}) : super(key: key);
 
   @override
   State<TelaCanticos> createState() => _TelaCanticosState();
@@ -19,6 +23,13 @@ class TelaCanticos extends StatefulWidget {
 class _TelaCanticosState extends State<TelaCanticos> {
   Integrante? logado = Global.integranteLogado?.data();
   bool? somenteHinos;
+  List<DocumentReference<Cantico>>? _selecionados;
+
+  @override
+  void initState() {
+    _selecionados = widget.culto?.data()?.canticos;
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -33,7 +44,7 @@ class _TelaCanticosState extends State<TelaCanticos> {
           child: Row(
             children: [
               // Filtros
-              const Text('Apresentar:'),
+              const Text('Apresentando:'),
               const SizedBox(width: 8),
               RawChip(
                 label: Text(somenteHinos == null
@@ -59,7 +70,7 @@ class _TelaCanticosState extends State<TelaCanticos> {
               ),
               const Expanded(child: SizedBox()),
               // Botão adicionar
-              (logado?.ehDirigente ?? false) || (logado?.ehCoordenador ?? false)
+              logado!.adm || logado!.ehDirigente || logado!.ehCoordenador
                   ? ActionChip(
                       avatar: const Icon(Icons.add),
                       label: const Text('Novo'),
@@ -171,22 +182,48 @@ class _TelaCanticosState extends State<TelaCanticos> {
                                 const EdgeInsets.symmetric(horizontal: 4),
                             leading: IconButton(
                                 onPressed: () {
-                                  //ver letra
+                                  Dialogos.verLetraDoCantico(
+                                      context, listaFiltrada[index].data());
                                 },
                                 icon: const Icon(Icons.abc)),
                             horizontalTitleGap: 4,
-                            title: Text(listaFiltrada[index].data().nome),
-                            subtitle:
-                                Text(listaFiltrada[index].data().autor ?? ''),
+                            title: Text(
+                              listaFiltrada[index].data().nome,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            subtitle: Text(
+                              listaFiltrada[index].data().autor ?? '',
+                              overflow: TextOverflow.ellipsis,
+                            ),
                             trailing: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
+                                // Selecionado?
+                                (_selecionados
+                                            ?.map((e) => e.toString())
+                                            .contains(listaFiltrada[index]
+                                                .reference
+                                                .toString()) ??
+                                        false)
+                                    ? const Icon(
+                                        Icons.check_circle,
+                                        color: Colors.green,
+                                      )
+                                    : const SizedBox(),
                                 // Cifra
                                 IconButton(
-                                    onPressed: () {
-                                      MeuFirebase.abrirArquivoPdf(context,
-                                          listaFiltrada[index].data().cifraUrl);
-                                    },
+                                    onPressed:
+                                        listaFiltrada[index].data().cifraUrl ==
+                                                null
+                                            ? null
+                                            : () {
+                                                MeuFirebase.abrirArquivosPdf(
+                                                    context, [
+                                                  listaFiltrada[index]
+                                                      .data()
+                                                      .cifraUrl!
+                                                ]);
+                                              },
                                     icon: const Icon(Icons.queue_music)),
                                 // YouTube
                                 IconButton(
@@ -200,37 +237,102 @@ class _TelaCanticosState extends State<TelaCanticos> {
                                     },
                                     icon: const Icon(Icons.ondemand_video)),
                                 // Menu
-                                PopupMenuButton(
-                                  onSelected: (value) {
-                                    if (value == 'edit') {
-                                      Dialogos.editarCantico(
-                                          context, listaFiltrada[index].data(),
-                                          reference:
-                                              listaFiltrada[index].reference);
-                                    }
-                                  },
-                                  itemBuilder: (_) {
-                                    return const [
-                                      PopupMenuItem(
-                                        child: Text('Editar'),
-                                        value: 'edit',
-                                      ),
-                                      PopupMenuItem(
-                                        child: Text('Adicionar ao culto...'),
-                                        value: 'add',
-                                      ),
-                                    ];
-                                  },
-                                ),
+                                logado!.adm ||
+                                        logado!.ehDirigente ||
+                                        logado!.ehCoordenador
+                                    ? PopupMenuButton(
+                                        onSelected: (value) {
+                                          if (value == 'edit') {
+                                            Dialogos.editarCantico(context,
+                                                listaFiltrada[index].data(),
+                                                reference: listaFiltrada[index]
+                                                    .reference);
+                                          }
+                                        },
+                                        itemBuilder: (_) {
+                                          return const [
+                                            PopupMenuItem(
+                                              child: Text('Editar'),
+                                              value: 'edit',
+                                            ),
+                                            PopupMenuItem(
+                                              child:
+                                                  Text('Adicionar ao culto...'),
+                                              value: 'add',
+                                            ),
+                                          ];
+                                        },
+                                      )
+                                    : const SizedBox(),
                               ],
                             ),
+                            onTap: widget.culto == null
+                                ? null
+                                : () {
+                                    setState(() {
+                                      _selecionados ??= [];
+                                      if (_selecionados!
+                                          .map((e) => e.toString())
+                                          .contains(listaFiltrada[index]
+                                              .reference
+                                              .toString())) {
+                                        _selecionados!.removeWhere((element) =>
+                                            element.toString() ==
+                                            listaFiltrada[index]
+                                                .reference
+                                                .toString());
+                                      } else {
+                                        _selecionados!.add(
+                                            listaFiltrada[index].reference);
+                                      }
+                                    });
+                                  },
                           );
                         }),
                       );
                     });
               }),
         ),
+        widget.culto != null
+            ? Container(
+                color: Colors.amber.withOpacity(0.2),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                child: Row(
+                  children: [
+                    // Seleção
+                    Expanded(child: _selecionadosToString),
+                    // Botão adicionar ao evento
+                    ElevatedButton.icon(
+                        onPressed: () async {
+                          Mensagem.aguardar(context: context);
+                          await widget.culto?.reference
+                              .update({'canticos': _selecionados});
+                          Modular.to.pop(); // fechar progresso
+                          Modular.to.pop(); // fecha dialog
+                        },
+                        icon: const Icon(Icons.send),
+                        label: const Text('Enviar'))
+                  ],
+                ))
+            : const SizedBox(),
       ],
+    );
+  }
+
+  Widget get _selecionadosToString {
+    if (_selecionados == null || _selecionados!.isEmpty) {
+      return const Text('Nenhum cântico selecionado.');
+    }
+    return Wrap(
+      children: List.generate(_selecionados!.length, (index) {
+        return FutureBuilder<DocumentSnapshot<Cantico>?>(
+            future: MeuFirebase.obterSnapshotCantico(_selecionados![index].id),
+            builder: (context, snapshot) {
+              return Text(
+                  '${index + 1} - ${snapshot.data?.data()?.nome ?? '[erro]'}${index < _selecionados!.length - 1 ? "; " : ""}');
+            });
+      }),
     );
   }
 }
