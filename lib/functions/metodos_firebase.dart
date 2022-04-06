@@ -15,7 +15,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:http/http.dart' as http;
 import 'package:http/http.dart';
-import 'package:printing/printing.dart';
 
 import '/global.dart';
 import '/models/culto.dart';

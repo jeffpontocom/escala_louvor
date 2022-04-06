@@ -8,7 +8,6 @@ import '/global.dart';
 import '/models/culto.dart';
 import '/screens/views/view_culto.dart';
 import '/utils/mensagens.dart';
-import '/utils/utils.dart';
 
 class TelaEscalas extends StatefulWidget {
   final String? id;

@@ -4,7 +4,6 @@ import 'package:escala_louvor/screens/tela_notificacoes.dart';
 import 'package:escala_louvor/screens/tela_pdf_view.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_modular/flutter_modular.dart';
-import 'package:http/http.dart';
 
 import 'screens/tela_admin.dart';
 import 'screens/home.dart';
