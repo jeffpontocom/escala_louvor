@@ -166,7 +166,6 @@ class _TelaEscalasState extends State<TelaEscalas>
   }
 
   Widget get _listaDeCultos {
-    String logadoRef = Global.integranteLogado!.reference.toString();
     return ListView(
       shrinkWrap: true,
       children: List.generate(
@@ -184,13 +183,7 @@ class _TelaEscalasState extends State<TelaEscalas>
             leading: Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(16),
-                color: (culto.equipe?.values
-                                .toList()
-                                .map((e) => e.toString())
-                                .contains(logadoRef) ??
-                            false) ||
-                        (culto.dirigente.toString() == logadoRef) ||
-                        (culto.coordenador.toString() == logadoRef)
+                color: culto.usuarioEscalado(Global.integranteLogado?.reference)
                     ? Colors.green
                     : (culto.disponiveis?.map((e) => e.toString()).contains(
                                 Global.integranteLogado?.reference

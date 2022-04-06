@@ -8,20 +8,27 @@ class TelaPdfView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Scaffold(
-        body: DefaultTabController(
-          length: arquivos.length,
-          child: TabBarView(
+    return DefaultTabController(
+      length: arquivos.length,
+      child: SafeArea(
+        child: Scaffold(
+          body: TabBarView(
             children: List.generate(arquivos.length, (index) {
               return PdfPreview(
                 build: (format) {
                   return arquivos[index].bodyBytes;
                 },
-                previewPageMargin: EdgeInsets.zero,
+                previewPageMargin: const EdgeInsets.all(8),
                 canDebug: false,
                 canChangeOrientation: false,
                 canChangePageFormat: false,
+                /* actions: [
+                  PdfPreviewAction(
+                      icon: const Icon(Icons.fast_rewind),
+                      onPressed: (_, __, ___) =>
+                          DefaultTabController.of(context)
+                              ?.animateTo(index - 1))
+                ], */
               );
             }),
           ),

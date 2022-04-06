@@ -1,20 +1,20 @@
 import 'dart:developer' as dev;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:escala_louvor/screens/pages/home_canticos.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../models/cantico.dart';
 import '/functions/metodos_firebase.dart';
 import '/functions/notificacoes.dart';
 import '/global.dart';
+import '/models/cantico.dart';
 import '/models/culto.dart';
 import '/models/instrumento.dart';
 import '/models/integrante.dart';
+import '/screens/pages/home_canticos.dart';
 import '/screens/views/dialogos.dart';
 import '/utils/mensagens.dart';
 import '/utils/utils.dart';
@@ -140,6 +140,29 @@ class _ViewCultoState extends State<ViewCulto> {
                             children: [
                               // Título da seção
                               const Expanded(child: Text('CÂNTICOS')),
+                              // Botão todas as cifras
+                              IconButton(
+                                onPressed: mCulto.canticos == null ||
+                                        mCulto.canticos!.isEmpty
+                                    ? null
+                                    : () async {
+                                        Mensagem.aguardar(context: context);
+                                        List<String> canticosUrls = [];
+                                        for (var cantico in mCulto.canticos!) {
+                                          var snap = await MeuFirebase
+                                              .obterSnapshotCantico(cantico.id);
+                                          if (snap?.data()?.cifraUrl != null) {
+                                            canticosUrls
+                                                .add(snap!.data()!.cifraUrl!);
+                                          }
+                                        }
+                                        Modular.to.pop();
+                                        MeuFirebase.abrirArquivosPdf(
+                                            context, canticosUrls);
+                                      },
+                                icon: const Icon(Icons.picture_as_pdf),
+                                tooltip: 'Mostrar todas as cifras',
+                              ),
                               // Botão de adição
                               logado.adm || ehODirigente
                                   ? IconButton(
@@ -186,7 +209,7 @@ class _ViewCultoState extends State<ViewCulto> {
                           const Text('AÇÕES'),
                           const SizedBox(height: 8),
                           TextButton.icon(
-                            onPressed: null,
+                            onPressed: () => _verificarDisponibilidades(),
                             label: const Text(
                                 'Verificar disponibilidades da equipe'),
                             icon: const Icon(Icons.groups),
@@ -384,7 +407,7 @@ class _ViewCultoState extends State<ViewCulto> {
 
   /// Dialog Data e Hora do Ensaio
   void _definirHoraDoEnsaio() {
-    var dataPrevia = mCulto.dataEnsaio?.toDate() ?? DateTime.now();
+    var dataPrevia = mCulto.dataEnsaio?.toDate() ?? mCulto.dataCulto.toDate();
     showDatePicker(
             context: context,
             initialDate: dataPrevia,
@@ -541,7 +564,7 @@ class _ViewCultoState extends State<ViewCulto> {
               // Título
               Text(funcaoGetString(funcao).toUpperCase()),
               // Botão de edição
-              logado.ehRecrutador
+              logado.adm || logado.ehRecrutador
                   ? IconButton(
                       onPressed: funcaoEditar,
                       icon: const Icon(
@@ -597,7 +620,7 @@ class _ViewCultoState extends State<ViewCulto> {
               // Título
               Text(titulo.toUpperCase()),
               // Botão de edição
-              logado.ehRecrutador
+              logado.adm || logado.ehRecrutador
                   ? IconButton(
                       onPressed: funcaoEditar,
                       icon: const Icon(
@@ -826,7 +849,7 @@ class _ViewCultoState extends State<ViewCulto> {
                   icon: const Icon(Icons.abc)),
               horizontalTitleGap: 4,
               title: Text(
-                snapshot.data?.data()?.nome ?? '[Erro]',
+                snapshot.data?.data()?.nome ?? '...',
                 overflow: TextOverflow.ellipsis,
               ),
               subtitle: Text(
@@ -942,7 +965,9 @@ class _ViewCultoState extends State<ViewCulto> {
           builder: (_, snapInstr) {
             // Aguardando
             if (!snapInstr.hasData) {
-              return const Center(child: CircularProgressIndicator());
+              return const SizedBox(
+                  height: 128,
+                  child: Center(child: CircularProgressIndicator()));
             }
             // Colhendo instrumentos
             var instrumentos = snapInstr.data?.docs;
@@ -954,7 +979,9 @@ class _ViewCultoState extends State<ViewCulto> {
                   // Aguardando
                   if (snapIntegrantes.connectionState ==
                       ConnectionState.waiting) {
-                    return const Center(child: CircularProgressIndicator());
+                    return const SizedBox(
+                        height: 128,
+                        child: Center(child: CircularProgressIndicator()));
                   }
                   if (snapIntegrantes.hasError) {
                     return const Padding(
@@ -1202,5 +1229,100 @@ class _ViewCultoState extends State<ViewCulto> {
       icon: Icons.music_note,
       conteudo: TelaCanticos(culto: mSnapshot),
     );
+  }
+
+  void _verificarDisponibilidades() {
+    Mensagem.bottomDialog(
+        context: context,
+        titulo: 'Disponibilidades dos integrantes',
+        conteudo: FutureBuilder<QuerySnapshot<Integrante>>(
+            future: MeuFirebase.obterListaIntegrantes(ativo: true),
+            builder: (context, snapshot) {
+              if (!snapshot.hasData) {
+                return const CircularProgressIndicator();
+              }
+              List<String> disponiveis = [];
+              for (var integrante in snapshot.data!.docs) {
+                if (integrante.data().ehDirigente ||
+                    integrante.data().ehCoordenador ||
+                    integrante.data().ehComponente) {
+                  if (mCulto.disponiveis
+                          ?.map((e) => e.toString())
+                          .contains(integrante.reference.toString()) ??
+                      false) {
+                    disponiveis.add(integrante.data().nome);
+                  }
+                }
+              }
+
+              List<String> restritos = [];
+              for (var integrante in snapshot.data!.docs) {
+                if (integrante.data().ehDirigente ||
+                    integrante.data().ehCoordenador ||
+                    integrante.data().ehComponente) {
+                  if (mCulto.restritos
+                          ?.map((e) => e.toString())
+                          .contains(integrante.reference.toString()) ??
+                      false) {
+                    disponiveis.add(integrante.data().nome);
+                  }
+                }
+              }
+
+              List indecisos = [];
+              for (var integrante in snapshot.data!.docs) {
+                if (integrante.data().ehDirigente ||
+                    integrante.data().ehCoordenador ||
+                    integrante.data().ehComponente) {
+                  indecisos.add(integrante.data().nome);
+                }
+              }
+              indecisos.removeWhere((element) => disponiveis.contains(element));
+              indecisos.removeWhere((element) => restritos.contains(element));
+
+              return ListView(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                shrinkWrap: true,
+                children: [
+                  Text(
+                    'Disponíveis',
+                    style: Theme.of(context).textTheme.subtitle1,
+                  ),
+                  Wrap(
+                    spacing: 8,
+                    children: List.generate(disponiveis.length,
+                        (index) => Text('${index + 1}. ${disponiveis[index]}')),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Restritos',
+                    style: Theme.of(context).textTheme.subtitle1,
+                  ),
+                  Wrap(
+                    spacing: 8,
+                    children: List.generate(restritos.length,
+                        (index) => Text('${index + 1}. ${restritos[index]}')),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Indecisos',
+                    style: Theme.of(context).textTheme.subtitle1,
+                  ),
+                  Wrap(
+                    spacing: 8,
+                    children: List.generate(indecisos.length,
+                        (index) => Text('${index + 1}. ${indecisos[index]}')),
+                  ),
+                  const SizedBox(height: 12),
+                  ElevatedButton.icon(
+                    onPressed: null,
+                    icon: const Icon(Icons.notification_important),
+                    label: const Text('Notificar indecisos'),
+                  ),
+                  const SizedBox(height: 24),
+                ],
+              );
+            }));
   }
 }
