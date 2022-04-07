@@ -91,7 +91,10 @@ class _LoginPageState extends State<LoginPage> {
                           validator: MyInputs.validarEmail,
                           keyboardType: TextInputType.emailAddress,
                           textInputAction: TextInputAction.next,
-                          autofillHints: const [AutofillHints.username],
+                          autofillHints: const [
+                            AutofillHints.username,
+                            AutofillHints.email
+                          ],
                           inputFormatters: <TextInputFormatter>[
                             FilteringTextInputFormatter.deny(' '),
                           ],
