@@ -120,9 +120,9 @@ class ViewIntegrante extends StatelessWidget {
                                       ? Icons.add_a_photo
                                       : Icons.person)
                                   : const CircularProgressIndicator()),
-                          foregroundImage: MyNetwork.getImageFromUrl(
-                                  integrante.fotoUrl, null)
-                              ?.image,
+                          foregroundImage:
+                              MyNetwork.getImageFromUrl(integrante.fotoUrl)
+                                  ?.image,
                           backgroundColor: Colors.grey.withOpacity(0.5),
                           radius: 48,
                         ),
@@ -389,9 +389,8 @@ class ViewIntegrante extends StatelessWidget {
                 label: Text(snapInstrumento.data().nome),
                 avatar:
                     Image.asset(snapInstrumento.data().iconAsset, width: 12),
-                selectedColor: Colors.blue,
-                disabledColor: Colors.grey.withOpacity(0.1),
                 pressElevation: 0,
+                selectedColor: Theme.of(context).colorScheme.primary,
                 selected: integrante.instrumentos
                         ?.map((e) => e.toString())
                         .contains(snapInstrumento.reference.toString()) ??
@@ -493,8 +492,7 @@ class ViewIntegrante extends StatelessWidget {
                                   height: 56,
                                   width: 64,
                                   child: MyNetwork.getImageFromUrl(
-                                          igrejas[index].data().fotoUrl,
-                                          null) ??
+                                          igrejas[index].data().fotoUrl) ??
                                       const Icon(Icons.church),
                                 ),
                                 // Sigla

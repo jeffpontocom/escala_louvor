@@ -64,16 +64,16 @@ class _TelaEscalasState extends State<TelaEscalas>
                 padding: const EdgeInsets.all(64),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     // Logotipo
-                    const Image(
-                      image: AssetImage('assets/images/church.png'),
-                      height: 256,
-                      width: 256,
+                    Flexible(
+                      child: Image.asset('assets/images/church.png',
+                          height: 256, width: 256),
                     ),
                     // Informação
                     const Text(
-                      'Nenhuma agenda para\n',
+                      'Nenhum culto/evento para\n',
                       textAlign: TextAlign.center,
                     ),
                     // Igreja

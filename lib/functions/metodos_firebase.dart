@@ -219,6 +219,19 @@ class MeuFirebase {
         .get();
   }
 
+  /// Lista de administradores
+  static Future<QuerySnapshot<Integrante>> obterListaIntegrantesAdms() async {
+    return FirebaseFirestore.instance
+        .collection(Integrante.collection)
+        .where('adm', isEqualTo: true)
+        .orderBy('nome')
+        .withConverter<Integrante>(
+          fromFirestore: (snapshot, _) => Integrante.fromJson(snapshot.data()!),
+          toFirestore: (model, _) => model.toJson(),
+        )
+        .get();
+  }
+
   /// Integrante específico
   static Future<DocumentSnapshot<Integrante>?> obterSnapshotIntegrante(
       String? id) async {

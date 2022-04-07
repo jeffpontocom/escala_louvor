@@ -111,13 +111,13 @@ class _ViewCultoState extends State<ViewCulto> {
                       //mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         // Dirigente
-                        _sectionResponsaveis(
+                        _sectionResponsavel(
                           Funcao.dirigente,
                           mCulto.dirigente,
                           () => _escalarResponsavel(Funcao.dirigente),
                         ),
                         // Coordenador
-                        _sectionResponsaveis(
+                        _sectionResponsavel(
                           Funcao.coordenador,
                           mCulto.coordenador,
                           () => _escalarResponsavel(Funcao.coordenador),
@@ -139,9 +139,11 @@ class _ViewCultoState extends State<ViewCulto> {
                           Row(
                             children: [
                               // Título da seção
-                              const Expanded(child: Text('CÂNTICOS')),
+                              const Text('CÂNTICOS'),
                               // Botão todas as cifras
-                              IconButton(
+                              /* TextButton.icon(
+                                icon: const Icon(Icons.picture_as_pdf),
+                                label: const Text('Todas as cifras'),
                                 onPressed: mCulto.canticos == null ||
                                         mCulto.canticos!.isEmpty
                                     ? null
@@ -160,15 +162,13 @@ class _ViewCultoState extends State<ViewCulto> {
                                         MeuFirebase.abrirArquivosPdf(
                                             context, canticosUrls);
                                       },
-                                icon: const Icon(Icons.picture_as_pdf),
-                                tooltip: 'Mostrar todas as cifras',
-                              ),
+                              ), */
+                              const Expanded(child: SizedBox()),
                               // Botão de adição
                               logado.adm || ehODirigente
                                   ? IconButton(
                                       onPressed: () => _adicionarCanticos(),
-                                      icon: const Icon(Icons.add_to_photos,
-                                          color: Colors.grey),
+                                      icon: const Icon(Icons.edit_note),
                                     )
                                   : const SizedBox(
                                       height: kMinInteractiveDimension),
@@ -393,11 +393,11 @@ class _ViewCultoState extends State<ViewCulto> {
             ? mCulto.dataEnsaio == null
                 ? IconButton(
                     onPressed: () => _definirHoraDoEnsaio(),
-                    icon: const Icon(Icons.more_time, color: Colors.grey),
+                    icon: const Icon(Icons.more_time),
                   )
                 : IconButton(
                     onPressed: () => widget.culto.update({'dataEnsaio': null}),
-                    icon: const Icon(Icons.clear, color: Colors.grey),
+                    icon: const Icon(Icons.clear),
                   )
             : const SizedBox(height: kMinInteractiveDimension),
         const SizedBox(width: 12),
@@ -463,14 +463,11 @@ class _ViewCultoState extends State<ViewCulto> {
                         });
                       }
                     },
-                    icon: const Icon(
-                      Icons.upload_file,
-                      color: Colors.grey,
-                    ),
+                    icon: const Icon(Icons.upload_file),
                   )
                 : IconButton(
                     onPressed: () => widget.culto.update({'liturgiaUrl': null}),
-                    icon: const Icon(Icons.clear, color: Colors.grey),
+                    icon: const Icon(Icons.clear),
                   )
             : const SizedBox(height: kMinInteractiveDimension),
         const SizedBox(width: 12),
@@ -493,7 +490,7 @@ class _ViewCultoState extends State<ViewCulto> {
             resultado = _verificaEquipe(snapshot.data);
           }
           return Container(
-            color: Colors.amber.withOpacity(0.15),
+            color: Colors.orange.withOpacity(0.15),
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             child: Text(
               resultado,
@@ -545,7 +542,7 @@ class _ViewCultoState extends State<ViewCulto> {
   }
 
   /// Seção escalados
-  Widget _sectionResponsaveis(
+  Widget _sectionResponsavel(
     Funcao funcao,
     DocumentReference<Integrante>? integrante,
     Function()? funcaoEditar,
@@ -669,7 +666,7 @@ class _ViewCultoState extends State<ViewCulto> {
                 borderRadius: BorderRadius.circular(12),
                 color: (Global.integranteLogado != null &&
                         integrante?.id == Global.integranteLogado?.id)
-                    ? Colors.amber.withOpacity(0.25)
+                    ? Colors.orange.withOpacity(0.25)
                     : null,
               ),
               // Pilha
@@ -682,7 +679,8 @@ class _ViewCultoState extends State<ViewCulto> {
                       color: Colors.grey,
                     ),
                     foregroundImage: MyNetwork.getImageFromUrl(
-                            integrante?.data()?.fotoUrl, 16)
+                            integrante?.data()?.fotoUrl,
+                            progressoSize: 16)
                         ?.image,
                     backgroundColor: Colors.grey.withOpacity(0.5),
                   ),
@@ -750,7 +748,7 @@ class _ViewCultoState extends State<ViewCulto> {
                       borderRadius: BorderRadius.circular(12),
                       color: (Global.integranteLogado != null &&
                               integrante?.id == Global.integranteLogado?.id)
-                          ? Colors.amber.withOpacity(0.25)
+                          ? Colors.orange.withOpacity(0.25)
                           : null,
                     ),
                     // Pilha
@@ -767,7 +765,8 @@ class _ViewCultoState extends State<ViewCulto> {
                                 color: Colors.grey,
                               ),
                               foregroundImage: MyNetwork.getImageFromUrl(
-                                      integrante?.data()?.fotoUrl, 16)
+                                      integrante?.data()?.fotoUrl,
+                                      progressoSize: 16)
                                   ?.image,
                               backgroundColor: Colors.grey.withOpacity(0.5),
                             ),
@@ -833,10 +832,10 @@ class _ViewCultoState extends State<ViewCulto> {
           key: Key('Future${mCulto.canticos![index]}'),
           future: MeuFirebase.obterSnapshotCantico(mCulto.canticos![index].id),
           builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: LinearProgressIndicator());
+            if (!snapshot.hasData) {
+              return const Text('Carregando lista...');
             }
-            if (!snapshot.hasData || snapshot.hasError) {
+            if (snapshot.hasError) {
               return const Text('Falha ao carregar dados do cântico');
             }
             return ListTile(
@@ -877,30 +876,6 @@ class _ViewCultoState extends State<ViewCulto> {
                         }
                       },
                       icon: const Icon(Icons.ondemand_video)),
-                  // Menu
-                  logado.adm || ehODirigente || ehOCoordenador
-                      ? PopupMenuButton(
-                          onSelected: (value) {
-                            if (value == 'edit') {
-                              Dialogos.editarCantico(
-                                  context, snapshot.data!.data()!,
-                                  reference: snapshot.data!.reference);
-                            }
-                          },
-                          itemBuilder: (_) {
-                            return const [
-                              PopupMenuItem(
-                                child: Text('Editar'),
-                                value: 'edit',
-                              ),
-                              PopupMenuItem(
-                                child: Text('Adicionar ao culto...'),
-                                value: 'add',
-                              ),
-                            ];
-                          },
-                        )
-                      : const SizedBox(),
                   const SizedBox(width: kIsWeb ? 24 : 0),
                 ],
               ),
@@ -1264,7 +1239,7 @@ class _ViewCultoState extends State<ViewCulto> {
                           ?.map((e) => e.toString())
                           .contains(integrante.reference.toString()) ??
                       false) {
-                    disponiveis.add(integrante.data().nome);
+                    restritos.add(integrante.data().nome);
                   }
                 }
               }

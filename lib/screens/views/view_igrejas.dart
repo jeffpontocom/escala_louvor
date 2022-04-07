@@ -58,18 +58,24 @@ class ViewIgrejas extends StatelessWidget {
                 children: List.generate(
                   inscritas.length,
                   (index) {
+                    bool inscrita = inscritas[index].reference.toString() ==
+                        Global.igrejaSelecionada.value?.reference.toString();
                     // Card da Igreja
                     return ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 160),
+                      constraints: const BoxConstraints(maxWidth: 150),
                       child: Card(
                         clipBehavior: Clip.antiAlias,
-                        color: inscritas[index].reference.toString() ==
+                        elevation: 0,
+                        margin: EdgeInsets.zero,
+                        /* color: inscritas[index].reference.toString() ==
                                 Global.igrejaSelecionada.value?.reference
                                     .toString()
-                            ? Colors.amber.withOpacity(0.5)
-                            : null,
+                            ? Colors.orange
+                            : null, */
                         shape: RoundedRectangleBorder(
-                          side: BorderSide(color: Colors.grey.withOpacity(0.5)),
+                          side: inscrita
+                              ? const BorderSide(color: Colors.orange, width: 3)
+                              : const BorderSide(color: Colors.grey),
                           borderRadius:
                               const BorderRadius.all(Radius.circular(16)),
                         ),
@@ -91,15 +97,14 @@ class ViewIgrejas extends StatelessWidget {
                             Modular.to.maybePop(true); // fecha dialog
                           },
                           child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
                                 // Foto da igreja
                                 SizedBox(
-                                  height: 150,
-                                  width: 160,
+                                  height: 128,
+                                  //width: 160,
                                   child: MyNetwork.getImageFromUrl(
-                                          inscritas[index].data().fotoUrl,
-                                          null) ??
+                                          inscritas[index].data().fotoUrl) ??
                                       const Center(child: Icon(Icons.church)),
                                 ),
                                 // Sigla
@@ -118,17 +123,43 @@ class ViewIgrejas extends StatelessWidget {
                                     )),
 
                                 // Nome
-                                const SizedBox(height: 4),
-                                Padding(
+                                Container(
                                   padding: const EdgeInsets.symmetric(
-                                      horizontal: 12),
+                                      horizontal: 12, vertical: 8),
+                                  //alignment: Alignment.center,
+                                  height: 64,
+                                  child: Text(
+                                    inscritas[index].data().nome,
+                                    softWrap: true,
+                                    overflow: TextOverflow.ellipsis,
+                                    maxLines: 3,
+                                  ),
+                                ),
+                                /* Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 12, vertical: 8),
                                   child: SelectableText(
                                     inscritas[index].data().nome,
                                     maxLines: 3,
                                     minLines: 3,
                                   ),
+                                ), */
+                                ElevatedButton.icon(
+                                  onPressed:
+                                      inscritas[index].data().endereco == null
+                                          ? null
+                                          : () => MyActions.openGoogleMaps(
+                                              street: inscritas[index]
+                                                  .data()
+                                                  .endereco!),
+                                  style: ElevatedButton.styleFrom(
+                                      tapTargetSize:
+                                          MaterialTapTargetSize.shrinkWrap,
+                                      shape: const RoundedRectangleBorder(
+                                          borderRadius: BorderRadius.zero)),
+                                  icon: const Icon(Icons.map),
+                                  label: const Text('Mapa'),
                                 ),
-                                const SizedBox(height: 12),
                               ]),
                         ),
                       ),
@@ -194,7 +225,7 @@ class ViewIgrejas extends StatelessWidget {
                                 height: 56,
                                 width: 64,
                                 child: MyNetwork.getImageFromUrl(
-                                        igrejas[index].data().fotoUrl, null) ??
+                                        igrejas[index].data().fotoUrl) ??
                                     const Icon(Icons.church),
                               ),
                               // Sigla

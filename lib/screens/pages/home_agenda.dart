@@ -139,9 +139,9 @@ class TelaAgenda extends StatelessWidget {
                         shape: BoxShape.circle),
                     holidayDecoration: const BoxDecoration(
                         border: Border.fromBorderSide(
-                            BorderSide(color: Colors.amber, width: 1.4)),
+                            BorderSide(color: Colors.orange, width: 1.4)),
                         shape: BoxShape.circle),
-                    holidayTextStyle: const TextStyle(color: Colors.amber),
+                    holidayTextStyle: const TextStyle(color: Colors.orange),
                     markerDecoration: BoxDecoration(
                         borderRadius: BorderRadius.circular(12),
                         color: Theme.of(context).colorScheme.primary),
@@ -173,7 +173,7 @@ class TelaAgenda extends StatelessWidget {
                 margin: const EdgeInsets.only(right: 4),
                 decoration: const BoxDecoration(
                   border: Border.fromBorderSide(
-                    BorderSide(color: Colors.amber, width: 1.4),
+                    BorderSide(color: Colors.orange, width: 1.4),
                   ),
                   shape: BoxShape.circle,
                 ),
@@ -270,8 +270,7 @@ class TelaAgenda extends StatelessWidget {
                                           MyNetwork.getImageFromUrl(
                                                   aniversariantes[index]
                                                       .data()
-                                                      .fotoUrl,
-                                                  null)
+                                                      .fotoUrl)
                                               ?.image,
                                     ),
                                     onPressed: () => Modular.to.pushNamed(

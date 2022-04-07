@@ -45,7 +45,14 @@ class HomePage extends StatelessWidget {
               return _scaffoldSemIntegranteLogado;
             }
           }
+          if (logado.hasError) {
+            return _scaffoldSemIntegranteLogado;
+          }
           Global.integranteLogado = logado.data;
+          if (!(logado.data?.data()?.ativo ?? true) &&
+              !(logado.data?.data()?.adm ?? true)) {
+            return _scaffoldIntegranteInativo;
+          }
           // Ouvinte para igreja selecionada
           return ValueListenableBuilder<DocumentSnapshot<Igreja>?>(
               valueListenable: Global.igrejaSelecionada,
@@ -127,9 +134,10 @@ class HomePage extends StatelessWidget {
                   '${AppRotas.PERFIL}?id=${FirebaseAuth.instance.currentUser?.uid ?? ''}'),
               icon: CircleAvatar(
                 child: const Icon(Icons.person),
-                foregroundImage:
-                    MyNetwork.getImageFromUrl(logado.data()?.fotoUrl, 12)
-                        ?.image,
+                foregroundImage: MyNetwork.getImageFromUrl(
+                        logado.data()?.fotoUrl,
+                        progressoSize: 12)
+                    ?.image,
               ),
             ),
           ],
@@ -238,6 +246,73 @@ class HomePage extends StatelessWidget {
             ),
             Expanded(
               child: Center(child: ViewIgrejas()),
+            ),
+            Padding(
+              padding: EdgeInsets.all(24),
+              child: Text(
+                'Versão do app: ${Global.appVersion}',
+                style: TextStyle(color: Colors.grey),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget get _scaffoldIntegranteInativo {
+    return Scaffold(
+      body: Container(
+        padding: const EdgeInsets.all(24),
+        alignment: Alignment.center,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Icone de erro
+            Flexible(
+              child: Image.asset(
+                'assets/images/login.png',
+                width: 160,
+                height: 160,
+                color: Colors.orange,
+                colorBlendMode: BlendMode.modulate,
+              ),
+            ),
+            const SizedBox(height: 24),
+            // Texto de carregamento
+            const Text(
+              'Seu cadastro está inativo!',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              'Fale com o administrador do sistema para solucionar o problema.',
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            FutureBuilder<QuerySnapshot<Integrante>>(
+                future: MeuFirebase.obterListaIntegrantesAdms(),
+                builder: (context, snap) {
+                  var whats = snap.data?.docs.first.data().telefone;
+                  return ElevatedButton.icon(
+                    onPressed: whats == null
+                        ? null
+                        : () => MyActions.openWhatsApp(whats),
+                    label: const Text('Chamar no whats'),
+                    icon: const Icon(Icons.whatsapp),
+                    style: ElevatedButton.styleFrom(primary: Colors.green),
+                  );
+                }),
+            const SizedBox(height: 48),
+            ElevatedButton.icon(
+              onPressed: () async {
+                await FirebaseAuth.instance.signOut();
+                Modular.to.navigate(AppRotas.LOGIN);
+              },
+              label: const Text('Sair'),
+              icon: const Icon(Icons.logout),
+              style: ElevatedButton.styleFrom(primary: Colors.red),
             ),
           ],
         ),

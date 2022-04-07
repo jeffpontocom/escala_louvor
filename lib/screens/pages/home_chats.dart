@@ -5,29 +5,34 @@ class TelaChat extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-        padding: const EdgeInsets.all(64),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            // Logotipo
-            const Image(
-              image: AssetImage('assets/images/chat.png'),
-              height: 256,
-              width: 256,
-            ),
-            // Informação
-            const Text(
-              'Chats para os cultos/eventos em que você está escalado.\n',
-              textAlign: TextAlign.center,
-            ),
-            Text(
-              'Em breve!',
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.titleLarge,
-            ),
-          ],
-        ));
+    return OrientationBuilder(builder: (context, orientation) {
+      return Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Logotipo
+              Flexible(
+                child: Image.asset(
+                  'assets/images/chat.png',
+                  fit: BoxFit.contain,
+                  width: 256,
+                  height: 256,
+                ),
+              ),
+              // Informação
+              const Text(
+                'Chats para os cultos/eventos em que você está escalado.\n',
+                textAlign: TextAlign.center,
+              ),
+              Text(
+                'Em breve!',
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.titleLarge,
+              ),
+            ],
+          ));
+    });
   }
 }

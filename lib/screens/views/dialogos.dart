@@ -32,7 +32,7 @@ class Dialogos {
                   radius: 24,
                   child: const Icon(Icons.church),
                   foregroundImage: MyNetwork.getImageFromUrl(
-                          Global.igrejaSelecionada.value?.data()?.fotoUrl, null)
+                          Global.igrejaSelecionada.value?.data()?.fotoUrl)
                       ?.image,
                 ),
                 // Data

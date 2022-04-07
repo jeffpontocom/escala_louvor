@@ -34,12 +34,12 @@ class _TelaCanticosState extends State<TelaCanticos> {
   @override
   Widget build(BuildContext context) {
     final ValueNotifier<String> _filtro = ValueNotifier('');
-    TextEditingController _f = TextEditingController();
+    TextEditingController _searchInputController = TextEditingController();
     return Column(
       children: [
         // Filtros e Adição
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
           color: Colors.grey.withOpacity(0.15),
           child: Row(
             children: [
@@ -89,13 +89,13 @@ class _TelaCanticosState extends State<TelaCanticos> {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12),
           child: TextField(
-            controller: _f,
+            controller: _searchInputController,
             decoration: InputDecoration(
               prefixIcon: const Icon(Icons.search),
               suffixIcon: IconButton(
                   icon: const Icon(Icons.clear),
                   onPressed: () {
-                    _f.clear();
+                    _searchInputController.clear();
                     _filtro.value = '';
                   }),
               hintText: 'Buscar...',
@@ -124,10 +124,13 @@ class _TelaCanticosState extends State<TelaCanticos> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         // Imagem
-                        const Image(
-                          image: AssetImage('assets/images/song.png'),
-                          height: 256,
-                          width: 256,
+                        Flexible(
+                          child: Image.asset(
+                            'assets/images/song.png',
+                            fit: BoxFit.contain,
+                            width: 256,
+                            height: 256,
+                          ),
                         ),
                         // Informação
                         Text(
@@ -158,10 +161,13 @@ class _TelaCanticosState extends State<TelaCanticos> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               // Imagem
-                              const Image(
-                                image: AssetImage('assets/images/song.png'),
-                                height: 256,
-                                width: 256,
+                              Flexible(
+                                child: Image.asset(
+                                  'assets/images/song.png',
+                                  fit: BoxFit.contain,
+                                  width: 256,
+                                  height: 256,
+                                ),
                               ),
                               // Informação
                               Text(
@@ -176,16 +182,31 @@ class _TelaCanticosState extends State<TelaCanticos> {
                         padding: EdgeInsets.zero,
                         shrinkWrap: true,
                         children: List.generate(listaFiltrada.length, (index) {
+                          bool selecionado = (_selecionados
+                                  ?.map((e) => e.toString())
+                                  .contains(listaFiltrada[index]
+                                      .reference
+                                      .toString()) ??
+                              false);
                           return ListTile(
                             visualDensity: VisualDensity.compact,
                             contentPadding:
                                 const EdgeInsets.symmetric(horizontal: 4),
-                            leading: IconButton(
-                                onPressed: () {
-                                  Dialogos.verLetraDoCantico(
-                                      context, listaFiltrada[index].data());
-                                },
-                                icon: const Icon(Icons.abc)),
+                            leading: selecionado
+                                ? const SizedBox(
+                                    child: Icon(
+                                      Icons.check_circle,
+                                      color: Colors.green,
+                                    ),
+                                    width: kMinInteractiveDimension,
+                                    height: kMinInteractiveDimension,
+                                  )
+                                : IconButton(
+                                    onPressed: () {
+                                      Dialogos.verLetraDoCantico(
+                                          context, listaFiltrada[index].data());
+                                    },
+                                    icon: const Icon(Icons.abc)),
                             horizontalTitleGap: 4,
                             title: Text(
                               listaFiltrada[index].data().nome,
@@ -198,18 +219,6 @@ class _TelaCanticosState extends State<TelaCanticos> {
                             trailing: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                // Selecionado?
-                                (_selecionados
-                                            ?.map((e) => e.toString())
-                                            .contains(listaFiltrada[index]
-                                                .reference
-                                                .toString()) ??
-                                        false)
-                                    ? const Icon(
-                                        Icons.check_circle,
-                                        color: Colors.green,
-                                      )
-                                    : const SizedBox(),
                                 // Cifra
                                 IconButton(
                                     onPressed:
@@ -255,11 +264,6 @@ class _TelaCanticosState extends State<TelaCanticos> {
                                               child: Text('Editar'),
                                               value: 'edit',
                                             ),
-                                            PopupMenuItem(
-                                              child:
-                                                  Text('Adicionar ao culto...'),
-                                              value: 'add',
-                                            ),
                                           ];
                                         },
                                       )
@@ -295,24 +299,24 @@ class _TelaCanticosState extends State<TelaCanticos> {
         ),
         widget.culto != null
             ? Container(
-                color: Colors.amber.withOpacity(0.2),
+                color: Colors.orange.withOpacity(0.2),
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                 child: Row(
                   children: [
                     // Seleção
                     Expanded(child: _selecionadosToString),
-                    // Botão adicionar ao evento
-                    ElevatedButton.icon(
-                        onPressed: () async {
-                          Mensagem.aguardar(context: context);
-                          await widget.culto?.reference
-                              .update({'canticos': _selecionados});
-                          Modular.to.pop(); // fechar progresso
-                          Modular.to.pop(); // fecha dialog
-                        },
-                        icon: const Icon(Icons.send),
-                        label: const Text('Enviar'))
+                    // Botão adicionar/atualizar canticos do evento
+                    ElevatedButton(
+                      child: const Text('CONCLUIR'),
+                      onPressed: () async {
+                        Mensagem.aguardar(context: context);
+                        await widget.culto?.reference
+                            .update({'canticos': _selecionados});
+                        Modular.to.pop(); // fechar progresso
+                        Modular.to.pop(); // fecha dialog
+                      },
+                    )
                   ],
                 ))
             : const SizedBox(),

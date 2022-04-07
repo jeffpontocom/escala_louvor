@@ -41,10 +41,7 @@ class _LoginPageState extends State<LoginPage> {
         child: SingleChildScrollView(
           child: Container(
             alignment: Alignment.center,
-            padding: EdgeInsets.symmetric(
-              vertical: Medidas.margemV(context),
-              horizontal: Medidas.margemH(context),
-            ),
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
             child: Wrap(
               alignment: WrapAlignment.center,
               crossAxisAlignment: WrapCrossAlignment.center,
@@ -64,6 +61,7 @@ class _LoginPageState extends State<LoginPage> {
                     // Nome do App
                     Text(
                       Global.appName,
+                      textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 40,
                         fontFamily: 'Offside',
@@ -72,6 +70,7 @@ class _LoginPageState extends State<LoginPage> {
                     // Versão do App
                     Text(
                       'versão ${Global.appVersion}',
+                      textAlign: TextAlign.center,
                       style: TextStyle(color: Colors.grey),
                     ),
                   ],

@@ -100,33 +100,39 @@ class AdminPage extends StatelessWidget {
                           heightFactor: 10,
                           child: Text('Nenhuma igreja cadastrada'),
                         )
-                      : ListView(
-                          shrinkWrap: true,
-                          children: List.generate(snapshot.data!.size, (index) {
-                            Igreja igreja = snapshot.data!.docs[index].data();
-                            DocumentReference reference =
-                                snapshot.data!.docs[index].reference;
-                            return ListTile(
-                              leading: CircleAvatar(
-                                child: const Icon(Icons.church),
-                                foregroundImage: MyNetwork.getImageFromUrl(
-                                        igreja.fotoUrl, null)
-                                    ?.image,
-                              ),
-                              title: Text(igreja.sigla),
-                              subtitle: Text(igreja.nome),
-                              trailing: const IconButton(
-                                onPressed: null,
-                                icon: Icon(Icons.map),
-                              ),
-                              onTap: () => _editarIgreja(context,
-                                  igreja: igreja, id: reference.id),
-                            );
-                          }),
+                      : Expanded(
+                          child: ListView(
+                            shrinkWrap: true,
+                            children:
+                                List.generate(snapshot.data!.size, (index) {
+                              Igreja igreja = snapshot.data!.docs[index].data();
+                              DocumentReference reference =
+                                  snapshot.data!.docs[index].reference;
+                              return ListTile(
+                                leading: CircleAvatar(
+                                  child: const Icon(Icons.church),
+                                  foregroundImage:
+                                      MyNetwork.getImageFromUrl(igreja.fotoUrl)
+                                          ?.image,
+                                ),
+                                title: Text(igreja.sigla),
+                                subtitle: Text(igreja.nome),
+                                // Botão mapa do google
+                                trailing: IconButton(
+                                  onPressed: igreja.endereco == null
+                                      ? null
+                                      : () => MyActions.openGoogleMaps(
+                                          street: igreja.endereco!),
+                                  icon: const Icon(Icons.map),
+                                ),
+                                onTap: () => _editarIgreja(context,
+                                    igreja: igreja, id: reference.id),
+                              );
+                            }),
+                          ),
                         );
                 }),
               ),
-              const SizedBox(height: 16),
             ],
           );
         }));
@@ -163,7 +169,7 @@ class AdminPage extends StatelessWidget {
                       },
                       icon: const Icon(Icons.add_a_photo)),
                   foregroundImage:
-                      MyNetwork.getImageFromUrl(igreja?.fotoUrl, null)?.image,
+                      MyNetwork.getImageFromUrl(igreja?.fotoUrl)?.image,
                   radius: 48,
                 );
               }),
@@ -312,6 +318,7 @@ class AdminPage extends StatelessWidget {
       conteudo: StatefulBuilder(builder: (innerContext, innerState) {
         return Column(
           //mainAxisSize: MainAxisSize.min,
+          //shrinkWrap: true,
           children: [
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
@@ -384,7 +391,12 @@ class AdminPage extends StatelessWidget {
                   references.add(reference);
                   return ListTile(
                     key: Key(reference.id),
-                    leading: Image.asset(instrumento.iconAsset, width: 28),
+                    leading: Image.asset(
+                      instrumento.iconAsset,
+                      width: 28,
+                      color: Theme.of(context).colorScheme.onBackground,
+                      colorBlendMode: BlendMode.srcATop,
+                    ),
                     title: Text(instrumento.nome),
                     subtitle: Text(
                         'Composição: mínima ${instrumento.composMin} | máxima ${instrumento.composMax}'),
@@ -394,39 +406,40 @@ class AdminPage extends StatelessWidget {
                   );
                 });
 
-                return ReorderableListView(
-                  shrinkWrap: true,
-                  children: _list,
-                  onReorder: (int old, int current) async {
-                    dev.log('${old.toString()} | ${current.toString()}');
-                    // dragging from top to bottom
-                    if (old < current) {
-                      Widget startItem = _list[old];
-                      // 0 para 4 (i = 0; i < 4-1 ; i++)
-                      for (int i = old; i < current - 1; i++) {
-                        _list[i] = _list[i + 1];
-                        references[i + 1].update({'ordem': i});
+                return Expanded(
+                  child: ReorderableListView(
+                    shrinkWrap: true,
+                    children: _list,
+                    onReorder: (int old, int current) async {
+                      dev.log('${old.toString()} | ${current.toString()}');
+                      // dragging from top to bottom
+                      if (old < current) {
+                        Widget startItem = _list[old];
+                        // 0 para 4 (i = 0; i < 4-1 ; i++)
+                        for (int i = old; i < current - 1; i++) {
+                          _list[i] = _list[i + 1];
+                          references[i + 1].update({'ordem': i});
+                        }
+                        _list[current - 1] = startItem;
+                        references[old].update({'ordem': current - 1});
                       }
-                      _list[current - 1] = startItem;
-                      references[old].update({'ordem': current - 1});
-                    }
-                    // dragging from bottom to top
-                    else if (old > current) {
-                      Widget startItem = _list[old];
-                      // 4 para 0 (i = 4; i > 0 ; i--)
-                      for (int i = old; i > current; i--) {
-                        _list[i] = _list[i - 1];
-                        references[i - 1].update({'ordem': i});
+                      // dragging from bottom to top
+                      else if (old > current) {
+                        Widget startItem = _list[old];
+                        // 4 para 0 (i = 4; i > 0 ; i--)
+                        for (int i = old; i > current; i--) {
+                          _list[i] = _list[i - 1];
+                          references[i - 1].update({'ordem': i});
+                        }
+                        _list[current] = startItem;
+                        references[old].update({'ordem': current});
                       }
-                      _list[current] = startItem;
-                      references[old].update({'ordem': current});
-                    }
-                    //innerState(() {});
-                  },
+                      //innerState(() {});
+                    },
+                  ),
                 );
               }),
             ),
-            const SizedBox(height: 16),
           ],
         );
       }),
@@ -457,7 +470,10 @@ class AdminPage extends StatelessWidget {
                 return CircleAvatar(
                   child: PopupMenuButton<String>(
                     icon: Image.asset(
-                        instrumento?.iconAsset ?? 'assets/icons/music_voz.png'),
+                      instrumento?.iconAsset ?? 'assets/icons/music_voz.png',
+                      color: Theme.of(context).colorScheme.onBackground,
+                      colorBlendMode: BlendMode.srcATop,
+                    ),
                     itemBuilder: (context) {
                       List<String> assets = [
                         'assets/icons/music_baixo.png',
@@ -482,6 +498,8 @@ class AdminPage extends StatelessWidget {
                           child: Image.asset(
                             assets[index],
                             width: 36,
+                            color: Theme.of(context).colorScheme.onBackground,
+                            colorBlendMode: BlendMode.srcATop,
                           ),
                         ),
                       );
@@ -638,33 +656,36 @@ class AdminPage extends StatelessWidget {
                           heightFactor: 10,
                           child: Text('Nenhum integrante cadastrado'),
                         )
-                      : ListView(
-                          shrinkWrap: true,
-                          children: List.generate(snapshot.data!.size, (index) {
-                            Integrante integrante =
-                                snapshot.data!.docs[index].data();
-                            DocumentReference reference =
-                                snapshot.data!.docs[index].reference;
-                            return ListTile(
-                              leading: CircleAvatar(
-                                child: const Icon(Icons.person),
-                                foregroundImage:
-                                    NetworkImage(integrante.fotoUrl ?? ''),
-                              ),
-                              title: Text(integrante.nome),
-                              subtitle: Text(integrante.email),
-                              trailing: const IconButton(
-                                onPressed: null,
-                                icon: Icon(Icons.whatsapp),
-                              ),
-                              onTap: () => _editarIntegrante(context,
-                                  integrante: integrante, id: reference.id),
-                            );
-                          }),
+                      : Expanded(
+                          child: ListView(
+                            shrinkWrap: true,
+                            children:
+                                List.generate(snapshot.data!.size, (index) {
+                              Integrante integrante =
+                                  snapshot.data!.docs[index].data();
+                              DocumentReference reference =
+                                  snapshot.data!.docs[index].reference;
+                              return ListTile(
+                                leading: CircleAvatar(
+                                  child: const Icon(Icons.person),
+                                  foregroundImage: MyNetwork.getImageFromUrl(
+                                          integrante.fotoUrl)
+                                      ?.image,
+                                ),
+                                title: Text(integrante.nome),
+                                subtitle: Text(integrante.email),
+                                trailing: const IconButton(
+                                  onPressed: null,
+                                  icon: Icon(Icons.whatsapp),
+                                ),
+                                onTap: () => _editarIntegrante(context,
+                                    integrante: integrante, id: reference.id),
+                              );
+                            }),
+                          ),
                         );
                 }),
               ),
-              const SizedBox(height: 16),
             ],
           );
         }));

@@ -1,9 +1,12 @@
+import 'dart:io';
 import 'dart:math';
 
 import 'package:easy_mask/easy_mask.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class MyStrings {
   static String isPlural(int valor) {
@@ -11,8 +14,48 @@ class MyStrings {
   }
 }
 
+class MyActions {
+  // ignore: constant_identifier_names
+  static const String STD_DDD = '45';
+  // ignore: constant_identifier_names
+  static const String STD_CITY = 'Foz do Iguaçu';
+
+  /// Iniciar Whatsapp
+  static void openWhatsApp(String value) async {
+    value = value.replaceAll(RegExp(r'[^0-9]'), '');
+    if (value.length < 10) {
+      value = STD_DDD + value;
+    }
+    var url = 'https://wa.me/55$value';
+    if (await canLaunch(url)) {
+      await launch(url);
+    } else {
+      throw 'Não é possível abrir o Whatsapp';
+    }
+  }
+
+  /// Iniciar Telefone
+  static void openPhoneCall(String value) async {
+    var url = 'tel:$value';
+    if (await canLaunch(url)) {
+      await launch(url);
+    } else {
+      throw 'Não é possível realizar ligações nesse aparelho';
+    }
+  }
+
+  /// Iniciar Google Maps
+  static void openGoogleMaps(
+      {required String street, String? number, String? city}) {
+    var query = street +
+        (number != null ? ', $number' : '') +
+        (city != null ? ', $city' : '');
+    MapsLauncher.launchQuery(query);
+  }
+}
+
 class MyNetwork {
-  static Image? getImageFromUrl(String? url, double? progressoWidth) {
+  static Image? getImageFromUrl(String? url, {double? progressoSize}) {
     if (url == null) return null;
     return Image.network(
       url,
@@ -20,7 +63,8 @@ class MyNetwork {
       loadingBuilder: (context, child, loading) {
         if (loading == null) return child;
         return SizedBox(
-          width: progressoWidth,
+          width: progressoSize,
+          height: progressoSize,
           child: Center(
             child:
                 CircularProgressIndicator(color: Colors.grey.withOpacity(0.5)),
@@ -103,5 +147,61 @@ class CurrencyInputFormatter extends TextInputFormatter {
     return newValue.copyWith(
         text: newText,
         selection: TextSelection.collapsed(offset: newText.length));
+  }
+}
+
+class MapsLauncher {
+  static String createQueryUrl(String query) {
+    Uri uri;
+
+    if (kIsWeb) {
+      uri = Uri.https(
+          'www.google.com', '/maps/search/', {'api': '1', 'query': query});
+    } else if (Platform.isAndroid) {
+      uri = Uri(scheme: 'geo', host: '0,0', queryParameters: {'q': query});
+    } else if (Platform.isIOS) {
+      uri = Uri.https('maps.apple.com', '/', {'q': query});
+    } else {
+      uri = Uri.https(
+          'www.google.com', '/maps/search/', {'api': '1', 'query': query});
+    }
+
+    return uri.toString();
+  }
+
+  static String createCoordinatesUrl(double latitude, double longitude,
+      [String? label]) {
+    Uri uri;
+
+    if (kIsWeb) {
+      uri = Uri.https('www.google.com', '/maps/search/',
+          {'api': '1', 'query': '$latitude,$longitude'});
+    } else if (Platform.isAndroid) {
+      var query = '$latitude,$longitude';
+
+      if (label != null) query += '($label)';
+
+      uri = Uri(scheme: 'geo', host: '0,0', queryParameters: {'q': query});
+    } else if (Platform.isIOS) {
+      var params = {'ll': '$latitude,$longitude'};
+
+      if (label != null) params['q'] = label;
+
+      uri = Uri.https('maps.apple.com', '/', params);
+    } else {
+      uri = Uri.https('www.google.com', '/maps/search/',
+          {'api': '1', 'query': '$latitude,$longitude'});
+    }
+
+    return uri.toString();
+  }
+
+  static Future<bool> launchQuery(String query) {
+    return launch(createQueryUrl(query));
+  }
+
+  static Future<bool> launchCoordinates(double latitude, double longitude,
+      [String? label]) {
+    return launch(createCoordinatesUrl(latitude, longitude, label));
   }
 }

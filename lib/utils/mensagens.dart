@@ -148,63 +148,68 @@ class Mensagem {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16.0)),
       ),
-      constraints: BoxConstraints(
-          minHeight: MediaQuery.of(context).size.height * 0.3,
-          maxHeight: MediaQuery.of(context).size.height * 0.9),
       builder: (context) {
-        return Padding(
-          padding: EdgeInsets.only(
-            top: MediaQuery.of(context).viewInsets.top,
-            bottom: MediaQuery.of(context).viewInsets.bottom,
-            left: Medidas.paddingListH(context),
-            right: Medidas.paddingListH(context),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Elemento grafico (indicador de dialog)
-              Container(
-                width: 48,
-                height: 4,
-                margin: const EdgeInsets.only(top: 12),
-                decoration: BoxDecoration(
-                  shape: BoxShape.rectangle,
-                  borderRadius: const BorderRadius.all(Radius.circular(16)),
-                  color: Colors.grey.withOpacity(0.5),
-                ),
+        return OrientationBuilder(builder: (context, orientation) {
+          print(orientation.name);
+          return ConstrainedBox(
+            constraints: BoxConstraints(
+                minHeight: MediaQuery.of(context).size.height * 0.3,
+                maxHeight: MediaQuery.of(context).size.height * 0.9),
+            child: Padding(
+              padding: EdgeInsets.only(
+                top: MediaQuery.of(context).viewInsets.top,
+                bottom: MediaQuery.of(context).viewInsets.bottom,
+                left: Medidas.paddingListH(context),
+                right: Medidas.paddingListH(context),
               ),
-              // Cabeçalho
-              Row(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  IconButton(
-                    onPressed: null,
-                    icon: Icon(icon ?? Icons.subtitles,
-                        color: Colors.grey.withOpacity(0.5)),
-                  ),
-                  Expanded(
-                    child: Text(
-                      titulo,
-                      textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.titleLarge,
+                  // Elemento gráfico (indicador de dialog)
+                  Container(
+                    width: 48,
+                    height: 4,
+                    margin: const EdgeInsets.only(top: 12),
+                    decoration: BoxDecoration(
+                      shape: BoxShape.rectangle,
+                      borderRadius: const BorderRadius.all(Radius.circular(16)),
+                      color: Colors.grey.withOpacity(0.5),
                     ),
                   ),
-                  CloseButton(color: Colors.grey.withOpacity(0.5)),
+                  // Cabeçalho
+                  Row(
+                    children: [
+                      IconButton(
+                        onPressed: null,
+                        icon: Icon(icon ?? Icons.subtitles,
+                            color: Colors.grey.withOpacity(0.5)),
+                      ),
+                      Expanded(
+                        child: Text(
+                          titulo,
+                          textAlign: TextAlign.center,
+                          style: Theme.of(context).textTheme.titleLarge,
+                        ),
+                      ),
+                      CloseButton(color: Colors.grey.withOpacity(0.5)),
+                    ],
+                  ),
+                  // Conteúdo
+                  Flexible(child: conteudo),
+                  // Rodapé
+                  rodape == null ? const SizedBox() : const Divider(height: 1),
+                  rodape == null
+                      ? const SizedBox()
+                      : Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 12),
+                          child: rodape,
+                        ),
                 ],
               ),
-              // Conteúdo
-              Flexible(child: conteudo),
-              // Rodapé
-              rodape == null ? const SizedBox() : const Divider(height: 1),
-              rodape == null
-                  ? const SizedBox()
-                  : Padding(
-                      padding: const EdgeInsets.symmetric(
-                          horizontal: 12, vertical: 12),
-                      child: rodape,
-                    ),
-            ],
-          ),
-        );
+            ),
+          );
+        });
       },
     ).then((value) {
       if (onPressed != null) onPressed();
