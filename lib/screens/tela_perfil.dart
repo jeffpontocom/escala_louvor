@@ -3,12 +3,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 
-import '/rotas.dart';
 import '/functions/metodos_firebase.dart';
 import '/models/integrante.dart';
 import '/screens/views/view_integrante.dart';
 import '/utils/estilos.dart';
 import '/utils/mensagens.dart';
+import 'home.dart';
 
 class TelaPerfil extends StatefulWidget {
   final String id;
@@ -75,6 +75,6 @@ class _TelaPerfilState extends State<TelaPerfil> {
   Future _sair() async {
     Mensagem.aguardar(context: context, mensagem: 'Saindo...');
     await FirebaseAuth.instance.signOut();
-    Modular.to.navigate(AppRotas.HOME);
+    Modular.to.navigate('/${Paginas.values[0].name}');
   }
 }

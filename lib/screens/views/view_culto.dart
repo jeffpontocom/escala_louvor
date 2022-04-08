@@ -8,7 +8,6 @@ import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '/functions/metodos_firebase.dart';
-import '/functions/notificacoes.dart';
 import '/global.dart';
 import '/models/cantico.dart';
 import '/models/culto.dart';
@@ -77,7 +76,7 @@ class _ViewCultoState extends State<ViewCulto> {
               // Cabeçalho
               Padding(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: Row(
                   children: [
                     // Dados sobre o culto
@@ -89,164 +88,62 @@ class _ViewCultoState extends State<ViewCulto> {
                   ],
                 ),
               ),
-              const Divider(height: 1),
+              const Divider(height: 1, color: Colors.grey),
               // Corpo
               Expanded(
-                child: ListView(
-                  shrinkWrap: true,
-                  children: [
-                    // Dados sobre o ensaio
-                    _rowEnsaio,
-                    const Divider(height: 1),
-                    // Dados sobre a liturgia
-                    _rowLiturgia,
-                    const Divider(height: 1),
-                    // Informação sobre a composição da equipe
-                    _rowOqueFalta,
-                    const Divider(height: 1),
-                    // Escalados (Coordenação)
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.max,
-                      //mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        // Dirigente
-                        _sectionResponsavel(
-                          Funcao.dirigente,
-                          mCulto.dirigente,
-                          () => _escalarResponsavel(Funcao.dirigente),
-                        ),
-                        // Coordenador
-                        _sectionResponsavel(
-                          Funcao.coordenador,
-                          mCulto.coordenador,
-                          () => _escalarResponsavel(Funcao.coordenador),
-                        ),
-                      ],
-                    ),
-                    // Escalados (Equipe)
-                    _sectionEscalados(
-                      'Equipe',
-                      mCulto.equipe ?? {},
-                      () => _escalarIntegrante(mCulto.equipe),
-                    ),
-                    const Divider(),
-                    // Canticos
-                    Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 12),
-                      child: Column(
-                        children: [
-                          Row(
-                            children: [
-                              // Título da seção
-                              const Text('CÂNTICOS'),
-                              // Botão todas as cifras
-                              /* TextButton.icon(
-                                icon: const Icon(Icons.picture_as_pdf),
-                                label: const Text('Todas as cifras'),
-                                onPressed: mCulto.canticos == null ||
-                                        mCulto.canticos!.isEmpty
-                                    ? null
-                                    : () async {
-                                        Mensagem.aguardar(context: context);
-                                        List<String> canticosUrls = [];
-                                        for (var cantico in mCulto.canticos!) {
-                                          var snap = await MeuFirebase
-                                              .obterSnapshotCantico(cantico.id);
-                                          if (snap?.data()?.cifraUrl != null) {
-                                            canticosUrls
-                                                .add(snap!.data()!.cifraUrl!);
-                                          }
-                                        }
-                                        Modular.to.pop();
-                                        MeuFirebase.abrirArquivosPdf(
-                                            context, canticosUrls);
-                                      },
-                              ), */
-                              const Expanded(child: SizedBox()),
-                              // Botão de adição
-                              logado.adm || ehODirigente
-                                  ? IconButton(
-                                      onPressed: () => _adicionarCanticos(),
-                                      icon: const Icon(Icons.edit_note),
-                                    )
-                                  : const SizedBox(
-                                      height: kMinInteractiveDimension),
-                            ],
-                          ),
-                          // Ajuda
-                          logado.adm || ehODirigente
-                              ? Padding(
-                                  padding: EdgeInsets.zero,
-                                  child: Text(
-                                    'Segure e arraste para reordenar (somente dirigente)',
-                                    textAlign: TextAlign.center,
-                                    style:
-                                        Theme.of(context).textTheme.bodySmall,
-                                  ),
-                                )
-                              : const SizedBox(),
-                        ],
-                      ),
-                    ),
-                    // Lista
-                    _listaDeCanticos,
-                    const SizedBox(height: 12),
-                    const Divider(),
-                    // Observações
-                    const Padding(
-                        padding: EdgeInsets.all(12),
-                        child: Text('OBSERVAÇÕES')),
-                    _observacoes,
-                    const Divider(),
-                    // Botões de ação
-                    Padding(
-                      padding: const EdgeInsets.all(12),
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
+                child: Material(
+                  child: ListView(
+                    children: [
+                      // Dados sobre o ensaio
+                      _secaoEnsaio,
+                      // Dados sobre a liturgia
+                      _secaoLiturgia,
+                      // Observações
+                      mCulto.obs == null || mCulto.obs!.isEmpty
+                          ? const SizedBox()
+                          : _rowObservacoes,
+                      // Informação sobre a composição da equipe
+                      _secaoOqueFalta,
+                      // Escalados (Responsáveis)
+                      Flex(
+                        direction: Axis.horizontal,
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('AÇÕES'),
-                          const SizedBox(height: 8),
-                          TextButton.icon(
-                            onPressed: () => _verificarDisponibilidades(),
-                            label: const Text(
-                                'Verificar disponibilidades da equipe'),
-                            icon: const Icon(Icons.groups),
+                          // Dirigente
+                          Flexible(
+                            child: _secaoResponsavel(
+                              Funcao.dirigente,
+                              mCulto.dirigente,
+                              () => _escalarResponsavel(Funcao.dirigente),
+                            ),
                           ),
-                          logado.adm ||
-                                  logado.ehRecrutador ||
-                                  ehODirigente ||
-                                  ehOCoordenador
-                              ? TextButton.icon(
-                                  onPressed: () async {
-                                    Mensagem.aguardar(
-                                        context: context); // abre progresso
-                                    Notificacoes.instancia.enviarMensagemPush();
-                                    Modular.to.pop(); // fecha progresso
-                                  },
-                                  label: const Text('Notificar escalados'),
-                                  icon: const Icon(Icons.notifications),
-                                )
-                              : const SizedBox(),
-                          logado.adm ||
-                                  logado.ehRecrutador ||
-                                  ehODirigente ||
-                                  ehOCoordenador
-                              ? TextButton.icon(
-                                  onPressed: () => Dialogos.editarCulto(
-                                      context, mCulto,
-                                      reference: widget.culto),
-                                  label: const Text('Editar dados do evento'),
-                                  icon: const Icon(Icons.edit_calendar),
-                                )
-                              : const SizedBox(),
+                          // Coordenador
+                          Flexible(
+                            child: _secaoResponsavel(
+                              Funcao.coordenador,
+                              mCulto.coordenador,
+                              () => _escalarResponsavel(Funcao.coordenador),
+                            ),
+                          ),
                         ],
                       ),
-                    ),
-                    const SizedBox(height: 36),
-                    // Fim da tela
-                  ],
+                      // Escalados (Equipe)
+                      _secaoEquipe(
+                        'Equipe',
+                        mCulto.equipe ?? {},
+                        () => _escalarIntegrante(mCulto.equipe),
+                      ),
+                      const Divider(),
+                      // Canticos
+                      _secaoCanticos,
+                      _listaDeCanticos,
+                      const Divider(height: 24),
+                      // Botões de ação
+                      _secaoAcoes,
+                      const SizedBox(height: 24),
+                      // Fim da tela
+                    ],
+                  ),
                 ),
               ),
             ],
@@ -367,41 +264,54 @@ class _ViewCultoState extends State<ViewCulto> {
     });
   }
 
+  /// Seção observações
+  Widget get _rowObservacoes {
+    return ListTile(
+      dense: true,
+      minLeadingWidth: 64,
+      shape: UnderlineInputBorder(
+        borderSide: BorderSide(color: Colors.grey.withOpacity(0.26)),
+      ),
+      leading: const Text('ATENÇÃO'),
+      title: Text(
+        mCulto.obs ?? '',
+        style: const TextStyle(color: Colors.red),
+      ),
+    );
+  }
+
   /// Dados sobre data e hora do ensaio
-  Widget get _rowEnsaio {
+  Widget get _secaoEnsaio {
     var dataFormatada = 'Sem horário definido';
     if (mCulto.dataEnsaio != null) {
       dataFormatada = DateFormat("EEE, d/MM/yyyy 'às' HH:mm", 'pt_BR')
           .format(mCulto.dataEnsaio!.toDate());
     }
-    return Row(
-      children: [
-        const SizedBox(width: 12),
-        const SizedBox(width: 80, child: Text('ENSAIO')),
-        // Informação
-        Expanded(
-            child: Text(
-          dataFormatada,
-          style: Theme.of(context)
-              .textTheme
-              .labelLarge!
-              .copyWith(fontWeight: FontWeight.bold),
-        )),
-        const SizedBox(width: 8),
-        // Botão de ação para dirigentes
-        logado.adm || ehODirigente || ehOCoordenador
-            ? mCulto.dataEnsaio == null
-                ? IconButton(
-                    onPressed: () => _definirHoraDoEnsaio(),
-                    icon: const Icon(Icons.more_time),
-                  )
-                : IconButton(
-                    onPressed: () => widget.culto.update({'dataEnsaio': null}),
-                    icon: const Icon(Icons.clear),
-                  )
-            : const SizedBox(height: kMinInteractiveDimension),
-        const SizedBox(width: 12),
-      ],
+    return ListTile(
+      dense: true,
+      minLeadingWidth: 64,
+      shape: UnderlineInputBorder(
+        borderSide: BorderSide(color: Colors.grey.withOpacity(0.26)),
+      ),
+      leading: const Text('ENSAIO'),
+      title: Text(
+        dataFormatada,
+        style: Theme.of(context)
+            .textTheme
+            .labelLarge!
+            .copyWith(fontWeight: FontWeight.bold),
+      ),
+      trailing: logado.adm || ehODirigente || ehOCoordenador
+          ? mCulto.dataEnsaio == null
+              ? IconButton(
+                  onPressed: () => _definirHoraDoEnsaio(),
+                  icon: const Icon(Icons.more_time),
+                )
+              : IconButton(
+                  onPressed: () => widget.culto.update({'dataEnsaio': null}),
+                  icon: const Icon(Icons.clear),
+                )
+          : null,
     );
   }
 
@@ -427,56 +337,53 @@ class _ViewCultoState extends State<ViewCulto> {
   }
 
   /// Acesso ao arquivo da liturgia do culto
-  Widget get _rowLiturgia {
-    return Row(
-      children: [
-        const SizedBox(width: 12),
-        const SizedBox(
-          width: 80,
-          child: Text('LITURGIA'),
-        ),
-        // Botão para abrir arquivo
-        mCulto.liturgiaUrl == null
-            ? Text(
-                'Nenhum arquivo carregado',
-                style: Theme.of(context).textTheme.caption,
-              )
-            : TextButton(
-                child: const Text('Ver documento'),
-                style: TextButton.styleFrom(padding: EdgeInsets.zero),
-                onPressed: () => MeuFirebase.abrirArquivosPdf(
-                    context, [mCulto.liturgiaUrl!])),
-        const Expanded(child: SizedBox()),
-        // Botão de ação para dirigentes
-        logado.adm || ehODirigente || ehOCoordenador || logado.ehLiturgo
-            ? mCulto.liturgiaUrl == null
-                ? IconButton(
-                    onPressed: () async {
-                      String? url = await MeuFirebase.carregarArquivoPdf(
-                          pasta: 'liturgias');
-                      if (url != null && url.isNotEmpty) {
-                        widget.culto.update({'liturgiaUrl': url}).then(
-                            (value) => null, onError: (_) {
-                          Mensagem.simples(
-                              context: context,
-                              mensagem: 'Falha ao atualizar o campo');
-                        });
-                      }
-                    },
-                    icon: const Icon(Icons.upload_file),
-                  )
-                : IconButton(
-                    onPressed: () => widget.culto.update({'liturgiaUrl': null}),
-                    icon: const Icon(Icons.clear),
-                  )
-            : const SizedBox(height: kMinInteractiveDimension),
-        const SizedBox(width: 12),
-      ],
+  Widget get _secaoLiturgia {
+    return ListTile(
+      dense: true,
+      minLeadingWidth: 64,
+      shape: UnderlineInputBorder(
+        borderSide: BorderSide(color: Colors.grey.withOpacity(0.26)),
+      ),
+      leading: const Text('LITURGIA'),
+      title: mCulto.liturgiaUrl == null
+          ? Text(
+              'Nenhum arquivo carregado',
+              style: Theme.of(context).textTheme.caption,
+            )
+          : Text(
+              'Abrir documento',
+              style: TextStyle(color: Theme.of(context).colorScheme.primary),
+            ),
+      trailing: logado.adm || ehODirigente || ehOCoordenador || logado.ehLiturgo
+          ? mCulto.liturgiaUrl == null
+              ? IconButton(
+                  onPressed: () async {
+                    String? url = await MeuFirebase.carregarArquivoPdf(context,
+                        pasta: 'liturgias');
+                    if (url != null && url.isNotEmpty) {
+                      widget.culto.update({'liturgiaUrl': url}).then(
+                          (value) => null, onError: (_) {
+                        Mensagem.simples(
+                            context: context,
+                            mensagem: 'Falha ao atualizar o campo');
+                      });
+                    }
+                  },
+                  icon: const Icon(Icons.upload_file),
+                )
+              : IconButton(
+                  onPressed: () => widget.culto.update({'liturgiaUrl': null}),
+                  icon: const Icon(Icons.clear),
+                )
+          : null,
+      onTap: mCulto.liturgiaUrl == null
+          ? null
+          : () => MeuFirebase.abrirArquivosPdf(context, [mCulto.liturgiaUrl!]),
     );
   }
 
   /// Seção o que falta
-  Widget get _rowOqueFalta {
+  Widget get _secaoOqueFalta {
     return FutureBuilder<QuerySnapshot<Instrumento>>(
         future: MeuFirebase.obterListaInstrumentos(ativo: true),
         builder: (context, snapshot) {
@@ -489,10 +396,13 @@ class _ViewCultoState extends State<ViewCulto> {
           } else {
             resultado = _verificaEquipe(snapshot.data);
           }
-          return Container(
-            color: Colors.orange.withOpacity(0.15),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            child: Text(
+          return ListTile(
+            dense: true,
+            tileColor: Colors.orange.withOpacity(0.15),
+            shape: UnderlineInputBorder(
+              borderSide: BorderSide(color: Colors.grey.withOpacity(0.26)),
+            ),
+            title: Text(
               resultado,
               style: Theme.of(context).textTheme.bodySmall,
             ),
@@ -542,24 +452,30 @@ class _ViewCultoState extends State<ViewCulto> {
   }
 
   /// Seção escalados
-  Widget _sectionResponsavel(
+  Widget _secaoResponsavel(
     Funcao funcao,
     DocumentReference<Integrante>? integrante,
     Function()? funcaoEditar,
   ) {
     return Padding(
-      padding: const EdgeInsets.only(left: 12, right: 8, top: 0, bottom: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
               // Icone
               Icon(funcaoGetIcon(funcao), size: 20),
               const SizedBox(width: 4),
               // Título
-              Text(funcaoGetString(funcao).toUpperCase()),
+              Flexible(
+                child: Text(
+                  funcaoGetString(funcao).toUpperCase(),
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
               // Botão de edição
               logado.adm || logado.ehRecrutador
                   ? IconButton(
@@ -583,7 +499,7 @@ class _ViewCultoState extends State<ViewCulto> {
   }
 
   /// Seção escalados
-  Widget _sectionEscalados(
+  Widget _secaoEquipe(
     String titulo,
     Map<String?, List<DocumentReference<Integrante>?>?> dados,
     Function()? funcaoEditar,
@@ -601,7 +517,7 @@ class _ViewCultoState extends State<ViewCulto> {
       //escalados.sort();
     }
     return Padding(
-      padding: const EdgeInsets.only(left: 12, right: 12, top: 0, bottom: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -609,10 +525,7 @@ class _ViewCultoState extends State<ViewCulto> {
           Row(
             children: [
               // Icone
-              Icon(
-                funcaoGetIcon(Funcao.componente),
-                size: 20,
-              ),
+              Icon(funcaoGetIcon(Funcao.membro), size: 20),
               const SizedBox(width: 4),
               // Título
               Text(titulo.toUpperCase()),
@@ -819,6 +732,53 @@ class _ViewCultoState extends State<ViewCulto> {
         });
   }
 
+  /// Acesso ao arquivo da liturgia do culto
+  Widget get _secaoCanticos {
+    return ListTile(
+      dense: true,
+      minLeadingWidth: 64,
+      leading: const Text('CÂNTICOS'),
+      /* title: TextButton.icon(
+                                icon: const Icon(Icons.picture_as_pdf),
+                                label: const Text('Todas as cifras'),
+                                onPressed: mCulto.canticos == null ||
+                                        mCulto.canticos!.isEmpty
+                                    ? null
+                                    : () async {
+                                        Mensagem.aguardar(context: context);
+                                        List<String> canticosUrls = [];
+                                        for (var cantico in mCulto.canticos!) {
+                                          var snap = await MeuFirebase
+                                              .obterSnapshotCantico(cantico.id);
+                                          if (snap?.data()?.cifraUrl != null) {
+                                            canticosUrls
+                                                .add(snap!.data()!.cifraUrl!);
+                                          }
+                                        }
+                                        Modular.to.pop();
+                                        MeuFirebase.abrirArquivosPdf(
+                                            context, canticosUrls);
+                                      },
+                              ), */
+      subtitle: logado.adm || ehODirigente
+          ? Padding(
+              padding: EdgeInsets.zero,
+              child: Text(
+                'Segure e arraste para reordenar (somente dirigente)',
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            )
+          : null,
+      trailing: logado.adm || ehODirigente
+          ? IconButton(
+              onPressed: () => _adicionarCanticos(),
+              icon: const Icon(Icons.edit_note),
+            )
+          : null,
+    );
+  }
+
   Widget get _listaDeCanticos {
     List<Widget> _list = [];
     if (mCulto.canticos == null || mCulto.canticos!.isEmpty) {
@@ -840,13 +800,13 @@ class _ViewCultoState extends State<ViewCulto> {
             }
             return ListTile(
               visualDensity: VisualDensity.compact,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 4),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 8),
               leading: IconButton(
                   onPressed: () {
                     Dialogos.verLetraDoCantico(context, snapshot.data!.data()!);
                   },
                   icon: const Icon(Icons.abc)),
-              horizontalTitleGap: 4,
+              horizontalTitleGap: 8,
               title: Text(
                 snapshot.data?.data()?.nome ?? '...',
                 overflow: TextOverflow.ellipsis,
@@ -893,7 +853,6 @@ class _ViewCultoState extends State<ViewCulto> {
         Widget startItem = _list[old];
         var startCantico = mCulto.canticos![old];
         if (old < current) {
-          // 0 para 4 (i = 0; i < 4-1 ; i++)
           for (int i = old; i < current - 1; i++) {
             _list[i] = _list[i + 1];
             mCulto.canticos![i] = mCulto.canticos![i + 1];
@@ -903,7 +862,6 @@ class _ViewCultoState extends State<ViewCulto> {
         }
         // dragging from bottom to top
         else if (old > current) {
-          // 4 para 0 (i = 4; i > 0 ; i--)
           for (int i = old; i > current; i--) {
             _list[i] = _list[i - 1];
             mCulto.canticos![i] = mCulto.canticos![i - 1];
@@ -912,16 +870,50 @@ class _ViewCultoState extends State<ViewCulto> {
           mCulto.canticos![current] = startCantico;
         }
         widget.culto.update({'canticos': mCulto.canticos});
-        //innerState(() {});
       },
     );
   }
 
-  /// Seção observações
-  Widget get _observacoes {
+  Widget get _secaoAcoes {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      child: SelectableText(mCulto.obs ?? '', minLines: 5),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Título
+          const Text('AÇÕES'),
+          const SizedBox(height: 8),
+          // Verificar disponibilidade da equipe
+          TextButton.icon(
+            onPressed: () => _verificarDisponibilidades(),
+            label: const Text('Verificar disponibilidades da equipe'),
+            icon: const Icon(Icons.groups),
+          ),
+          // Enviar notificação aos escalados
+          logado.adm || logado.ehRecrutador || ehODirigente || ehOCoordenador
+              ? TextButton.icon(
+                  onPressed: null,
+                  /* onPressed: () async {
+                    Mensagem.aguardar(context: context); // abre progresso
+                    Notificacoes.instancia.enviarMensagemPush();
+                    Modular.to.pop(); // fecha progresso
+                  }, */
+                  label: const Text('Notificar escalados'),
+                  icon: const Icon(Icons.notifications),
+                )
+              : const SizedBox(),
+          // Editar evento
+          logado.adm || logado.ehRecrutador || ehODirigente || ehOCoordenador
+              ? TextButton.icon(
+                  onPressed: () => Dialogos.editarCulto(context, mCulto,
+                      reference: widget.culto),
+                  label: const Text('Editar dados do evento'),
+                  icon: const Icon(Icons.edit_calendar),
+                )
+              : const SizedBox(),
+        ],
+      ),
     );
   }
 
@@ -932,8 +924,8 @@ class _ViewCultoState extends State<ViewCulto> {
           instrumentosIntegrantes) {
     Mensagem.bottomDialog(
       context: context,
-      icon: funcaoGetIcon(Funcao.componente),
-      titulo: 'Selecionar ${funcaoGetString(Funcao.componente).toLowerCase()}',
+      icon: funcaoGetIcon(Funcao.membro),
+      titulo: 'Selecionar ${funcaoGetString(Funcao.membro).toLowerCase()}',
       // Busca por instrumentos ativos
       conteudo: FutureBuilder<QuerySnapshot<Instrumento>>(
           future: MeuFirebase.obterListaInstrumentos(ativo: true),
@@ -949,7 +941,7 @@ class _ViewCultoState extends State<ViewCulto> {
             // Busca por integrantes ativos na função componente da equipe
             return FutureBuilder<QuerySnapshot<Integrante>>(
                 future: MeuFirebase.obterListaIntegrantes(
-                    ativo: true, funcao: Funcao.componente.index),
+                    ativo: true, funcao: Funcao.membro.index),
                 builder: (context, snapIntegrantes) {
                   // Aguardando
                   if (snapIntegrantes.connectionState ==

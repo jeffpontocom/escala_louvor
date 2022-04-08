@@ -150,7 +150,6 @@ class Mensagem {
       ),
       builder: (context) {
         return OrientationBuilder(builder: (context, orientation) {
-          print(orientation.name);
           return ConstrainedBox(
             constraints: BoxConstraints(
                 minHeight: MediaQuery.of(context).size.height * 0.3,
@@ -221,18 +220,18 @@ class Mensagem {
       {required BuildContext context,
       required String titulo,
       required Widget conteudo}) {
-    ScrollController _scrollControler = ScrollController();
+    ScrollController _scrollController = ScrollController();
     bottomDialog(
       context: context,
       titulo: titulo,
       conteudo: SingleChildScrollView(
-        controller: _scrollControler,
+        controller: _scrollController,
         child: SizedBox(
           height: MediaQuery.of(context).size.height * 0.75,
           child: conteudo,
         ),
       ),
-      scrollController: _scrollControler,
+      scrollController: _scrollController,
     );
   }
 }

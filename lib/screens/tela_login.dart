@@ -1,15 +1,14 @@
 import 'dart:developer' as dev;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:escala_louvor/screens/home.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 
 import '/global.dart';
-import '/rotas.dart';
 import '/models/integrante.dart';
-import '/utils/medidas.dart';
 import '/utils/mensagens.dart';
 import '/utils/utils.dart';
 
@@ -187,7 +186,7 @@ class _LoginPageState extends State<LoginPage> {
           Modular.to.pop(); // Fecha progresso
           if (documentSnapshot.exists) {
             // Integrante já registrado. Vai para home page
-            Modular.to.navigate(AppRotas.HOME);
+            Modular.to.navigate('/${Paginas.values[0].name}');
           } else {
             // Cria novo registro de integrante
             // Abre progresso
@@ -204,7 +203,7 @@ class _LoginPageState extends State<LoginPage> {
                   .doc(user.uid)
                   .set(integrante.toJson());
               // Sucesso. Vai para home
-              Modular.to.navigate(AppRotas.HOME);
+              Modular.to.navigate('/${Paginas.values[0].name}');
             } catch (e) {
               dev.log("Falha ao criar novo perfil de integrante: $e");
               Modular.to.pop(); // Fecha progresso

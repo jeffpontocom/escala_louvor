@@ -1,5 +1,9 @@
 // ignore_for_file: constant_identifier_names
 
+import 'package:escala_louvor/screens/pages/home_agenda.dart';
+import 'package:escala_louvor/screens/pages/home_canticos.dart';
+import 'package:escala_louvor/screens/pages/home_chats.dart';
+import 'package:escala_louvor/screens/pages/home_escalas.dart';
 import 'package:escala_louvor/screens/tela_notificacoes.dart';
 import 'package:escala_louvor/screens/tela_pdf_view.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -24,27 +28,45 @@ class AppRotas extends Module {
   final List<ModularRoute> routes = [
     ChildRoute(
       HOME,
-      //child: (_, args) => HomePage(escala: args.queryParams['escala']),
-      child: (_, args) => HomePage(),
+      child: (_, args) => const HomeInit(),
       guards: [NotAuthGuard()],
+      children: [
+        ChildRoute(
+          '/${Paginas.escala.name}',
+          child: (context, args) => TelaEscalas(id: args.queryParams['id']),
+          transition: TransitionType.downToUp,
+        ),
+        ChildRoute(
+          '/${Paginas.agenda.name}',
+          child: (context, args) => const TelaAgenda(),
+          transition: TransitionType.downToUp,
+        ),
+        ChildRoute(
+          '/${Paginas.chat.name}',
+          child: (context, args) => const TelaChat(),
+          transition: TransitionType.downToUp,
+        ),
+        ChildRoute(
+          '/${Paginas.cantico.name}',
+          child: (context, args) => const TelaCanticos(),
+          transition: TransitionType.downToUp,
+        ),
+      ],
     ),
     ChildRoute(
       LOGIN,
       child: (_, __) => const LoginPage(),
       guards: [AuthGuard()],
-      //transition: TransitionType.fadeIn,
     ),
     ChildRoute(
       PERFIL,
       child: (_, args) => TelaPerfil(id: args.queryParams['id'] ?? ''),
       guards: [NotAuthGuard(), HasQueryGuard()],
-      //transition: TransitionType.rightToLeftWithFade,
     ),
     ChildRoute(
       ADMIN,
       child: (_, __) => const AdminPage(),
       guards: [NotAuthGuard()],
-      //transition: TransitionType.downToUp,
     ),
     ChildRoute(
       ARQUIVOS,
@@ -56,13 +78,7 @@ class AppRotas extends Module {
       child: (_, arguments) => const MessageView(),
       //transition: TransitionType.fadeIn,
     ),
-    /* ChildRoute(
-      '/familia',
-      child: (_, args) => FamiliaPage(id: args.queryParams['id'] ?? ''),
-      transition: TransitionType.leftToRightWithFade,
-      guards: [AuthGuard(), HasQueryGuard()],
-    ), */
-    WildcardRoute(child: (_, __) => HomePage()),
+    WildcardRoute(child: (_, __) => const HomeInit()),
   ];
 }
 
@@ -77,7 +93,7 @@ class NotAuthGuard extends RouteGuard {
 }
 
 class AuthGuard extends RouteGuard {
-  AuthGuard() : super(redirectTo: AppRotas.HOME);
+  AuthGuard() : super(redirectTo: '/${Paginas.values[0].name}');
 
   @override
   // ignore: avoid_renaming_method_parameters
@@ -87,7 +103,7 @@ class AuthGuard extends RouteGuard {
 }
 
 class HasQueryGuard extends RouteGuard {
-  HasQueryGuard() : super(redirectTo: AppRotas.HOME);
+  HasQueryGuard() : super(redirectTo: '/${Paginas.values[0].name}');
 
   @override
   // ignore: avoid_renaming_method_parameters

@@ -220,7 +220,8 @@ class MeuFirebase {
   }
 
   /// Lista de administradores
-  static Future<QuerySnapshot<Integrante>> obterListaIntegrantesAdms() async {
+  static Future<QuerySnapshot<Integrante>>
+      obterListaIntegrantesAdministradores() async {
     return FirebaseFirestore.instance
         .collection(Integrante.collection)
         .where('adm', isEqualTo: true)
@@ -570,7 +571,8 @@ class MeuFirebase {
   }
 
   /// Carregar arquivo PDF
-  static Future<String?> carregarArquivoPdf({required String pasta}) async {
+  static Future<String?> carregarArquivoPdf(BuildContext context,
+      {required String pasta}) async {
     String url = '';
     // Abrir seleção
     try {
@@ -586,6 +588,7 @@ class MeuFirebase {
         final fileExtension = result.files.first.extension;
         dev.log(fileName);
         // Salvar na Cloud Firestore
+        Mensagem.aguardar(context: context, mensagem: 'Carregando arquivo...');
         var ref = FirebaseStorage.instance.ref('$pasta/$fileName');
         if (kIsWeb) {
           await ref.putData(fileBytes!,
@@ -594,15 +597,15 @@ class MeuFirebase {
           var file = File(result.files.first.path!);
           await ref.putFile(file);
         }
-
         url = await ref.getDownloadURL();
+        Modular.to.pop(); // fecha progresso
       }
     } on PlatformException catch (e) {
-      dev.log('Unsupported operation: ' + e.toString(), name: 'CarregarFoto');
+      dev.log('Unsupported operation: ' + e.toString(), name: 'log:LoadPDF');
     } on FirebaseException catch (e) {
-      dev.log('FirebaseException code: ' + e.code, name: 'CarregarFoto');
+      dev.log('FirebaseException code: ' + e.code, name: 'log:LoadPDF');
     } catch (e) {
-      dev.log('Catch Exception: ' + e.toString(), name: 'CarregarFoto');
+      dev.log('Catch Exception: ' + e.toString(), name: 'log:LoadPDF');
     }
     // Retorno
     return url;
@@ -612,7 +615,7 @@ class MeuFirebase {
   static void abrirArquivosPdf(BuildContext context, List<String>? urls) async {
     if (urls == null || urls.isEmpty) return;
     try {
-      Mensagem.aguardar(context: context);
+      Mensagem.aguardar(context: context, mensagem: 'Abrindo arquivo...');
       List<Response> arquivos = [];
       for (var url in urls) {
         var data = await http.get(Uri.parse(url));

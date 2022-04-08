@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:escala_louvor/screens/home.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:intl/intl.dart';
@@ -8,7 +9,6 @@ import '/functions/metodos_firebase.dart';
 import '/global.dart';
 import '/models/culto.dart';
 import '/models/integrante.dart';
-import '/rotas.dart';
 import '/screens/views/dialogos.dart';
 import '/utils/mensagens.dart';
 import '/utils/utils.dart';
@@ -184,7 +184,7 @@ class TelaAgenda extends StatelessWidget {
               // Espaço em branco
               const Expanded(child: SizedBox()),
               // Botão criar novo registro de culto
-              (logado.ehRecrutador)
+              (logado.adm || logado.ehRecrutador)
                   ? ActionChip(
                       avatar: const Icon(Icons.add),
                       label: const Text('Novo'),
@@ -400,7 +400,7 @@ class TelaAgenda extends StatelessWidget {
                                           : const SizedBox(),
                                   onTap: () {
                                     Modular.to.navigate(
-                                        '${AppRotas.HOME}?escala=${cultos[index].id}');
+                                        '/${Paginas.escala.name}?id=${cultos[index].id}');
                                   },
                                 );
                               });

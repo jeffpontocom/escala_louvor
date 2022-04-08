@@ -13,6 +13,7 @@ import 'firebase_options.dart';
 import 'functions/notificacoes.dart';
 import 'preferencias.dart';
 import 'rotas.dart';
+import 'screens/home.dart';
 
 void main() async {
   setPathUrlStrategy(); // remove o hash '#' das URLs
@@ -26,9 +27,6 @@ void main() async {
       debugMode: !kReleaseMode,
     ),
   );
-  // Its Important to place this line after runApp() otherwise
-  // FlutterLocalNotificationsPlugin will not be initialize and you will get error
-  Notificacoes.carregarInstancia();
 }
 
 class MyApp extends StatelessWidget {
@@ -36,6 +34,7 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    Modular.setInitialRoute('/${Paginas.values[0].name}');
     // Escuta alterações no usuário autenticado
     // Pelas configurações de rota Modular usuário não logados são
     // direcionados diretamente a tela de login
@@ -46,6 +45,11 @@ class MyApp extends StatelessWidget {
           if (snapshotUser.connectionState == ConnectionState.active) {
             dev.log(
                 'Firebase Auth: ${snapshotUser.data?.email ?? 'não logado!'}');
+          }
+          // Its Important to place this line after runApp() otherwise
+          // FlutterLocalNotificationsPlugin will not be initialize and you will get error
+          if (snapshotUser.data?.email != null) {
+            Notificacoes.carregarInstancia();
           }
           // APP
           return MaterialApp.router(
@@ -59,6 +63,7 @@ class MyApp extends StatelessWidget {
               ),
               materialTapTargetSize:
                   kIsWeb ? MaterialTapTargetSize.padded : null,
+              dividerTheme: const DividerThemeData(space: 4),
             ),
             // Tema Escuro
             darkTheme: ThemeData(
@@ -70,6 +75,7 @@ class MyApp extends StatelessWidget {
               ),
               materialTapTargetSize:
                   kIsWeb ? MaterialTapTargetSize.padded : null,
+              dividerTheme: const DividerThemeData(space: 4),
             ),
             // Behaviors
             scrollBehavior: MyCustomScrollBehavior(),

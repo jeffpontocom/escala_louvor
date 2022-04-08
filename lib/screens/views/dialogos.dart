@@ -1,6 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:escala_louvor/rotas.dart';
-import 'package:escala_louvor/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:intl/intl.dart';
@@ -10,6 +8,7 @@ import '../../global.dart';
 import '../../models/cantico.dart';
 import '../../models/culto.dart';
 import '../../utils/mensagens.dart';
+import '../home.dart';
 
 class Dialogos {
   static void editarCulto(BuildContext context, Culto culto,
@@ -18,22 +17,28 @@ class Dialogos {
 
     return Mensagem.bottomDialog(
       context: context,
-      titulo: 'Editar registro do culto',
+      titulo: 'Editar culto/evento',
       conteudo: ListView(
         shrinkWrap: true,
         padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
         children: [
           StatefulBuilder(builder: (_, innerState) {
-            return Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            return Wrap(
+              spacing: 16,
               children: [
                 // Igreja
                 CircleAvatar(
                   radius: 24,
-                  child: const Icon(Icons.church),
-                  foregroundImage: MyNetwork.getImageFromUrl(
-                          Global.igrejaSelecionada.value?.data()?.fotoUrl)
-                      ?.image,
+                  child: Text(
+                    Global.igrejaSelecionada.value?.data()?.sigla ?? '',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontFamily: 'Offside',
+                      fontSize: 14,
+                      letterSpacing: 0,
+                    ),
+                  ),
                 ),
                 // Data
                 ActionChip(
@@ -136,7 +141,7 @@ class Dialogos {
             minLines: 5,
             maxLines: 15,
             decoration: const InputDecoration(
-              labelText: 'Observações',
+              labelText: 'Observações (pontos de atenção para a equipe)',
               floatingLabelBehavior: FloatingLabelBehavior.always,
             ),
             onChanged: (value) {
@@ -161,7 +166,7 @@ class Dialogos {
                     await MeuFirebase.apagarCulto(culto, id: reference.id);
                     Modular.to.pop(); // Fecha progresso
                     Modular.to.maybePop(); // Fecha dialog
-                    Modular.to.navigate(AppRotas.HOME);
+                    Modular.to.navigate('/${Paginas.values[0].name}');
                   },
                 ),
           const Expanded(child: SizedBox()),
@@ -224,8 +229,9 @@ class Dialogos {
                   // Botão de ação carregar arquivo
                   IconButton(
                     onPressed: () async {
-                      String? url =
-                          await MeuFirebase.carregarArquivoPdf(pasta: 'cifras');
+                      String? url = await MeuFirebase.carregarArquivoPdf(
+                          context,
+                          pasta: 'cifras');
                       if (url != null && url.isNotEmpty) {
                         innerState(() => cantico.cifraUrl = url);
                       }
