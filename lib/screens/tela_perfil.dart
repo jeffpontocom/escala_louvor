@@ -64,10 +64,12 @@ class _TelaPerfilState extends State<TelaPerfil> {
             _documentReference = snap.data!.reference;
             // Tela com retorno preenchido
             return ViewIntegrante(
-                id: _documentReference.id,
-                integrante: _integrante,
-                editMode: _ehMeuPerfil,
-                novoCadastro: false);
+              id: _documentReference.id,
+              integrante: _integrante,
+              editMode: _ehMeuPerfil,
+              novoCadastro: false,
+              hero: _documentReference.id,
+            );
           }),
     );
   }

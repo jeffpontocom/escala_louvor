@@ -1,3 +1,5 @@
+import 'dart:developer' as dev;
+
 import 'dart:io';
 import 'dart:math';
 
@@ -73,26 +75,28 @@ class MyActions {
 class MyNetwork {
   static Image? getImageFromUrl(String? url, {double? progressoSize}) {
     if (url == null) return null;
+
     return Image.network(
       url,
+      key: Key(url),
       fit: BoxFit.cover,
       loadingBuilder: (context, child, loading) {
         if (loading == null) return child;
-        return SizedBox(
-          width: progressoSize,
-          height: progressoSize,
-          child: Center(
-            child:
-                CircularProgressIndicator(color: Colors.grey.withOpacity(0.5)),
-          ),
+        return Center(
+          child: SizedBox(
+              width: progressoSize,
+              height: progressoSize,
+              child: CircularProgressIndicator(
+                  color: Colors.grey.withOpacity(0.5))),
         );
       },
-      errorBuilder: (context, error, stackTrace) => const Center(
-        child: Icon(
-          Icons.error,
-          color: Colors.red,
-        ),
-      ),
+      frameBuilder: (context, child, frame, isSync) {
+        dev.log('image frame $frame');
+        dev.log('image isSync $isSync');
+        return child;
+      },
+      errorBuilder: (context, error, stackTrace) =>
+          const Center(child: Icon(Icons.error, color: Colors.red)),
     );
   }
 }

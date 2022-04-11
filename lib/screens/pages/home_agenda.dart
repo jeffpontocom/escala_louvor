@@ -253,8 +253,8 @@ class TelaAgenda extends StatelessWidget {
                                     ?.toDate();
                                 var data = '';
                                 if (dn != null) {
-                                  dn = DateTime(DateTime.now().toLocal().year,
-                                      dn.month, dn.day);
+                                  dn = DateTime(
+                                      DateTime.now().year, dn.month, dn.day);
                                   data = DateFormat.Md('pt_BR').format(dn);
                                   _meusEventos.value
                                       .putIfAbsent(dn, () => 'aniversario');
@@ -265,8 +265,12 @@ class TelaAgenda extends StatelessWidget {
                                   child: RawChip(
                                     label: Text(data),
                                     avatar: CircleAvatar(
-                                      child: Text(MyStrings.getUserInitials(
-                                          aniversariantes[index].data().nome)),
+                                      child: Text(
+                                          MyStrings.getUserInitials(
+                                              aniversariantes[index]
+                                                  .data()
+                                                  .nome),
+                                          textScaleFactor: 0.6),
                                       foregroundImage:
                                           MyNetwork.getImageFromUrl(
                                                   aniversariantes[index]
@@ -401,7 +405,7 @@ class TelaAgenda extends StatelessWidget {
                                           : const SizedBox(),
                                   onTap: () {
                                     Modular.to.navigate(
-                                        '/${Paginas.escala.name}?id=${cultos[index].id}');
+                                        '/${Paginas.escalas.name}?id=${cultos[index].id}');
                                   },
                                 );
                               });

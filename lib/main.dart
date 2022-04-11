@@ -5,6 +5,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:url_strategy/url_strategy.dart';
@@ -18,6 +19,7 @@ import 'screens/home.dart';
 void main() async {
   setPathUrlStrategy(); // remove o hash '#' das URLs
   WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load();
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await Preferencias.carregarInstancia();
   runApp(
@@ -34,10 +36,11 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Rota inicial
     Modular.setInitialRoute('/${Paginas.values[0].name}');
     // Escuta alterações no usuário autenticado
-    // Pelas configurações de rota Modular usuário não logados são
-    // direcionados diretamente a tela de login
+    // pelas configurações de rota os usuários não logados são
+    // direcionados a tela de login
     return StreamBuilder<User?>(
         stream: FirebaseAuth.instance.userChanges(),
         builder: (_, snapshotUser) {
@@ -46,9 +49,9 @@ class MyApp extends StatelessWidget {
             dev.log(
                 'Firebase Auth: ${snapshotUser.data?.email ?? 'não logado!'}');
           }
-          // Its Important to place this line after runApp() otherwise
-          // FlutterLocalNotificationsPlugin will not be initialize and you will get error
           if (snapshotUser.data?.email != null) {
+            // Carrega sistema de notificações
+            // Esse carregamento deve ser feito sempre após runApp() para evitar erros
             Notificacoes.carregarInstancia();
           }
           // APP

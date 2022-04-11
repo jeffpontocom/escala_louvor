@@ -16,12 +16,14 @@ class ViewIntegrante extends StatelessWidget {
   final Integrante integrante;
   final bool novoCadastro;
   final bool editMode;
+  final String hero;
   const ViewIntegrante({
     Key? key,
     this.id,
     required this.integrante,
     required this.novoCadastro,
     required this.editMode,
+    required this.hero,
   }) : super(key: key);
 
   @override
@@ -105,7 +107,7 @@ class ViewIntegrante extends StatelessWidget {
                           children: [
                             // Foto
                             Hero(
-                              tag: 'fotoUsuario',
+                              tag: hero,
                               child: CircleAvatar(
                                 child: Text(
                                   MyStrings.getUserInitials(integrante.nome),

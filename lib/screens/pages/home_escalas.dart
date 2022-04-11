@@ -31,8 +31,7 @@ class _TelaEscalasState extends State<TelaEscalas>
   @override
   void initState() {
     var agora = DateTime.now();
-    _hoje = Timestamp.fromDate(
-        DateTime(agora.year, agora.month, agora.day).toUtc());
+    _hoje = Timestamp.fromDate(DateTime(agora.year, agora.month, agora.day));
     super.initState();
   }
 

@@ -1,5 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="br.org.ipbfoz.escala_louvor">
+   <uses-permission android:name="android.permission.INTERNET" />
+   <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
    <application
         android:label="Escala Louvor"
         android:name="${applicationName}"

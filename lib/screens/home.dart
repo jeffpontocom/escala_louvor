@@ -14,7 +14,7 @@ import '/screens/views/view_igrejas.dart';
 import '/utils/estilos.dart';
 import '/utils/utils.dart';
 
-enum Paginas { escala, agenda, chat, cantico }
+enum Paginas { escalas, agenda, chats, canticos }
 
 class HomeInit extends StatelessWidget {
   const HomeInit({Key? key}) : super(key: key);
@@ -209,7 +209,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  int paginaSelecionada = 0;
+  final ValueNotifier<int> _pagina = ValueNotifier(0);
 
   List<String> titulos = const [
     'Escalas do Louvor',
@@ -241,11 +241,12 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void initState() {
-    paginaSelecionada = setPage(Modular.routerDelegate.path);
+    _pagina.value = setPage(Modular.routerDelegate.path);
     Modular.routerDelegate.addListener(() {
-      setState(() {
-        paginaSelecionada = setPage(Modular.routerDelegate.path);
-      });
+      _pagina.value = setPage(Modular.routerDelegate.path);
+      //setState(() {
+      //  paginaSelecionada = setPage(Modular.routerDelegate.path);
+      //});
     });
     super.initState();
   }
@@ -253,9 +254,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void dispose() {
     Modular.routerDelegate.removeListener(() {
-      setState(() {
-        paginaSelecionada = setPage(Modular.routerDelegate.path);
-      });
+      _pagina.value = setPage(Modular.routerDelegate.path);
     });
     super.dispose();
   }
@@ -269,7 +268,11 @@ class _HomePageState extends State<HomePage> {
             padding: const EdgeInsets.all(12),
             child: Image.asset('assets/icons/ic_launcher.png')),
         // Título da aplicação
-        title: Text(titulos[paginaSelecionada], style: Estilo.appBarTitulo),
+        title: ValueListenableBuilder<int>(
+            valueListenable: _pagina,
+            builder: (context, pagina, _) {
+              return Text(titulos[pagina], style: Estilo.appBarTitulo);
+            }),
         titleSpacing: 0,
         // Ações
         actions: [
@@ -283,7 +286,7 @@ class _HomePageState extends State<HomePage> {
           // Tela perfil do usuário
           IconButton(
             icon: Hero(
-              tag: 'fotoUsuario',
+              tag: FirebaseAuth.instance.currentUser?.uid ?? 'fotoUsuario',
               child: CircleAvatar(
                 child: Icon(Icons.person,
                     color: Theme.of(context).colorScheme.background),
@@ -302,16 +305,22 @@ class _HomePageState extends State<HomePage> {
       // CORPO
       body: const RouterOutlet(),
       // NAVIGATION BAR
-      bottomNavigationBar: BottomNavigationBar(
-          items: _navigationItens,
-          currentIndex: paginaSelecionada,
-          selectedItemColor: Colors.blue,
-          unselectedItemColor: Colors.grey.withOpacity(0.5),
-          type: BottomNavigationBarType.shifting,
-          onTap: (index) {
-            if (index == 4) return;
-            Modular.to.navigate('/${Paginas.values[index].name}');
-          }),
+      bottomNavigationBar: ValueListenableBuilder<int>(
+        valueListenable: _pagina,
+        builder: (context, pagina, _) {
+          return BottomNavigationBar(
+              items: _navigationItens,
+              currentIndex: pagina,
+              selectedItemColor: Colors.blue,
+              unselectedItemColor: Colors.grey.withOpacity(0.5),
+              type: BottomNavigationBarType.shifting,
+              onTap: (index) {
+                if (index == 4) return;
+                Modular.to.navigate('/${Paginas.values[index].name}');
+              });
+        },
+      ),
+
       // FLOAT ACTION
       floatingActionButton: FloatingActionButton(
         child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [

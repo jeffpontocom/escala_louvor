@@ -67,11 +67,6 @@ class ViewIgrejas extends StatelessWidget {
                         clipBehavior: Clip.antiAlias,
                         elevation: 0,
                         margin: EdgeInsets.zero,
-                        /* color: inscritas[index].reference.toString() ==
-                                Global.igrejaSelecionada.value?.reference
-                                    .toString()
-                            ? Colors.orange
-                            : null, */
                         shape: RoundedRectangleBorder(
                           side: inscrita
                               ? const BorderSide(color: Colors.orange, width: 3)

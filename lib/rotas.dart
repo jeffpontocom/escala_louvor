@@ -32,7 +32,7 @@ class AppRotas extends Module {
       guards: [NotAuthGuard()],
       children: [
         ChildRoute(
-          '/${Paginas.escala.name}',
+          '/${Paginas.escalas.name}',
           child: (context, args) => TelaEscalas(id: args.queryParams['id']),
           transition: TransitionType.downToUp,
         ),
@@ -42,12 +42,12 @@ class AppRotas extends Module {
           transition: TransitionType.downToUp,
         ),
         ChildRoute(
-          '/${Paginas.chat.name}',
+          '/${Paginas.chats.name}',
           child: (context, args) => const TelaChat(),
           transition: TransitionType.downToUp,
         ),
         ChildRoute(
-          '/${Paginas.cantico.name}',
+          '/${Paginas.canticos.name}',
           child: (context, args) => const TelaCanticos(),
           transition: TransitionType.downToUp,
         ),

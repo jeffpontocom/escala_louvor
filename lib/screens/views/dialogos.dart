@@ -24,7 +24,7 @@ class Dialogos {
         children: [
           StatefulBuilder(builder: (_, innerState) {
             return Wrap(
-              spacing: 16,
+              spacing: 8,
               children: [
                 // Igreja
                 CircleAvatar(

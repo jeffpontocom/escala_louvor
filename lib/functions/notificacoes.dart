@@ -5,6 +5,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:http/http.dart' as http;
@@ -181,10 +182,18 @@ class Notificacoes {
       return;
     }
     try {
+      final serverKey = dotenv.env['FCM_ServerKey'] ?? '';
       await http.post(
-        Uri.parse('https://api.rnfirebase.io/messaging/send'),
+        /* Uri.parse('https://api.rnfirebase.io/messaging/send'),
         headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8'
+          'Content-Type': 'application/json; charset=UTF-8',
+          'Authorization': 'key=$serverKey',
+        }, */
+        Uri.parse(
+            'https://fcm.googleapis.com/v1/projects/escala-louvor-ipbfoz/messages:send HTTP/1.1'),
+        headers: <String, String>{
+          'Content-Type': 'application/json; charset=UTF-8',
+          'Authorization': 'key=$serverKey',
         },
         /* Uri.parse(
             'https://fcm.googleapis.com/v1/projects/escala-louvor-ipbfoz/messages:send'),
@@ -196,7 +205,7 @@ class Notificacoes {
       );
       dev.log('Solicitação de FCM enviada com sucesso!');
     } catch (e) {
-      dev.log(e.toString());
+      dev.log('Erro ao enviar: ' + e.toString());
     }
     /* try {
       await http
@@ -227,7 +236,8 @@ class Notificacoes {
   /// The API endpoint here accepts a raw FCM payload for demonstration purposes.
   static String _construirFCMPayload(String? token) {
     return jsonEncode({
-      'token': token,
+      //'token': token,
+      'topic': 'escala_louvor',
       'data': {
         'via': 'FlutterFire Cloud Messaging!!!',
         'count': 'Teste',

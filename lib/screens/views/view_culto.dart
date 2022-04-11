@@ -5,8 +5,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:intl/intl.dart';
-import 'package:url_launcher/url_launcher.dart';
 
+import '../../functions/notificacoes.dart';
 import '/functions/metodos_firebase.dart';
 import '/global.dart';
 import '/models/cantico.dart';
@@ -458,7 +458,7 @@ class _ViewCultoState extends State<ViewCulto> {
     Function()? funcaoEditar,
   ) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -570,7 +570,7 @@ class _ViewCultoState extends State<ViewCulto> {
             onTap: () => Modular.to.pushNamed('/perfil?id=${integrante?.id}'),
             child: Container(
               width: 128,
-              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
               decoration: BoxDecoration(
                 border: Border.all(
                   width: 1,
@@ -594,8 +594,9 @@ class _ViewCultoState extends State<ViewCulto> {
                             progressoSize: 16)
                         ?.image,
                     backgroundColor: Colors.grey.withOpacity(0.5),
+                    radius: 24,
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 8),
                   // Nome do integrante
                   Center(
                     child: Text(
@@ -892,12 +893,12 @@ class _ViewCultoState extends State<ViewCulto> {
           // Enviar notificação aos escalados
           logado.adm || logado.ehRecrutador || ehODirigente || ehOCoordenador
               ? TextButton.icon(
-                  onPressed: null,
-                  /* onPressed: () async {
+                  //onPressed: null,
+                  onPressed: () async {
                     Mensagem.aguardar(context: context); // abre progresso
                     Notificacoes.instancia.enviarMensagemPush();
                     Modular.to.pop(); // fecha progresso
-                  }, */
+                  },
                   label: const Text('Notificar escalados'),
                   icon: const Icon(Icons.notifications),
                 )
@@ -905,10 +906,10 @@ class _ViewCultoState extends State<ViewCulto> {
           // Editar evento
           logado.adm || logado.ehRecrutador || ehODirigente || ehOCoordenador
               ? TextButton.icon(
-                  onPressed: () => Dialogos.editarCulto(context, mCulto,
-                      reference: widget.culto),
                   label: const Text('Editar dados do evento'),
                   icon: const Icon(Icons.edit_calendar),
+                  onPressed: () => Dialogos.editarCulto(context, mCulto,
+                      reference: widget.culto),
                 )
               : const SizedBox(),
         ],

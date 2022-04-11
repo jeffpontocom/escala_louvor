@@ -727,6 +727,7 @@ class AdminPage extends StatelessWidget {
         integrante: integrante,
         novoCadastro: novoCadastro,
         editMode: true,
+        hero: id ?? 'foto',
       ),
     );
   }
