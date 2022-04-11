@@ -1,43 +1,42 @@
 name: escala_louvor
 description: App para controle da escala do louvor.
 
-# The following line prevents the package from being accidentally published to
-# pub.dev using `flutter pub publish`. This is preferred for private packages.
-publish_to: 'none' # Remove this line if you wish to publish to pub.dev
+# INSTRUÇÕES PARA BUILD 
+# Para publicar a versão web no servidor local executar: 
+# - flutter build web
+# então copiar arquivos resultantes para a pasta definida no servidor IIS
+#
+# Para publicar no github pages executar:
+# - flutter pub global run peanut --web-renderer canvaskit
+# - git push -f origin --set-upstream gh-pages (-f é necessário para refazer a base)
+#
+# Para gerar a versão para Android tipo appbundle: 
+# - flutter build appbundle --no-shrink
+#
+# Remover essa linha para publicar no repositório pub.dev
+# - pub publish
+publish_to: 'none'
 
-# The following defines the version and build number for your application.
-# A version number is three numbers separated by dots, like 1.2.43
-# followed by an optional build number separated by a +.
-# Both the version and the builder number may be overridden in flutter
-# build by specifying --build-name and --build-number, respectively.
-# In Android, build-name is used as versionName while build-number used as versionCode.
-# Read more about Android versioning at https://developer.android.com/studio/publish/versioning
-# In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
-# Read more about iOS versioning at
-# https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 0.1.4+5
+# VERSÃO DO APP
+version: 0.1.5+6
 
+# VERSÃO DO SDK FLUTTER
 environment:
   sdk: ">=2.16.1 <3.0.0"
 
-# Dependencies specify other packages that your package needs in order to work.
-# To automatically upgrade your package dependencies to the latest versions
-# consider running `flutter pub upgrade --major-versions`. Alternatively,
-# dependencies can be manually updated by changing the version numbers below to
-# the latest version available on pub.dev. To see which dependencies have newer
-# versions available, run `flutter pub outdated`.
+# DEPENDÊNCIAS
+# Após cada alteração neste arquivo executar: - flutter pub get
+# Para atualizar para as últimas versões: - flutter pub upgrade --major-versions
 dependencies:
   flutter:
-    sdk: flutter  
+    sdk: flutter
   flutter_localizations:
     sdk: flutter
-  flutter_dotenv: ^5.0.2  
+  flutter_dotenv: ^5.0.2
   flutter_modular: ^4.2.0
   flutter_local_notifications: ^9.4.0
   firebase_auth: ^3.3.11
-  # firebase_auth_desktop: ^0.1.1-dev.6
-  firebase_core: ^1.13.1  
-  # firebase_core_desktop: ^0.1.1-dev.3
+  firebase_core: ^1.13.1
   firebase_messaging: ^11.2.11
   firebase_storage: ^10.2.9
   cloud_firestore: ^3.1.10
@@ -49,8 +48,8 @@ dependencies:
   printing: ^5.7.3
   table_calendar: ^3.0.4
   shared_preferences: ^2.0.13
-  url_strategy: ^0.2.0 # para remover o hash '#' das URLs (incluir 'setPathUrlStrategy();' em main) 
   url_launcher: ^6.0.20
+  url_strategy: ^0.2.0 # para remover o hash '#' das URLs (incluir 'setPathUrlStrategy();' em main) 
 
 dev_dependencies:
   flutter_test:
@@ -67,27 +66,13 @@ flutter_icons:
   android: true
   ios: true
 
-# For information on the generic Dart part of this file, see the
-# following page: https://dart.dev/tools/pub/pubspec
-
-# The following section is specific to Flutter.
+# ASSETS
 flutter:
-
-  # The following line ensures that the Material Icons font is
-  # included with your application, so that you can use the icons in
-  # the material Icons class.
   uses-material-design: true
-
-  # To add assets to your application, add an assets section, like this:
   assets:
     - .env
     - assets/icons/ic_launcher.png
-     # https://icons8.com/illustrations/style--clip
-    - assets/images/login.png
-    - assets/images/chat.png
-    - assets/images/church.png
-    - assets/images/song.png
-    # https://www.flaticon.com/packs/music-icons-7?word=music%20instruments
+    # ÍCONES MÚSICA: https://www.flaticon.com/packs/music-icons-7?word=music%20instruments
     - assets/icons/music_baixo.png
     - assets/icons/music_bateria.png
     - assets/icons/music_coordenador.png
@@ -100,28 +85,12 @@ flutter:
     - assets/icons/music_transmissao.png
     - assets/icons/music_violao.png
     - assets/icons/music_voz.png
-
-  # An image asset can refer to one or more resolution-specific "variants", see
-  # https://flutter.dev/assets-and-images/#resolution-aware.
-
-  # For details regarding adding assets from package dependencies, see
-  # https://flutter.dev/assets-and-images/#from-packages
-
-  # To add custom fonts to your application, add a fonts section here,
-  # in this "flutter" section. Each entry in this list should have a
-  # "family" key with the font family name, and a "fonts" key with a
-  # list giving the asset and other descriptors for the font. For
-  # example:
+    # ILUSTRAÇÕES: https://icons8.com/illustrations/style--clip
+    - assets/images/login.png
+    - assets/images/chat.png
+    - assets/images/church.png
+    - assets/images/song.png
   fonts:
     - family: Offside
       fonts:
         - asset: assets/fonts/Offside-Regular.ttf
-  #         style: italic
-  #   - family: Trajan Pro
-  #     fonts:
-  #       - asset: fonts/TrajanPro.ttf
-  #       - asset: fonts/TrajanPro_Bold.ttf
-  #         weight: 700
-  #
-  # For details regarding fonts from package dependencies,
-  # see https://flutter.dev/custom-fonts/#from-packages

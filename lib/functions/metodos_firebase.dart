@@ -532,7 +532,7 @@ class MeuFirebase {
   /* CLOUD FIRESTORE */
 
   /// Trocar foto
-  static Future<String?> carregarFoto() async {
+  static Future<String?> carregarFoto(BuildContext context) async {
     String fotoUrl = '';
     // Abrir seleção de foto
     try {
@@ -548,6 +548,7 @@ class MeuFirebase {
         final fileExtension = result.files.first.extension;
         dev.log(fileName);
         // Salvar na Cloud Firestore
+        Mensagem.aguardar(context: context, mensagem: 'Carregando foto..');
         var ref = FirebaseStorage.instance.ref('fotos/$fileName');
         if (kIsWeb) {
           await ref.putData(fileBytes!,
@@ -556,8 +557,8 @@ class MeuFirebase {
           var file = File(result.files.first.path!);
           await ref.putFile(file);
         }
-
         fotoUrl = await ref.getDownloadURL();
+        Modular.to.pop(); // fecha progresso
       }
     } on PlatformException catch (e) {
       dev.log('Unsupported operation: ' + e.toString(), name: 'CarregarFoto');

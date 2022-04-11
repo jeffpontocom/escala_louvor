@@ -265,7 +265,8 @@ class TelaAgenda extends StatelessWidget {
                                   child: RawChip(
                                     label: Text(data),
                                     avatar: CircleAvatar(
-                                      child: const Icon(Icons.person),
+                                      child: Text(MyStrings.getUserInitials(
+                                          aniversariantes[index].data().nome)),
                                       foregroundImage:
                                           MyNetwork.getImageFromUrl(
                                                   aniversariantes[index]

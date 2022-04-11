@@ -36,7 +36,7 @@ class ViewIntegrante extends StatelessWidget {
             children: [
               // Funções
               Padding(
-                padding: const EdgeInsets.only(top: 8, bottom: 16),
+                padding: const EdgeInsets.symmetric(vertical: 16),
                 child: LayoutBuilder(builder: (context, constraints) {
                   return StatefulBuilder(
                     builder: (context, innerState) {
@@ -100,31 +100,44 @@ class ViewIntegrante extends StatelessWidget {
                     return Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        // Foto
-                        CircleAvatar(
-                          child: IconButton(
-                              iconSize: 48,
-                              onPressed: editMode
-                                  ? () async {
-                                      var url =
-                                          await MeuFirebase.carregarFoto();
-                                      if (url != null && url.isNotEmpty) {
-                                        innerState(() {
-                                          integrante.fotoUrl = url;
-                                        });
-                                      }
-                                    }
-                                  : null,
-                              icon: integrante.fotoUrl == null
-                                  ? Icon(editMode
-                                      ? Icons.add_a_photo
-                                      : Icons.person)
-                                  : const CircularProgressIndicator()),
-                          foregroundImage:
-                              MyNetwork.getImageFromUrl(integrante.fotoUrl)
-                                  ?.image,
-                          backgroundColor: Colors.grey.withOpacity(0.5),
-                          radius: 48,
+                        Stack(
+                          alignment: AlignmentDirectional.bottomEnd,
+                          children: [
+                            // Foto
+                            Hero(
+                              tag: 'fotoUsuario',
+                              child: CircleAvatar(
+                                child: Text(
+                                  MyStrings.getUserInitials(integrante.nome),
+                                  style:
+                                      Theme.of(context).textTheme.headlineLarge,
+                                ),
+                                foregroundImage: MyNetwork.getImageFromUrl(
+                                        integrante.fotoUrl)
+                                    ?.image,
+                                backgroundColor: Colors.grey.withOpacity(0.5),
+                                radius: 56,
+                              ),
+                            ),
+                            editMode
+                                ? CircleAvatar(
+                                    radius: 16,
+                                    child: IconButton(
+                                        iconSize: 16,
+                                        onPressed: () async {
+                                          var url =
+                                              await MeuFirebase.carregarFoto(
+                                                  context);
+                                          if (url != null && url.isNotEmpty) {
+                                            innerState(() {
+                                              integrante.fotoUrl = url;
+                                            });
+                                          }
+                                        },
+                                        icon: const Icon(Icons.add_a_photo)),
+                                  )
+                                : const SizedBox(),
+                          ],
                         ),
                         // Data de Nascimento
                         SizedBox(
@@ -214,7 +227,8 @@ class ViewIntegrante extends StatelessWidget {
                               onPressed: integrante.telefone == null ||
                                       integrante.telefone!.isEmpty
                                   ? null
-                                  : () {},
+                                  : () => MyActions.openWhatsApp(
+                                      integrante.telefone!),
                               icon: const Icon(
                                 Icons.whatsapp,
                                 color: Colors.green,
@@ -266,10 +280,11 @@ class ViewIntegrante extends StatelessWidget {
             ],
           ),
         ),
+        editMode ? const Divider(height: 1) : const SizedBox(),
         editMode
             ? Padding(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 child: Row(
                   children: [
                     // Ativo

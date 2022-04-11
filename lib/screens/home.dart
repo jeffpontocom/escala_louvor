@@ -150,23 +150,23 @@ class HomeInit extends StatelessWidget {
                 builder: (context, snap) {
                   var whats = snap.data?.docs.first.data().telefone;
                   return ElevatedButton.icon(
-                    onPressed: whats == null
-                        ? null
-                        : () => MyActions.openWhatsApp(whats),
                     label: const Text('Chamar no whats'),
                     icon: const Icon(Icons.whatsapp),
                     style: ElevatedButton.styleFrom(primary: Colors.green),
+                    onPressed: whats == null
+                        ? null
+                        : () => MyActions.openWhatsApp(whats),
                   );
                 }),
             const SizedBox(height: 48),
             ElevatedButton.icon(
+              label: const Text('Sair'),
+              icon: const Icon(Icons.logout),
+              style: ElevatedButton.styleFrom(primary: Colors.red),
               onPressed: () async {
                 await FirebaseAuth.instance.signOut();
                 Modular.to.navigate(AppRotas.LOGIN);
               },
-              label: const Text('Sair'),
-              icon: const Icon(Icons.logout),
-              style: ElevatedButton.styleFrom(primary: Colors.red),
             ),
           ],
         ),
@@ -182,20 +182,14 @@ Widget get _scaffoldSemIgrejaSelecionada {
         children: const [
           Padding(
             padding: EdgeInsets.all(24),
-            child: Text(
-              'Selecionar igreja ou local',
-              style: TextStyle(fontSize: 22),
-            ),
+            child: Text('Selecionar igreja ou local',
+                style: TextStyle(fontSize: 22)),
           ),
-          Expanded(
-            child: Center(child: ViewIgrejas()),
-          ),
+          Expanded(child: Center(child: ViewIgrejas())),
           Padding(
             padding: EdgeInsets.all(24),
-            child: Text(
-              'Versão do app: ${Global.appVersion}',
-              style: TextStyle(color: Colors.grey),
-            ),
+            child: Text('Versão do app: ${Global.appVersion}',
+                style: TextStyle(color: Colors.grey)),
           ),
         ],
       ),
@@ -272,14 +266,10 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         // Ícone da aplicação
         leading: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Image.asset('assets/icons/ic_launcher.png'),
-        ),
+            padding: const EdgeInsets.all(12),
+            child: Image.asset('assets/icons/ic_launcher.png')),
         // Título da aplicação
-        title: Text(
-          titulos[paginaSelecionada],
-          style: Estilo.appBarTitulo,
-        ),
+        title: Text(titulos[paginaSelecionada], style: Estilo.appBarTitulo),
         titleSpacing: 0,
         // Ações
         actions: [
@@ -292,62 +282,57 @@ class _HomePageState extends State<HomePage> {
               : const SizedBox(),
           // Tela perfil do usuário
           IconButton(
+            icon: Hero(
+              tag: 'fotoUsuario',
+              child: CircleAvatar(
+                child: Icon(Icons.person,
+                    color: Theme.of(context).colorScheme.background),
+                backgroundColor: Colors.transparent,
+                foregroundImage: MyNetwork.getImageFromUrl(
+                        widget.logado.data()?.fotoUrl,
+                        progressoSize: 12)
+                    ?.image,
+              ),
+            ),
             onPressed: () => Modular.to.pushNamed(
                 '${AppRotas.PERFIL}?id=${FirebaseAuth.instance.currentUser?.uid ?? ''}'),
-            icon: CircleAvatar(
-              child: const Icon(Icons.person),
-              foregroundImage: MyNetwork.getImageFromUrl(
-                      widget.logado.data()?.fotoUrl,
-                      progressoSize: 12)
-                  ?.image,
-            ),
           ),
         ],
       ),
       // CORPO
-      //body: paginas[paginaSelecionada],
       body: const RouterOutlet(),
       // NAVIGATION BAR
       bottomNavigationBar: BottomNavigationBar(
-        items: _navigationItens,
-        currentIndex: paginaSelecionada,
-        selectedItemColor: Colors.blue,
-        unselectedItemColor: Colors.grey.withOpacity(0.5),
-        type: BottomNavigationBarType.shifting,
-        onTap: (index) {
-          if (index == 4) return;
-          Modular.to.navigate('/${Paginas.values[index].name}');
-          /* setState(() {
-            }); */
-        },
-      ),
+          items: _navigationItens,
+          currentIndex: paginaSelecionada,
+          selectedItemColor: Colors.blue,
+          unselectedItemColor: Colors.grey.withOpacity(0.5),
+          type: BottomNavigationBarType.shifting,
+          onTap: (index) {
+            if (index == 4) return;
+            Modular.to.navigate('/${Paginas.values[index].name}');
+          }),
       // FLOAT ACTION
       floatingActionButton: FloatingActionButton(
-          onPressed: () {
-            showModalBottomSheet(
-                context: context,
-                builder: (context) {
-                  return _scaffoldSemIgrejaSelecionada;
-                });
-          },
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(
-                Icons.church,
+        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+          const Icon(Icons.church, color: Colors.white),
+          Text(
+            Global.igrejaSelecionada.value?.data()?.sigla ?? '',
+            style: const TextStyle(
                 color: Colors.white,
-              ),
-              Text(
-                Global.igrejaSelecionada.value?.data()?.sigla ?? '',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontFamily: 'Offside',
-                  letterSpacing: 0,
-                ),
-              )
-            ],
-          )),
+                fontWeight: FontWeight.bold,
+                fontFamily: 'Offside',
+                letterSpacing: 0),
+          )
+        ]),
+        onPressed: () {
+          showModalBottomSheet(
+              context: context,
+              builder: (context) {
+                return _scaffoldSemIgrejaSelecionada;
+              });
+        },
+      ),
       floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
     );
   }

@@ -133,14 +133,14 @@ class _ViewCultoState extends State<ViewCulto> {
                         mCulto.equipe ?? {},
                         () => _escalarIntegrante(mCulto.equipe),
                       ),
-                      const Divider(),
+                      const Divider(height: 16),
                       // Canticos
                       _secaoCanticos,
                       _listaDeCanticos,
-                      const Divider(height: 24),
+                      const Divider(height: 16),
                       // Botões de ação
                       _secaoAcoes,
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 16),
                       // Fim da tela
                     ],
                   ),
@@ -458,7 +458,7 @@ class _ViewCultoState extends State<ViewCulto> {
     Function()? funcaoEditar,
   ) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -587,10 +587,8 @@ class _ViewCultoState extends State<ViewCulto> {
                 children: [
                   // Foto do integrante
                   CircleAvatar(
-                    child: const Icon(
-                      Icons.person,
-                      color: Colors.grey,
-                    ),
+                    child: Text(MyStrings.getUserInitials(
+                        integrante?.data()?.nome ?? '')),
                     foregroundImage: MyNetwork.getImageFromUrl(
                             integrante?.data()?.fotoUrl,
                             progressoSize: 16)
@@ -673,10 +671,8 @@ class _ViewCultoState extends State<ViewCulto> {
                             // Foto do integrante
                             const SizedBox(width: 12),
                             CircleAvatar(
-                              child: const Icon(
-                                Icons.person,
-                                color: Colors.grey,
-                              ),
+                              child: Text(MyStrings.getUserInitials(
+                                  integrante?.data()?.nome ?? '')),
                               foregroundImage: MyNetwork.getImageFromUrl(
                                       integrante?.data()?.fotoUrl,
                                       progressoSize: 16)
@@ -764,8 +760,7 @@ class _ViewCultoState extends State<ViewCulto> {
           ? Padding(
               padding: EdgeInsets.zero,
               child: Text(
-                'Segure e arraste para reordenar (somente dirigente)',
-                textAlign: TextAlign.center,
+                'Segure e arraste para reordenar\n(somente dirigente)',
                 style: Theme.of(context).textTheme.bodySmall,
               ),
             )
@@ -783,7 +778,7 @@ class _ViewCultoState extends State<ViewCulto> {
     List<Widget> _list = [];
     if (mCulto.canticos == null || mCulto.canticos!.isEmpty) {
       return const Padding(
-        padding: EdgeInsets.all(12),
+        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         child: Text('Nenhum cântico selecionado'),
       );
     }
@@ -793,10 +788,16 @@ class _ViewCultoState extends State<ViewCulto> {
           future: MeuFirebase.obterSnapshotCantico(mCulto.canticos![index].id),
           builder: (context, snapshot) {
             if (!snapshot.hasData) {
-              return const Text('Carregando lista...');
+              return const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Text('Carregando...'),
+              );
             }
             if (snapshot.hasError) {
-              return const Text('Falha ao carregar dados do cântico');
+              return const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Text('Falha ao carregar dados do cântico'),
+              );
             }
             return ListTile(
               visualDensity: VisualDensity.compact,
@@ -830,10 +831,8 @@ class _ViewCultoState extends State<ViewCulto> {
                   // YouTube
                   IconButton(
                       onPressed: () async {
-                        if (!await launch(
-                            snapshot.data?.data()?.youTubeUrl ?? '')) {
-                          throw 'Could not launch youTubeUrl';
-                        }
+                        MyActions.openSite(
+                            snapshot.data?.data()?.youTubeUrl ?? '');
                       },
                       icon: const Icon(Icons.ondemand_video)),
                   const SizedBox(width: kIsWeb ? 24 : 0),

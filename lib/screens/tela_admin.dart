@@ -118,13 +118,15 @@ class AdminPage extends StatelessWidget {
                                 title: Text(igreja.sigla),
                                 subtitle: Text(igreja.nome),
                                 // Botão mapa do google
-                                trailing: IconButton(
-                                  onPressed: igreja.endereco == null
-                                      ? null
-                                      : () => MyActions.openGoogleMaps(
-                                          street: igreja.endereco!),
-                                  icon: const Icon(Icons.map),
-                                ),
+                                trailing: igreja.endereco == null
+                                    ? null
+                                    : IconButton(
+                                        onPressed: () =>
+                                            MyActions.openGoogleMaps(
+                                                street: igreja.endereco!),
+                                        icon: const Icon(Icons.map,
+                                            color: Colors.blue),
+                                      ),
                                 onTap: () => _editarIgreja(context,
                                     igreja: igreja, id: reference.id),
                               );
@@ -157,20 +159,31 @@ class AdminPage extends StatelessWidget {
             children: [
               // Foto
               StatefulBuilder(builder: (innerContext, StateSetter innerState) {
-                return CircleAvatar(
-                  child: IconButton(
-                      onPressed: () async {
-                        var url = await MeuFirebase.carregarFoto();
-                        if (url != null && url.isNotEmpty) {
-                          innerState(() {
-                            igreja!.fotoUrl = url;
-                          });
-                        }
-                      },
-                      icon: const Icon(Icons.add_a_photo)),
-                  foregroundImage:
-                      MyNetwork.getImageFromUrl(igreja?.fotoUrl)?.image,
-                  radius: 48,
+                return Stack(
+                  alignment: AlignmentDirectional.bottomEnd,
+                  children: [
+                    CircleAvatar(
+                      child: const Icon(Icons.church),
+                      foregroundImage:
+                          MyNetwork.getImageFromUrl(igreja?.fotoUrl)?.image,
+                      backgroundColor: Colors.grey.withOpacity(0.5),
+                      radius: 56,
+                    ),
+                    CircleAvatar(
+                      radius: 16,
+                      child: IconButton(
+                          iconSize: 16,
+                          onPressed: () async {
+                            var url = await MeuFirebase.carregarFoto(context);
+                            if (url != null && url.isNotEmpty) {
+                              innerState(() {
+                                igreja!.fotoUrl = url;
+                              });
+                            }
+                          },
+                          icon: const Icon(Icons.add_a_photo)),
+                    ),
+                  ],
                 );
               }),
               const SizedBox(width: 24),
@@ -667,17 +680,23 @@ class AdminPage extends StatelessWidget {
                                   snapshot.data!.docs[index].reference;
                               return ListTile(
                                 leading: CircleAvatar(
-                                  child: const Icon(Icons.person),
+                                  child: Text(MyStrings.getUserInitials(
+                                      integrante.nome)),
                                   foregroundImage: MyNetwork.getImageFromUrl(
                                           integrante.fotoUrl)
                                       ?.image,
                                 ),
                                 title: Text(integrante.nome),
                                 subtitle: Text(integrante.email),
-                                trailing: const IconButton(
-                                  onPressed: null,
-                                  icon: Icon(Icons.whatsapp),
-                                ),
+                                trailing: integrante.telefone == null ||
+                                        integrante.telefone!.isEmpty
+                                    ? null
+                                    : IconButton(
+                                        onPressed: () => MyActions.openWhatsApp(
+                                            integrante.telefone!),
+                                        icon: const Icon(Icons.whatsapp,
+                                            color: Colors.green),
+                                      ),
                                 onTap: () => _editarIntegrante(context,
                                     integrante: integrante, id: reference.id),
                               );

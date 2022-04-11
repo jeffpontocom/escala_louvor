@@ -12,6 +12,17 @@ class MyStrings {
   static String isPlural(int valor) {
     return valor <= 1 ? '' : 's';
   }
+
+  static String getUserInitials(String name) {
+    var split = name.split(' ');
+    int count = split.length;
+    var first = split.first.characters.first;
+    var last = '';
+    if (count > 1) {
+      last = split.last.characters.first;
+    }
+    return first + last;
+  }
 }
 
 class MyActions {
@@ -27,9 +38,7 @@ class MyActions {
       value = STD_DDD + value;
     }
     var url = 'https://wa.me/55$value';
-    if (await canLaunch(url)) {
-      await launch(url);
-    } else {
+    if (!await launch(url)) {
       throw 'Não é possível abrir o Whatsapp';
     }
   }
@@ -41,6 +50,13 @@ class MyActions {
       await launch(url);
     } else {
       throw 'Não é possível realizar ligações nesse aparelho';
+    }
+  }
+
+  /// Iniciar Site ou App web
+  static void openSite(String url) async {
+    if (!await launch(url)) {
+      throw 'Não foi possível abrir o site';
     }
   }
 
