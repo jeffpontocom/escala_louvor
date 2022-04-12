@@ -222,10 +222,9 @@ class _HomePageState extends State<HomePage> {
   int setPage(String rota) {
     rota = rota.substring(1, rota.contains('?') ? rota.indexOf('?') : null);
     dev.log(rota, name: 'log:Rota');
-    dev.log(widget.igreja.id, name: 'log:Rota');
     try {
-      var index = Paginas.values.byName(rota).index;
-      return index;
+      var index = Paginas.values.indexWhere((element) => element.name == rota);
+      return index < 0 ? 0 : index;
     } catch (e) {
       return 0;
     }
@@ -242,21 +241,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     _pagina.value = setPage(Modular.routerDelegate.path);
-    Modular.routerDelegate.addListener(() {
-      _pagina.value = setPage(Modular.routerDelegate.path);
-      //setState(() {
-      //  paginaSelecionada = setPage(Modular.routerDelegate.path);
-      //});
-    });
     super.initState();
-  }
-
-  @override
-  void dispose() {
-    Modular.routerDelegate.removeListener(() {
-      _pagina.value = setPage(Modular.routerDelegate.path);
-    });
-    super.dispose();
   }
 
   @override
@@ -316,6 +301,7 @@ class _HomePageState extends State<HomePage> {
               type: BottomNavigationBarType.shifting,
               onTap: (index) {
                 if (index == 4) return;
+                _pagina.value = index;
                 Modular.to.navigate('/${Paginas.values[index].name}');
               });
         },

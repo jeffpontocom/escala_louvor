@@ -891,12 +891,31 @@ class _ViewCultoState extends State<ViewCulto> {
             icon: const Icon(Icons.groups),
           ),
           // Enviar notificação aos escalados
-          logado.adm || logado.ehRecrutador || ehODirigente || ehOCoordenador
+          (logado.adm ||
+                      logado.ehRecrutador ||
+                      ehODirigente ||
+                      ehOCoordenador) &&
+                  mCulto.equipe?.values != null
               ? TextButton.icon(
                   //onPressed: null,
                   onPressed: () async {
                     Mensagem.aguardar(context: context); // abre progresso
-                    Notificacoes.instancia.enviarMensagemPush();
+                    var avisados = [];
+                    for (var instrumento in mCulto.equipe!.values.toList()) {
+                      for (var integrante in instrumento) {
+                        if (!avisados.contains(integrante.id)) {
+                          var token =
+                              MeuFirebase.obterTokenDoIntegrante(integrante.id);
+                          Notificacoes.instancia.enviarMensagemPush(
+                            para: '/topics/escala_louvor',
+                            titulo: 'Você está escalado',
+                            corpo:
+                                '${mCulto.ocasiao}: ${DateFormat("EEE, d/MMM 'às' HH:mm", "pt_BR").format(mCulto.dataCulto.toDate())}\nVerifique a data de ensaio e estude os cânticos selecionados 😉',
+                          );
+                        }
+                        avisados.add(integrante.id);
+                      }
+                    }
                     Modular.to.pop(); // fecha progresso
                   },
                   label: const Text('Notificar escalados'),

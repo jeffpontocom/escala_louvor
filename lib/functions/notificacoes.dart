@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'dart:developer' as dev;
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
@@ -31,6 +33,11 @@ class Notificacoes {
   void setToken(String? token) async {
     dev.log('FCM Token: $token');
     instancia._token = token;
+    FirebaseFirestore.instance
+        .collection('tokens')
+        .doc(FirebaseAuth.instance.currentUser?.uid)
+        .set({'token': token}).then(
+            (value) => dev.log('Token salvo no firebase'));
   }
 
   static Future carregarInstancia() async {
@@ -88,12 +95,12 @@ class Notificacoes {
     }
 
     // Obter token
-    //FirebaseMessaging.instance.getToken().then(instancia.setToken);
     var vapidKey = await FirebaseMessaging.instance.getToken();
     instancia.setToken(vapidKey);
     instancia._tokenStream = FirebaseMessaging.instance.onTokenRefresh;
     instancia._tokenStream.listen(instancia.setToken);
 
+    // Ouvir mensagens
     instancia._ouvirMensagens();
   }
 
@@ -104,21 +111,6 @@ class Notificacoes {
         options: DefaultFirebaseOptions.currentPlatform);
     dev.log('Tratando notificação em segundo plano: ${message.messageId}');
   }
-
-  /// Permitir
-  /* Future<void> _obterPermissao() async {
-    NotificationSettings settings =
-        await FirebaseMessaging.instance.requestPermission(
-      alert: true,
-      announcement: false,
-      badge: true,
-      carPlay: false,
-      criticalAlert: false,
-      provisional: false,
-      sound: true,
-    );
-    dev.log('Usuário cedeu permissão: ${settings.authorizationStatus}');
-  } */
 
   /// Ouvir
   void _ouvirMensagens() {
@@ -157,13 +149,14 @@ class Notificacoes {
               icon: '@mipmap/ic_launcher',
             ),
           ),
+          payload: notification.android?.clickAction,
         );
       }
-      StatefulBuilder(builder: ((context, setState) {
-        return DialogoMensagem(
+      if (kIsWeb) {
+        DialogoMensagem(
             titulo: notification?.title ?? 'Mensagem',
             corpo: notification?.body ?? 'Sem conteúdo');
-      }));
+      }
     });
 
     /// Recebimento em segundo plano
@@ -176,76 +169,64 @@ class Notificacoes {
   }
 
   // Notificar
-  void enviarMensagemPush() async {
-    if (_token == null) {
-      dev.log('Não é possível enviar a mensagem FCM, não existe nenhum token.');
-      return;
-    }
-    try {
-      final serverKey = dotenv.env['FCM_ServerKey'] ?? '';
-      await http.post(
-        /* Uri.parse('https://api.rnfirebase.io/messaging/send'),
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-          'Authorization': 'key=$serverKey',
-        }, */
-        Uri.parse(
-            'https://fcm.googleapis.com/v1/projects/escala-louvor-ipbfoz/messages:send HTTP/1.1'),
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-          'Authorization': 'key=$serverKey',
-        },
-        /* Uri.parse(
-            'https://fcm.googleapis.com/v1/projects/escala-louvor-ipbfoz/messages:send'),
-        headers: <String, String>{
-          'Content-Type': 'application/json; charset=UTF-8',
-          'Authorization': 'Bearer ' + (_token ?? ''),
-        }, */
-        body: _construirFCMPayload(_token),
-      );
-      dev.log('Solicitação de FCM enviada com sucesso!');
-    } catch (e) {
-      dev.log('Erro ao enviar: ' + e.toString());
-    }
-    /* try {
-      await http
-          .post(
-            Uri.parse('https://fcm.googleapis.com/fcm/send'),
-            headers: <String, String>{
-              'Content-Type': 'application/json',
-              'Authorization': 'key=YOUR SERVER KEY'
-            },
-            body: json.encode({
-              'to': token,
-              'message': {
-                'token': token,
-              },
-              "notification": {
-                "title": "Notificação Push",
-                "body": "Teste de notificação push do Firebase"
-              }
-            }),
-          )
-          .then((value) => dev.log(value.body));
-      dev.log('Solicitação de FCM para web enviada!');
-    } catch (e) {
-      dev.log(e.toString());
-    } */
-  }
+  // [para] pode ser um token de usuário, se nulo envia para todos
+  Future<bool> enviarMensagemPush({
+    String? para,
+    required String titulo,
+    required String corpo,
+    String? pagina,
+    String? contentId,
+  }) async {
+    const postUrl = 'https://fcm.googleapis.com/fcm/send';
 
-  /// The API endpoint here accepts a raw FCM payload for demonstration purposes.
-  static String _construirFCMPayload(String? token) {
-    return jsonEncode({
-      //'token': token,
-      'topic': 'escala_louvor',
-      'data': {
-        'via': 'FlutterFire Cloud Messaging!!!',
-        'count': 'Teste',
+    final headers = {
+      "content-type": "application/json",
+      "Authorization": "key=${dotenv.env['FCM_ServerKey'] ?? ''}"
+    };
+
+    final data = {
+      "to": para ?? "/topics/escala_louvor",
+      "notification": {
+        "title": titulo,
+        "body": corpo,
       },
-      'notification': {
-        'title': 'Notificação Push',
-        'body': 'Teste de notificação push do Firebase',
-      },
-    });
+      "data": {
+        "page": pagina ?? '',
+        "id": contentId ?? '',
+        "click_action": "ABRIR_AGENDA",
+      }
+    };
+
+    final response = await http.post(
+      Uri.parse(postUrl),
+      headers: headers,
+      body: json.encode(data),
+      encoding: Encoding.getByName('utf-8'),
+    );
+
+    if (response.statusCode == 200) {
+      dev.log('Solicitação de FCM enviada com sucesso!');
+      return true;
+    } else {
+      dev.log('Erro ao enviar solicitação de FCM');
+      return false;
+    }
   }
 }
+
+
+
+  /// Permitir
+  /* Future<void> _obterPermissao() async {
+    NotificationSettings settings =
+        await FirebaseMessaging.instance.requestPermission(
+      alert: true,
+      announcement: false,
+      badge: true,
+      carPlay: false,
+      criticalAlert: false,
+      provisional: false,
+      sound: true,
+    );
+    dev.log('Usuário cedeu permissão: ${settings.authorizationStatus}');
+  } */

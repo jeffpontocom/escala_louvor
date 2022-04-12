@@ -249,6 +249,13 @@ class MeuFirebase {
         .get();
   }
 
+  /// Token do integrante
+  static Future<String> obterTokenDoIntegrante(String id) async {
+    var snap =
+        await FirebaseFirestore.instance.collection('tokens').doc(id).get();
+    return snap.data()?['token'] as String;
+  }
+
   /// Culto especifico
   static Future<DocumentSnapshot<Culto>?> obterSnapshotCulto(String? id) async {
     if (id == null) {
