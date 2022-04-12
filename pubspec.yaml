@@ -70,7 +70,7 @@ flutter_icons:
 flutter:
   uses-material-design: true
   assets:
-    - .env
+    - dotenv.txt
     - assets/icons/ic_launcher.png
     # ÍCONES MÚSICA: https://www.flaticon.com/packs/music-icons-7?word=music%20instruments
     - assets/icons/music_baixo.png

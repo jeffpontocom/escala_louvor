@@ -1,0 +1,3 @@
+# Firebase Cloud Messaging Server Key
+FCM_ServerKey=AAAAYc8_m50:APA91bFeW0OKZVzWzt6Fm2FmgLX0kvJzMLcpKszaeJsSJpTuD-5qJPYbehLzPn1vLgVG4Wtv60oYLGmmsZWPnhyoq7AqgHDK4axxUALNWn-cZDNaFG7W9X6OrZPP27msIug4k28bTpmS
+FCM_Remetente=420088880029

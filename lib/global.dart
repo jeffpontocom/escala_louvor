@@ -13,4 +13,5 @@ class Global {
   static DocumentSnapshot<Integrante>? integranteLogado;
   static ValueNotifier<DocumentSnapshot<Igreja>?> igrejaSelecionada =
       ValueNotifier(null);
+  static ValueNotifier<int> paginaSelecionada = ValueNotifier(0);
 }

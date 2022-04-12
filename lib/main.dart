@@ -19,7 +19,7 @@ import 'screens/home.dart';
 void main() async {
   setPathUrlStrategy(); // remove o hash '#' das URLs
   WidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load();
+  await dotenv.load(fileName: 'dotenv.txt');
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
   await Preferencias.carregarInstancia();
   runApp(

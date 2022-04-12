@@ -404,6 +404,8 @@ class TelaAgenda extends StatelessWidget {
                                             )
                                           : const SizedBox(),
                                   onTap: () {
+                                    Global.paginaSelecionada.value =
+                                        Paginas.escalas.index;
                                     Modular.to.navigate(
                                         '/${Paginas.escalas.name}?id=${cultos[index].id}');
                                   },

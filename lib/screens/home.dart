@@ -209,7 +209,16 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final ValueNotifier<int> _pagina = ValueNotifier(0);
+  static int setPage(String rota) {
+    rota = rota.substring(1, rota.contains('?') ? rota.indexOf('?') : null);
+    dev.log(rota, name: 'log:Rota');
+    var index = 0;
+    try {
+      index = Paginas.values.indexWhere((element) => element.name == rota);
+    } catch (e) {}
+    Global.paginaSelecionada.value = index < 0 ? 0 : index;
+    return index < 0 ? 0 : index;
+  }
 
   List<String> titulos = const [
     'Escalas do Louvor',
@@ -218,17 +227,6 @@ class _HomePageState extends State<HomePage> {
     'Cânticos e Hinos',
     'Nenhuma tela',
   ];
-
-  int setPage(String rota) {
-    rota = rota.substring(1, rota.contains('?') ? rota.indexOf('?') : null);
-    dev.log(rota, name: 'log:Rota');
-    try {
-      var index = Paginas.values.indexWhere((element) => element.name == rota);
-      return index < 0 ? 0 : index;
-    } catch (e) {
-      return 0;
-    }
-  }
 
   final List<BottomNavigationBarItem> _navigationItens = const [
     BottomNavigationBarItem(icon: Icon(Icons.access_time), label: 'Escalas'),
@@ -240,7 +238,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   void initState() {
-    _pagina.value = setPage(Modular.routerDelegate.path);
+    setPage(Modular.routerDelegate.path);
     super.initState();
   }
 
@@ -254,7 +252,7 @@ class _HomePageState extends State<HomePage> {
             child: Image.asset('assets/icons/ic_launcher.png')),
         // Título da aplicação
         title: ValueListenableBuilder<int>(
-            valueListenable: _pagina,
+            valueListenable: Global.paginaSelecionada,
             builder: (context, pagina, _) {
               return Text(titulos[pagina], style: Estilo.appBarTitulo);
             }),
@@ -290,7 +288,7 @@ class _HomePageState extends State<HomePage> {
       body: const RouterOutlet(),
       // NAVIGATION BAR
       bottomNavigationBar: ValueListenableBuilder<int>(
-        valueListenable: _pagina,
+        valueListenable: Global.paginaSelecionada,
         builder: (context, pagina, _) {
           return BottomNavigationBar(
               items: _navigationItens,
@@ -300,7 +298,7 @@ class _HomePageState extends State<HomePage> {
               type: BottomNavigationBarType.shifting,
               onTap: (index) {
                 if (index == 4) return;
-                _pagina.value = index;
+                Global.paginaSelecionada.value = index;
                 Modular.to.navigate('/${Paginas.values[index].name}');
               });
         },
