@@ -273,8 +273,7 @@ class _HomePageState extends State<HomePage> {
             icon: Hero(
               tag: FirebaseAuth.instance.currentUser?.uid ?? 'fotoUsuario',
               child: CircleAvatar(
-                child: Icon(Icons.person,
-                    color: Theme.of(context).colorScheme.background),
+                child: const Icon(Icons.person),
                 backgroundColor: Colors.transparent,
                 foregroundImage: MyNetwork.getImageFromUrl(
                         widget.logado.data()?.fotoUrl,

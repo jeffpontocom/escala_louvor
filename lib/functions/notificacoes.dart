@@ -6,14 +6,12 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:http/http.dart' as http;
 
 import '/firebase_options.dart';
-import '/screens/tela_notificacoes.dart';
 import '/utils/mensagens.dart';
 
 class Notificacoes {
@@ -27,12 +25,12 @@ class Notificacoes {
   /// Initialize the [FlutterLocalNotificationsPlugin] package.
   late FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
 
-  String? _token;
+  //String? _token;
   late Stream<String> _tokenStream;
 
   void setToken(String? token) async {
     dev.log('FCM Token: $token');
-    instancia._token = token;
+    //instancia._token = token;
     FirebaseFirestore.instance
         .collection('tokens')
         .doc(FirebaseAuth.instance.currentUser?.uid)
@@ -116,17 +114,6 @@ class Notificacoes {
   void _ouvirMensagens() {
     dev.log('Ouvindo mensagens');
 
-    // Verifica se há alguma mensagem ao abrir o app
-    FirebaseMessaging.instance
-        .getInitialMessage()
-        .then((RemoteMessage? message) {
-      dev.log('Mensagem inicial: ${message?.messageId}');
-      if (message != null) {
-        Modular.to.pushNamed('/notificacoes',
-            arguments: MessageArguments(message, true));
-      }
-    });
-
     // Recebimentos em primeiro plano
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
       dev.log('Recebeu uma mensagem enquanto estava em primeiro plano!');
@@ -152,19 +139,35 @@ class Notificacoes {
           payload: notification.android?.clickAction,
         );
       }
-      if (kIsWeb) {
-        DialogoMensagem(
-            titulo: notification?.title ?? 'Mensagem',
-            corpo: notification?.body ?? 'Sem conteúdo');
+      //if (kIsWeb) {
+      DialogoMensagem(
+          titulo: notification?.title ?? 'Mensagem',
+          corpo: notification?.body ?? 'Sem conteúdo');
+      //}
+    });
+
+    // Verifica se há alguma mensagem ao abrir o app
+    FirebaseMessaging.instance
+        .getInitialMessage()
+        .then((RemoteMessage? message) {
+      dev.log('Mensagem inicial: ${message?.messageId}');
+      if (message != null) {
+        String pagina = message.data['page'];
+        String id = message.data['id'];
+        dev.log('Abrindo app pela mensagem: /$pagina?id=$id');
+        Modular.to.navigate('/$pagina?id=$id');
       }
     });
 
     /// Recebimento em segundo plano
     /// Tratamento para ao clicar na notificação e abrir o app.
     FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      dev.log('Um novo evento onMessageOpenedApp foi publicado!');
-      Modular.to.pushNamed('/notificacoes',
-          arguments: MessageArguments(message, true));
+      String pagina = message.data['page'];
+      String id = message.data['id'];
+      dev.log('Abrindo app pela mensagem: /$pagina?id=$id');
+      Modular.to.navigate('/$pagina?id=$id');
+      /* Modular.to.pushNamed('/notificacoes',
+          arguments: MessageArguments(message, true)); */
     });
   }
 
@@ -193,7 +196,7 @@ class Notificacoes {
       "data": {
         "page": pagina ?? '',
         "id": contentId ?? '',
-        "click_action": "ABRIR_AGENDA",
+        "click_action": "ABRIR_APP_LOUVOR",
       }
     };
 

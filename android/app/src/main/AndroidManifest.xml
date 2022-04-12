@@ -27,7 +27,7 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
             <intent-filter>
-                <action android:name="ABRIR_AGENDA" />
+                <action android:name="ABRIR_APP_LOUVOR" />
                 <category android:name="android.intent.category.DEFAULT"/>
             </intent-filter>
             <intent-filter>

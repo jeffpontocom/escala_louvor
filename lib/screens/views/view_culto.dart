@@ -6,7 +6,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:intl/intl.dart';
 
-import '../../functions/notificacoes.dart';
 import '/functions/metodos_firebase.dart';
 import '/global.dart';
 import '/models/cantico.dart';
@@ -901,17 +900,46 @@ class _ViewCultoState extends State<ViewCulto> {
                   onPressed: () async {
                     Mensagem.aguardar(context: context); // abre progresso
                     var avisados = [];
+                    // Avisar dirigente
+                    if (mCulto.dirigente?.id != null) {
+                      var token = await MeuFirebase.obterTokenDoIntegrante(
+                          mCulto.dirigente!.id);
+                      if (token != null) {
+                        MeuFirebase.notificarEscalado(
+                            token: token,
+                            culto: mCulto,
+                            cultoId: widget.culto.id);
+                        dev.log('Dirigente avisado!');
+                      }
+                      avisados.add(mCulto.dirigente!.id);
+                    }
+                    // Avisar coordenador técnico
+                    if (mCulto.coordenador?.id != null &&
+                        mCulto.coordenador?.id != mCulto.dirigente?.id) {
+                      var token = await MeuFirebase.obterTokenDoIntegrante(
+                          mCulto.coordenador!.id);
+                      if (token != null) {
+                        MeuFirebase.notificarEscalado(
+                            token: token,
+                            culto: mCulto,
+                            cultoId: widget.culto.id);
+                        dev.log('Coordenador avisado!');
+                      }
+                      avisados.add(mCulto.coordenador!.id);
+                    }
+                    // Avisar equipe
                     for (var instrumento in mCulto.equipe!.values.toList()) {
                       for (var integrante in instrumento) {
                         if (!avisados.contains(integrante.id)) {
-                          var token =
-                              MeuFirebase.obterTokenDoIntegrante(integrante.id);
-                          Notificacoes.instancia.enviarMensagemPush(
-                            para: '/topics/escala_louvor',
-                            titulo: 'Você está escalado',
-                            corpo:
-                                '${mCulto.ocasiao}: ${DateFormat("EEE, d/MMM 'às' HH:mm", "pt_BR").format(mCulto.dataCulto.toDate())}\nVerifique a data de ensaio e estude os cânticos selecionados 😉',
-                          );
+                          var token = await MeuFirebase.obterTokenDoIntegrante(
+                              integrante.id);
+                          if (token != null) {
+                            MeuFirebase.notificarEscalado(
+                                token: token,
+                                culto: mCulto,
+                                cultoId: widget.culto.id);
+                            dev.log('Integrante ${integrante.id} avisado!');
+                          }
                         }
                         avisados.add(integrante.id);
                       }
@@ -1227,7 +1255,7 @@ class _ViewCultoState extends State<ViewCulto> {
               if (!snapshot.hasData) {
                 return const CircularProgressIndicator();
               }
-              List<String> disponiveis = [];
+              Map<String, String> disponiveis = {};
               for (var integrante in snapshot.data!.docs) {
                 if (integrante.data().ehDirigente ||
                     integrante.data().ehCoordenador ||
@@ -1236,12 +1264,14 @@ class _ViewCultoState extends State<ViewCulto> {
                           ?.map((e) => e.toString())
                           .contains(integrante.reference.toString()) ??
                       false) {
-                    disponiveis.add(integrante.data().nome);
+                    disponiveis.putIfAbsent(
+                        integrante.id, () => integrante.data().nome);
+                    //disponiveis.add(integrante.data().nome);
                   }
                 }
               }
 
-              List<String> restritos = [];
+              Map<String, String> restritos = {};
               for (var integrante in snapshot.data!.docs) {
                 if (integrante.data().ehDirigente ||
                     integrante.data().ehCoordenador ||
@@ -1250,21 +1280,26 @@ class _ViewCultoState extends State<ViewCulto> {
                           ?.map((e) => e.toString())
                           .contains(integrante.reference.toString()) ??
                       false) {
-                    restritos.add(integrante.data().nome);
+                    restritos.putIfAbsent(
+                        integrante.id, () => integrante.data().nome);
                   }
                 }
               }
 
-              List indecisos = [];
+              Map<String, String> indecisos = {};
               for (var integrante in snapshot.data!.docs) {
                 if (integrante.data().ehDirigente ||
                     integrante.data().ehCoordenador ||
                     integrante.data().ehComponente) {
-                  indecisos.add(integrante.data().nome);
+                  if (!disponiveis.containsKey(integrante.id) &&
+                      !restritos.containsKey(integrante.id)) {
+                    indecisos.putIfAbsent(
+                        integrante.id, () => integrante.data().nome);
+                  }
                 }
               }
-              indecisos.removeWhere((element) => disponiveis.contains(element));
-              indecisos.removeWhere((element) => restritos.contains(element));
+              //indecisos.removeWhere((element) => disponiveis.contains(element));
+              //indecisos.removeWhere((element) => restritos.contains(element));
 
               return ListView(
                 padding:
@@ -1277,8 +1312,10 @@ class _ViewCultoState extends State<ViewCulto> {
                   ),
                   Wrap(
                     spacing: 8,
-                    children: List.generate(disponiveis.length,
-                        (index) => Text('${index + 1}. ${disponiveis[index]}')),
+                    children: List.generate(
+                        disponiveis.values.length,
+                        (index) => Text(
+                            '${index + 1}. ${disponiveis.values.elementAt(index)}')),
                   ),
                   const SizedBox(height: 12),
                   Text(
@@ -1287,8 +1324,10 @@ class _ViewCultoState extends State<ViewCulto> {
                   ),
                   Wrap(
                     spacing: 8,
-                    children: List.generate(restritos.length,
-                        (index) => Text('${index + 1}. ${restritos[index]}')),
+                    children: List.generate(
+                        restritos.values.length,
+                        (index) => Text(
+                            '${index + 1}. ${restritos.values.elementAt(index)}')),
                   ),
                   const SizedBox(height: 12),
                   Text(
@@ -1297,12 +1336,36 @@ class _ViewCultoState extends State<ViewCulto> {
                   ),
                   Wrap(
                     spacing: 8,
-                    children: List.generate(indecisos.length,
-                        (index) => Text('${index + 1}. ${indecisos[index]}')),
+                    children: List.generate(
+                        indecisos.values.length,
+                        (index) => Text(
+                            '${index + 1}. ${indecisos.values.elementAt(index)}')),
                   ),
                   const SizedBox(height: 12),
                   ElevatedButton.icon(
-                    onPressed: null,
+                    onPressed: indecisos.isEmpty
+                        ? null
+                        : () async {
+                            Mensagem.aguardar(context: context);
+                            var avisados = [];
+                            // Avisar dirigente
+                            for (var id in indecisos.keys) {
+                              if (avisados.contains(id)) {
+                                var token =
+                                    await MeuFirebase.obterTokenDoIntegrante(
+                                        id);
+                                if (token != null) {
+                                  MeuFirebase.notificarEscalado(
+                                      token: token,
+                                      culto: mCulto,
+                                      cultoId: widget.culto.id);
+                                  dev.log('Integrante $id avisado!');
+                                }
+                              }
+                              avisados.add(id);
+                            }
+                            Modular.to.pop();
+                          },
                     icon: const Icon(Icons.notification_important),
                     label: const Text('Notificar indecisos'),
                   ),

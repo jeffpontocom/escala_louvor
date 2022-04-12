@@ -124,19 +124,35 @@ class ViewIntegrante extends StatelessWidget {
                             editMode
                                 ? CircleAvatar(
                                     radius: 16,
-                                    child: IconButton(
-                                        iconSize: 16,
-                                        onPressed: () async {
-                                          var url =
-                                              await MeuFirebase.carregarFoto(
-                                                  context);
-                                          if (url != null && url.isNotEmpty) {
-                                            innerState(() {
-                                              integrante.fotoUrl = url;
-                                            });
-                                          }
-                                        },
-                                        icon: const Icon(Icons.add_a_photo)),
+                                    backgroundColor:
+                                        integrante.fotoUrl == null ||
+                                                integrante.fotoUrl!.isEmpty
+                                            ? null
+                                            : Colors.red,
+                                    child: integrante.fotoUrl == null ||
+                                            integrante.fotoUrl!.isEmpty
+                                        ? IconButton(
+                                            iconSize: 16,
+                                            onPressed: () async {
+                                              var url = await MeuFirebase
+                                                  .carregarFoto(context);
+                                              if (url != null &&
+                                                  url.isNotEmpty) {
+                                                innerState(() {
+                                                  integrante.fotoUrl = url;
+                                                });
+                                              }
+                                            },
+                                            icon: const Icon(Icons.add_a_photo))
+                                        : IconButton(
+                                            iconSize: 16,
+                                            onPressed: () async {
+                                              innerState(() {
+                                                integrante.fotoUrl = null;
+                                              });
+                                            },
+                                            icon: const Icon(
+                                                Icons.no_photography)),
                                   )
                                 : const SizedBox(),
                           ],
