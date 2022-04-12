@@ -34,22 +34,22 @@ class AppRotas extends Module {
         ChildRoute(
           '/${Paginas.escalas.name}',
           child: (context, args) => TelaEscalas(id: args.queryParams['id']),
-          transition: TransitionType.scale,
+          transition: TransitionType.upToDown,
         ),
         ChildRoute(
           '/${Paginas.agenda.name}',
           child: (context, args) => const TelaAgenda(),
-          transition: TransitionType.scale,
+          transition: TransitionType.upToDown,
         ),
         ChildRoute(
           '/${Paginas.chats.name}',
           child: (context, args) => const TelaChat(),
-          transition: TransitionType.scale,
+          transition: TransitionType.upToDown,
         ),
         ChildRoute(
           '/${Paginas.canticos.name}',
           child: (context, args) => const TelaCanticos(),
-          transition: TransitionType.scale,
+          transition: TransitionType.upToDown,
         ),
       ],
     ),
