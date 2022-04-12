@@ -3,7 +3,7 @@ const MANIFEST = 'flutter-app-manifest';
 const TEMP = 'flutter-temp-cache';
 const CACHE_NAME = 'flutter-app-cache';
 const RESOURCES = {
-  "assets/AssetManifest.json": "46f950362711d74d88c908cf1156a6b4",
+  "assets/AssetManifest.json": "ece21163334fa4a00d2ef53fc00ef8dd",
 "assets/assets/fonts/Offside-Regular.ttf": "37cc5e97dd9817746e5510afe29a5f1d",
 "assets/assets/icons/ic_launcher.png": "f61fabf2c2dd19ee5b99b9774bed3afa",
 "assets/assets/icons/music_baixo.png": "cab8215278448c4a8cb4100f214bfb92",
@@ -22,22 +22,19 @@ const RESOURCES = {
 "assets/assets/images/church.png": "3244ed1fe3e156ff454b59776acb57b2",
 "assets/assets/images/login.png": "2312a4310a3e38bc5f8f2806999ff1df",
 "assets/assets/images/song.png": "e9e0d5d4d9f7135bfd477c1cfe119100",
+"assets/dotenv.txt": "cfabf78168df5f4c57517a4c71808415",
 "assets/FontManifest.json": "0ea9abdd987c9a26df71280858812560",
 "assets/fonts/MaterialIcons-Regular.otf": "7e7a6cccddf6d7b20012a548461d5d81",
 "assets/NOTICES": "4fbbb8f8c597ce66804f452778aa831b",
-"canvaskit/canvaskit.js": "c2b4e5f3d7a3d82aed024e7249a78487",
-"canvaskit/canvaskit.wasm": "4b83d89d9fecbea8ca46f2f760c5a9ba",
-"canvaskit/profiling/canvaskit.js": "ae2949af4efc61d28a4a80fffa1db900",
-"canvaskit/profiling/canvaskit.wasm": "95e736ab31147d1b2c7b25f11d4c32cd",
 "favicon.png": "d9f0bfa8d2610aa0c02ab61c04f57df6",
 "firebase-messaging-sw.js": "8d7ab76ed93c3126a337537c28e28c6a",
 "icons/Icon-192.png": "701e43ae3eb8ad390c9b65537bc8a169",
 "icons/Icon-512.png": "51cbe3b1cb0ac7ddd62f3833cba6f39a",
 "icons/Icon-maskable-192.png": "701e43ae3eb8ad390c9b65537bc8a169",
 "icons/Icon-maskable-512.png": "51cbe3b1cb0ac7ddd62f3833cba6f39a",
-"index.html": "c9fc344a30cd9da5ff50c2c646b7197e",
-"/": "c9fc344a30cd9da5ff50c2c646b7197e",
-"main.dart.js": "5d9dbcdcfecb92b32fdc16407b140b03",
+"index.html": "2bd975d4a7a91278a53ae89ce14cca58",
+"/": "2bd975d4a7a91278a53ae89ce14cca58",
+"main.dart.js": "0de59dccda6efbaf77a3bcc295e940cb",
 "manifest.json": "7051455cda8feb95c100f8203fb1431e",
 "version.json": "44ffd15aadf4dba20e2e6b82e85b00e7"
 };
