@@ -24,6 +24,10 @@ class DefaultFirebaseOptions {
       case TargetPlatform.android:
         return android;
       case TargetPlatform.iOS:
+        throw UnsupportedError(
+          'DefaultFirebaseOptions have not been configured for ios - '
+          'you can reconfigure this by running the FlutterFire CLI again.',
+        );
       case TargetPlatform.macOS:
         throw UnsupportedError(
           'DefaultFirebaseOptions have not been configured for macos - '
@@ -42,6 +46,7 @@ class DefaultFirebaseOptions {
     messagingSenderId: '420088880029',
     projectId: 'escala-louvor-ipbfoz',
     authDomain: 'escala-louvor-ipbfoz.firebaseapp.com',
+    databaseURL: 'https://escala-louvor-ipbfoz-default-rtdb.firebaseio.com',
     storageBucket: 'escala-louvor-ipbfoz.appspot.com',
   );
 
@@ -50,6 +55,7 @@ class DefaultFirebaseOptions {
     appId: '1:420088880029:android:6e8470c1c5095153482d74',
     messagingSenderId: '420088880029',
     projectId: 'escala-louvor-ipbfoz',
+    databaseURL: 'https://escala-louvor-ipbfoz-default-rtdb.firebaseio.com',
     storageBucket: 'escala-louvor-ipbfoz.appspot.com',
   );
 }

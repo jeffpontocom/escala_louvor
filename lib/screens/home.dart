@@ -5,7 +5,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 
-import '../functions/conexao.dart';
 import '/rotas.dart';
 import '/global.dart';
 import '/functions/metodos_firebase.dart';
@@ -210,15 +209,15 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  final MinhaConexao _conexao = MinhaConexao();
-
   static int setPage(String rota) {
     rota = rota.substring(1, rota.contains('?') ? rota.indexOf('?') : null);
     dev.log(rota, name: 'log:Rota');
     var index = 0;
     try {
       index = Paginas.values.indexWhere((element) => element.name == rota);
-    } catch (e) {}
+    } catch (e) {
+      index = 0;
+    }
     Global.paginaSelecionada.value = index < 0 ? 0 : index;
     return index < 0 ? 0 : index;
   }
@@ -242,14 +241,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     setPage(Modular.routerDelegate.path);
-    _conexao.initialize();
     super.initState();
-  }
-
-  @override
-  void dispose() {
-    _conexao.isOnline.dispose();
-    super.dispose();
   }
 
   @override
@@ -298,21 +290,23 @@ class _HomePageState extends State<HomePage> {
       // CORPO
       body: Flex(
         direction: Axis.vertical,
-        children: [
-          // Container para informar status offline
-          ValueListenableBuilder<bool>(
-              valueListenable: _conexao.isOnline,
-              child: Container(
-                  color: Colors.orange,
-                  width: double.infinity,
-                  padding: const EdgeInsets.all(8),
-                  child: const Text('OFFLINE', textAlign: TextAlign.center)),
-              builder: (context, value, child) {
-                dev.log('Home Online: $value');
-                return value ? const SizedBox() : child!;
-              }),
+        children: const [
+          /* StreamBuilder<DatabaseEvent>(
+              stream: FirebaseDatabase.instance.ref('.info/connected').onValue,
+              builder: (context, event) {
+                print('teste ${event.data?.snapshot.value}');
+                bool isOnline = (event.data?.snapshot.value ?? false) as bool;
+                return isOnline
+                    ? const SizedBox()
+                    : Container(
+                        color: Colors.orange,
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(8),
+                        child: const Text('Offline. Verifique sua conexão!',
+                            textAlign: TextAlign.center));
+              }), */
           // Conteúdo
-          const Flexible(child: RouterOutlet()),
+          Flexible(child: RouterOutlet()),
         ],
       ),
 

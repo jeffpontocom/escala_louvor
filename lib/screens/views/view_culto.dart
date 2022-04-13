@@ -93,6 +93,7 @@ class _ViewCultoState extends State<ViewCulto> {
               Expanded(
                 child: Material(
                   child: ListView(
+                    shrinkWrap: true,
                     children: [
                       // Dados sobre o ensaio
                       _secaoEnsaio,
@@ -548,6 +549,18 @@ class _ViewCultoState extends State<ViewCulto> {
             ],
           ),
           // Integrantes
+          /* OrientationBuilder(builder: (context, orientation) {
+            return GridView.count(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              padding: EdgeInsets.zero,
+              crossAxisSpacing: 8,
+              mainAxisSpacing: 8,
+              crossAxisCount: orientation == Orientation.portrait ? 2 : 5,
+              children: escalados,
+            );
+          }), */
+
           Wrap(
             spacing: 8,
             runSpacing: 8,
@@ -663,7 +676,10 @@ class _ViewCultoState extends State<ViewCulto> {
                       '/perfil?id=${integrante?.id}&hero=$hero',
                       arguments: integrante),
                   child: Container(
-                    width: 172, //TODO: Definir largura por tamanho da tela
+                    //width: 172, //TODO: Definir largura por tamanho da tela
+                    height: 50,
+                    constraints: const BoxConstraints(
+                        maxHeight: kToolbarHeight, maxWidth: 172),
                     padding: const EdgeInsets.all(4),
                     decoration: BoxDecoration(
                       border: Border.all(
@@ -697,32 +713,30 @@ class _ViewCultoState extends State<ViewCulto> {
                               ),
                             ),
                             const SizedBox(width: 8),
-                            Expanded(
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  // Nome do integrante
-                                  Text(
-                                    nomeIntegrante,
-                                    maxLines: 1,
-                                    style: Theme.of(context)
-                                        .textTheme
-                                        .bodyLarge!
-                                        .copyWith(
-                                          fontWeight: FontWeight.bold,
-                                          overflow: TextOverflow.ellipsis,
-                                        ),
-                                  ),
-                                  // Instrumento para o qual está escalado
-                                  Text(
-                                    instrumento?.nome ?? '',
-                                    textAlign: TextAlign.center,
-                                    style:
-                                        Theme.of(context).textTheme.bodySmall,
-                                  ),
-                                ],
-                              ),
+                            Column(
+                              mainAxisSize: MainAxisSize.min,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                // Nome do integrante
+                                Text(
+                                  nomeIntegrante,
+                                  maxLines: 1,
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .bodyLarge!
+                                      .copyWith(
+                                        fontWeight: FontWeight.bold,
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                ),
+                                // Instrumento para o qual está escalado
+                                Text(
+                                  instrumento?.nome ?? '',
+                                  textAlign: TextAlign.center,
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                ),
+                              ],
                             ),
                             const SizedBox(width: 8),
                           ],
@@ -933,7 +947,7 @@ class _ViewCultoState extends State<ViewCulto> {
                       if (token != null) {
                         await MeuFirebase.notificarEscalado(
                             token: token,
-                            igreja: Preferencias.igreja ?? '',
+                            igreja: Global.igrejaSelecionada.value?.id ?? '',
                             culto: mCulto,
                             cultoId: widget.culto.id);
                         dev.log('Dirigente avisado!');
@@ -948,7 +962,7 @@ class _ViewCultoState extends State<ViewCulto> {
                       if (token != null) {
                         await MeuFirebase.notificarEscalado(
                             token: token,
-                            igreja: Preferencias.igreja ?? '',
+                            igreja: Global.igrejaSelecionada.value?.id ?? '',
                             culto: mCulto,
                             cultoId: widget.culto.id);
                         dev.log('Coordenador avisado!');
@@ -964,7 +978,8 @@ class _ViewCultoState extends State<ViewCulto> {
                           if (token != null) {
                             await MeuFirebase.notificarEscalado(
                                 token: token,
-                                igreja: Preferencias.igreja ?? '',
+                                igreja:
+                                    Global.igrejaSelecionada.value?.id ?? '',
                                 culto: mCulto,
                                 cultoId: widget.culto.id);
                             dev.log('Integrante ${integrante.id} avisado!');
@@ -1391,7 +1406,9 @@ class _ViewCultoState extends State<ViewCulto> {
                                 if (token != null) {
                                   MeuFirebase.notificarIndecisos(
                                       token: token,
-                                      igreja: Preferencias.igreja ?? '',
+                                      igreja:
+                                          Global.igrejaSelecionada.value?.id ??
+                                              '',
                                       culto: mCulto,
                                       cultoId: widget.culto.id);
                                   dev.log('Integrante $id avisado!');

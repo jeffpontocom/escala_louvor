@@ -20,7 +20,12 @@ void main() async {
   setPathUrlStrategy(); // remove o hash '#' das URLs
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: 'dotenv.txt');
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  try {
+    await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform);
+  } catch (e) {
+    dev.log('Main: A Firebase App named "[DEFAULT]" already exists');
+  }
   await Preferencias.carregarInstancia();
   runApp(
     ModularApp(

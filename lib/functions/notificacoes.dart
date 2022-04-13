@@ -2,8 +2,6 @@ import 'dart:convert';
 import 'dart:developer' as dev;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:escala_louvor/functions/metodos_firebase.dart';
-import 'package:escala_louvor/global.dart';
 import 'package:escala_louvor/preferencias.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -108,8 +106,12 @@ class Notificacoes {
   /// Tratamento para segundo plano
   static Future<void> _firebaseMessagingBackgroundHandler(
       RemoteMessage message) async {
-    await Firebase.initializeApp(
-        options: DefaultFirebaseOptions.currentPlatform);
+    try {
+      await Firebase.initializeApp(
+          options: DefaultFirebaseOptions.currentPlatform);
+    } catch (e) {
+      dev.log('Notificações: A Firebase App named "[DEFAULT]" already exists');
+    }
     dev.log('Tratando notificação em segundo plano: ${message.messageId}');
   }
 
