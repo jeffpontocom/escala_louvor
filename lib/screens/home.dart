@@ -279,7 +279,7 @@ class _HomePageState extends State<HomePage> {
           // Tela perfil do usuário
           IconButton(
             icon: Hero(
-              tag: FirebaseAuth.instance.currentUser?.uid ?? 'fotoUsuario',
+              tag: 'usuarioCorrente',
               child: CircleAvatar(
                 child: const Icon(Icons.account_circle, color: Colors.white),
                 backgroundColor: Colors.transparent,
@@ -290,7 +290,8 @@ class _HomePageState extends State<HomePage> {
               ),
             ),
             onPressed: () => Modular.to.pushNamed(
-                '${AppRotas.PERFIL}?id=${FirebaseAuth.instance.currentUser?.uid ?? ''}'),
+                '${AppRotas.PERFIL}?id=${FirebaseAuth.instance.currentUser?.uid ?? ''}&hero=usuarioCorrente',
+                arguments: widget.logado),
           ),
         ],
       ),

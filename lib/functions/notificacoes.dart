@@ -160,8 +160,8 @@ class Notificacoes {
         String conteudo = message.data['conteudo'];
         dev.log('Abrindo app pela mensagem: /$pagina?id=$conteudo');
         Preferencias.igreja = contexto;
-        Global.igrejaSelecionada.value =
-            await MeuFirebase.obterSnapshotIgreja(contexto);
+        //Global.igrejaSelecionada.value =
+        //    await MeuFirebase.obterSnapshotIgreja(contexto);
         Modular.to.navigate('/$pagina?id=$conteudo');
       }
     });
@@ -174,8 +174,8 @@ class Notificacoes {
       String conteudo = message.data['conteudo'];
       dev.log('Abrindo app pela mensagem: /$pagina?id=$conteudo');
       Preferencias.igreja = contexto;
-      Global.igrejaSelecionada.value =
-          await MeuFirebase.obterSnapshotIgreja(contexto);
+      //Global.igrejaSelecionada.value =
+      //    await MeuFirebase.obterSnapshotIgreja(contexto);
       Modular.to.navigate('/$pagina?id=$conteudo');
       /* Modular.to.pushNamed('/notificacoes',
           arguments: MessageArguments(message, true)); */
@@ -200,7 +200,7 @@ class Notificacoes {
     };
 
     final data = {
-      "to": para ?? "/topics/escala_louvor",
+      "to": para,
       "notification": {
         "title": titulo,
         "body": corpo,

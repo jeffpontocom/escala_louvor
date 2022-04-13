@@ -592,15 +592,18 @@ class _ViewCultoState extends State<ViewCulto> {
               child: Column(
                 children: [
                   // Foto do integrante
-                  CircleAvatar(
-                    child: Text(MyStrings.getUserInitials(
-                        integrante?.data()?.nome ?? '')),
-                    foregroundImage: MyNetwork.getImageFromUrl(
-                            integrante?.data()?.fotoUrl,
-                            progressoSize: 16)
-                        ?.image,
-                    backgroundColor: Colors.grey.withOpacity(0.5),
-                    radius: 24,
+                  Hero(
+                    tag: hero,
+                    child: CircleAvatar(
+                      child: Text(MyStrings.getUserInitials(
+                          integrante?.data()?.nome ?? '')),
+                      foregroundImage: MyNetwork.getImageFromUrl(
+                              integrante?.data()?.fotoUrl,
+                              progressoSize: 16)
+                          ?.image,
+                      backgroundColor: Colors.grey.withOpacity(0.5),
+                      radius: 24,
+                    ),
                   ),
                   const SizedBox(height: 8),
                   // Nome do integrante
@@ -624,7 +627,7 @@ class _ViewCultoState extends State<ViewCulto> {
   Widget _cardIntegranteInstrumento(
       DocumentReference<Integrante>? refIntegrante,
       String? instrumentoId,
-      String? hero) {
+      String hero) {
     return FutureBuilder<DocumentSnapshot<Integrante>>(
         future: refIntegrante?.get(),
         builder: (_, snapIntegrante) {
@@ -680,14 +683,17 @@ class _ViewCultoState extends State<ViewCulto> {
                           children: [
                             // Foto do integrante
                             const SizedBox(width: 12),
-                            CircleAvatar(
-                              child: Text(MyStrings.getUserInitials(
-                                  integrante?.data()?.nome ?? '')),
-                              foregroundImage: MyNetwork.getImageFromUrl(
-                                      integrante?.data()?.fotoUrl,
-                                      progressoSize: 16)
-                                  ?.image,
-                              backgroundColor: Colors.grey.withOpacity(0.5),
+                            Hero(
+                              tag: hero,
+                              child: CircleAvatar(
+                                child: Text(MyStrings.getUserInitials(
+                                    integrante?.data()?.nome ?? '')),
+                                foregroundImage: MyNetwork.getImageFromUrl(
+                                        integrante?.data()?.fotoUrl,
+                                        progressoSize: 16)
+                                    ?.image,
+                                backgroundColor: Colors.grey.withOpacity(0.5),
+                              ),
                             ),
                             const SizedBox(width: 8),
                             Expanded(
