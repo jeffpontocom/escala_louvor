@@ -140,6 +140,7 @@ class _ViewCultoState extends State<ViewCulto> {
                       const Divider(height: 16),
                       // Botões de ação
                       _secaoAcoes,
+                      _listaDeAcoes,
                       const SizedBox(height: 16),
                       // Fim da tela
                     ],
@@ -890,15 +891,20 @@ class _ViewCultoState extends State<ViewCulto> {
   }
 
   Widget get _secaoAcoes {
+    return const ListTile(
+      dense: true,
+      minLeadingWidth: 64,
+      leading: Text('AÇÕES'),
+    );
+  }
+
+  Widget get _listaDeAcoes {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Título
-          const Text('AÇÕES'),
-          const SizedBox(height: 8),
           // Verificar disponibilidade da equipe
           TextButton.icon(
             onPressed: () => _verificarDisponibilidades(),

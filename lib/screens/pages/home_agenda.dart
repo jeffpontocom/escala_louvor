@@ -264,22 +264,26 @@ class TelaAgenda extends StatelessWidget {
                                       const EdgeInsets.symmetric(horizontal: 4),
                                   child: RawChip(
                                     label: Text(data),
-                                    avatar: CircleAvatar(
-                                      child: Text(
-                                          MyStrings.getUserInitials(
-                                              aniversariantes[index]
-                                                  .data()
-                                                  .nome),
-                                          textScaleFactor: 0.6),
-                                      foregroundImage:
-                                          MyNetwork.getImageFromUrl(
-                                                  aniversariantes[index]
-                                                      .data()
-                                                      .fotoUrl)
-                                              ?.image,
+                                    avatar: Hero(
+                                      tag: 'aniversariante',
+                                      child: CircleAvatar(
+                                        child: Text(
+                                            MyStrings.getUserInitials(
+                                                aniversariantes[index]
+                                                    .data()
+                                                    .nome),
+                                            textScaleFactor: 0.6),
+                                        foregroundImage:
+                                            MyNetwork.getImageFromUrl(
+                                                    aniversariantes[index]
+                                                        .data()
+                                                        .fotoUrl)
+                                                ?.image,
+                                      ),
                                     ),
                                     onPressed: () => Modular.to.pushNamed(
-                                        '/perfil?id=${aniversariantes[index].id}'),
+                                        '/perfil?id=${aniversariantes[index].id}&hero=aniversariante',
+                                        arguments: aniversariantes[index]),
                                   ),
                                 );
                               }, growable: false)

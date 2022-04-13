@@ -11,7 +11,6 @@ class MinhaConexao {
   void initialize() {
     Connectivity _connectivity = Connectivity();
     _connectivity.onConnectivityChanged.listen((event) async {
-      print('home $event');
       checkStatus(event);
     });
   }
