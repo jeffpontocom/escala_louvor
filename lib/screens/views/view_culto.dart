@@ -1,6 +1,7 @@
 import 'dart:developer' as dev;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:escala_louvor/preferencias.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
@@ -414,7 +415,9 @@ class _ViewCultoState extends State<ViewCulto> {
     if (mInstrumentos == null) {
       return 'Sem instrumentos cadastrados';
     }
-    if (mCulto.equipe == null || mCulto.equipe!.isEmpty) {
+    if (mCulto.equipe == null ||
+        mCulto.equipe!.isEmpty ||
+        !mCulto.equipe!.values.any((element) => element.isNotEmpty)) {
       return 'Escalar equipe!';
     }
     List<String> instrumentosEscalados = mCulto.equipe?.keys.toList() ?? [];
@@ -491,7 +494,7 @@ class _ViewCultoState extends State<ViewCulto> {
           // Responsável
           integrante == null
               ? const SizedBox()
-              : _cardIntegranteResponsavel(integrante)
+              : _cardIntegranteResponsavel(integrante, funcao.name)
         ],
       ),
     );
@@ -508,8 +511,10 @@ class _ViewCultoState extends State<ViewCulto> {
       var instrumentoId = entrada.key;
       var integrantes = entrada.value;
       if (integrantes != null && integrantes.isNotEmpty) {
+        var i = 0;
         for (var integrante in integrantes) {
-          escalados.add(_cardIntegranteInstrumento(integrante, instrumentoId));
+          escalados.add(_cardIntegranteInstrumento(
+              integrante, instrumentoId, '${i++}_${integrante!.id}'));
         }
       }
       // TODO: Ordenar escalados conforme ordem dos instrumento
@@ -553,7 +558,7 @@ class _ViewCultoState extends State<ViewCulto> {
   }
 
   Widget _cardIntegranteResponsavel(
-      DocumentReference<Integrante> refIntegrante) {
+      DocumentReference<Integrante> refIntegrante, String hero) {
     return FutureBuilder<DocumentSnapshot<Integrante>>(
         future: refIntegrante.get(),
         builder: (_, snapIntegrante) {
@@ -566,7 +571,9 @@ class _ViewCultoState extends State<ViewCulto> {
               ? nomePrimeiro
               : nomePrimeiro + ' ' + nomeSegundo;
           return InkWell(
-            onTap: () => Modular.to.pushNamed('/perfil?id=${integrante?.id}'),
+            onTap: () => Modular.to.pushNamed(
+                '/perfil?id=${integrante?.id}&hero=$hero',
+                arguments: integrante),
             child: Container(
               width: 128,
               padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
@@ -615,7 +622,9 @@ class _ViewCultoState extends State<ViewCulto> {
   }
 
   Widget _cardIntegranteInstrumento(
-      DocumentReference<Integrante>? refIntegrante, String? instrumentoId) {
+      DocumentReference<Integrante>? refIntegrante,
+      String? instrumentoId,
+      String? hero) {
     return FutureBuilder<DocumentSnapshot<Integrante>>(
         future: refIntegrante?.get(),
         builder: (_, snapIntegrante) {
@@ -646,8 +655,9 @@ class _ViewCultoState extends State<ViewCulto> {
                 }
                 // Box
                 return InkWell(
-                  onTap: () =>
-                      Modular.to.pushNamed('/perfil?id=${integrante?.id}'),
+                  onTap: () => Modular.to.pushNamed(
+                      '/perfil?id=${integrante?.id}&hero=$hero',
+                      arguments: integrante),
                   child: Container(
                     width: 172, //TODO: Definir largura por tamanho da tela
                     padding: const EdgeInsets.all(4),
@@ -894,10 +904,14 @@ class _ViewCultoState extends State<ViewCulto> {
                       logado.ehRecrutador ||
                       ehODirigente ||
                       ehOCoordenador) &&
-                  mCulto.equipe?.values != null
+                  mCulto.equipe?.values != null &&
+                  mCulto.equipe!.values.any((element) => element.isNotEmpty)
               ? TextButton.icon(
                   //onPressed: null,
                   onPressed: () async {
+                    dev.log(mCulto.equipe!.values
+                        .any((element) => element.isNotEmpty)
+                        .toString());
                     Mensagem.aguardar(context: context); // abre progresso
                     var avisados = [];
                     // Avisar dirigente
@@ -905,8 +919,9 @@ class _ViewCultoState extends State<ViewCulto> {
                       var token = await MeuFirebase.obterTokenDoIntegrante(
                           mCulto.dirigente!.id);
                       if (token != null) {
-                        MeuFirebase.notificarEscalado(
+                        await MeuFirebase.notificarEscalado(
                             token: token,
+                            igreja: Preferencias.igreja ?? '',
                             culto: mCulto,
                             cultoId: widget.culto.id);
                         dev.log('Dirigente avisado!');
@@ -919,8 +934,9 @@ class _ViewCultoState extends State<ViewCulto> {
                       var token = await MeuFirebase.obterTokenDoIntegrante(
                           mCulto.coordenador!.id);
                       if (token != null) {
-                        MeuFirebase.notificarEscalado(
+                        await MeuFirebase.notificarEscalado(
                             token: token,
+                            igreja: Preferencias.igreja ?? '',
                             culto: mCulto,
                             cultoId: widget.culto.id);
                         dev.log('Coordenador avisado!');
@@ -934,8 +950,9 @@ class _ViewCultoState extends State<ViewCulto> {
                           var token = await MeuFirebase.obterTokenDoIntegrante(
                               integrante.id);
                           if (token != null) {
-                            MeuFirebase.notificarEscalado(
+                            await MeuFirebase.notificarEscalado(
                                 token: token,
+                                igreja: Preferencias.igreja ?? '',
                                 culto: mCulto,
                                 cultoId: widget.culto.id);
                             dev.log('Integrante ${integrante.id} avisado!');
@@ -945,6 +962,11 @@ class _ViewCultoState extends State<ViewCulto> {
                       }
                     }
                     Modular.to.pop(); // fecha progresso
+                    Mensagem.simples(
+                        context: context,
+                        titulo: 'Sucesso!',
+                        mensagem:
+                            'Todos os integrantes escalados foram notificados.');
                   },
                   label: const Text('Notificar escalados'),
                   icon: const Icon(Icons.notifications),
@@ -1350,13 +1372,14 @@ class _ViewCultoState extends State<ViewCulto> {
                             var avisados = [];
                             // Avisar dirigente
                             for (var id in indecisos.keys) {
-                              if (avisados.contains(id)) {
+                              if (!avisados.contains(id)) {
                                 var token =
                                     await MeuFirebase.obterTokenDoIntegrante(
                                         id);
                                 if (token != null) {
-                                  MeuFirebase.notificarEscalado(
+                                  MeuFirebase.notificarIndecisos(
                                       token: token,
+                                      igreja: Preferencias.igreja ?? '',
                                       culto: mCulto,
                                       cultoId: widget.culto.id);
                                   dev.log('Integrante $id avisado!');
@@ -1365,6 +1388,11 @@ class _ViewCultoState extends State<ViewCulto> {
                               avisados.add(id);
                             }
                             Modular.to.pop();
+                            Mensagem.simples(
+                                context: context,
+                                titulo: 'Sucesso!',
+                                mensagem:
+                                    'Todos os integrantes indecisos foram notificados.');
                           },
                     icon: const Icon(Icons.notification_important),
                     label: const Text('Notificar indecisos'),

@@ -16,6 +16,7 @@ class MyStrings {
   }
 
   static String getUserInitials(String name) {
+    if (name.isEmpty) return '';
     var split = name.split(' ');
     int count = split.length;
     var first = split.first.characters.first;

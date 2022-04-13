@@ -60,7 +60,11 @@ class AppRotas extends Module {
     ),
     ChildRoute(
       PERFIL,
-      child: (_, args) => TelaPerfil(id: args.queryParams['id'] ?? ''),
+      child: (_, args) => TelaPerfil(
+        id: args.queryParams['id'] ?? '',
+        hero: args.queryParams['hero'],
+        snapIntegrante: args.data,
+      ),
       guards: [NotAuthGuard(), HasQueryGuard()],
     ),
     ChildRoute(

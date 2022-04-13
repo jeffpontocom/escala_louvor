@@ -12,7 +12,10 @@ import 'home.dart';
 
 class TelaPerfil extends StatefulWidget {
   final String id;
-  const TelaPerfil({Key? key, required this.id}) : super(key: key);
+  final String? hero;
+  final DocumentSnapshot<Integrante>? snapIntegrante;
+  const TelaPerfil({Key? key, required this.id, this.hero, this.snapIntegrante})
+      : super(key: key);
 
   @override
   State<TelaPerfil> createState() => _TelaPerfilState();
@@ -20,8 +23,8 @@ class TelaPerfil extends StatefulWidget {
 
 class _TelaPerfilState extends State<TelaPerfil> {
   /* VARIÁVEIS */
-  late DocumentReference _documentReference;
-  late Integrante _integrante;
+  //late DocumentReference _documentReference;
+  //late Integrante _integrante;
   late bool _ehMeuPerfil;
 
   /* SISTEMA */
@@ -29,6 +32,7 @@ class _TelaPerfilState extends State<TelaPerfil> {
   void initState() {
     // Ao visitar o próprio perfil o usuário habilita o modo de edição.
     _ehMeuPerfil = (widget.id == FirebaseAuth.instance.currentUser?.uid);
+    print('home: ${widget.hero}');
     super.initState();
   }
 
@@ -50,27 +54,35 @@ class _TelaPerfilState extends State<TelaPerfil> {
         ],
       ),
       // CONTEÚDO
-      body: FutureBuilder<DocumentSnapshot<Integrante>?>(
-          future: MeuFirebase.obterSnapshotIntegrante(widget.id),
-          builder: (context, snap) {
-            if (!snap.hasData) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            if (!snap.data!.exists || snap.data!.data() == null) {
-              return const Center(
-                  child: Text('Falha ao obter dados do integrante.'));
-            }
-            _integrante = snap.data!.data()!;
-            _documentReference = snap.data!.reference;
-            // Tela com retorno preenchido
-            return ViewIntegrante(
-              id: _documentReference.id,
-              integrante: _integrante,
+      body: widget.snapIntegrante != null
+          ? ViewIntegrante(
+              id: widget.snapIntegrante!.id,
+              integrante: widget.snapIntegrante!.data()!,
               editMode: _ehMeuPerfil,
               novoCadastro: false,
-              hero: _documentReference.id,
-            );
-          }),
+              hero: widget.hero ?? 'fotoPerfil',
+            )
+          : FutureBuilder<DocumentSnapshot<Integrante>?>(
+              future: MeuFirebase.obterSnapshotIntegrante(widget.id),
+              builder: (context, snap) {
+                if (!snap.hasData) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (!snap.data!.exists || snap.data!.data() == null) {
+                  return const Center(
+                      child: Text('Falha ao obter dados do integrante.'));
+                }
+                var integrante = snap.data!.data()!;
+                var documentReference = snap.data!.reference;
+                // Tela com retorno preenchido
+                return ViewIntegrante(
+                  id: documentReference.id,
+                  integrante: integrante,
+                  editMode: _ehMeuPerfil,
+                  novoCadastro: false,
+                  hero: widget.hero ?? 'fotoPerfil',
+                );
+              }),
     );
   }
 

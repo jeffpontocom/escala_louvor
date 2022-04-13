@@ -6,6 +6,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
@@ -253,16 +254,33 @@ class MeuFirebase {
   }
 
   /// Notificar integrante escalado
-  static void notificarEscalado(
+  static Future<void> notificarEscalado(
       {required String token,
+      required String igreja,
       required Culto culto,
       required String cultoId}) async {
-    Notificacoes.instancia.enviarMensagemPush(
+    await Notificacoes.instancia.enviarMensagemPush(
       para: token,
-      titulo: 'Você está escalado',
+      titulo: 'Você está escalado!',
       corpo:
           '${culto.ocasiao}: ${DateFormat("EEE, d/MMM 'às' HH:mm", "pt_BR").format(culto.dataCulto.toDate())}\nVerifique a data de ensaio e estude os cânticos selecionados 😉',
-      contentId: cultoId,
+      conteudo: cultoId,
+      pagina: Paginas.escalas.name,
+    );
+  }
+
+  /// Notificar integrante escalado
+  static Future<void> notificarIndecisos(
+      {required String token,
+      required String igreja,
+      required Culto culto,
+      required String cultoId}) async {
+    await Notificacoes.instancia.enviarMensagemPush(
+      para: token,
+      titulo: 'Marque a sua disponibilidade!',
+      corpo:
+          '${culto.ocasiao}: ${DateFormat("EEE, d/MMM 'às' HH:mm", "pt_BR").format(culto.dataCulto.toDate())}\nClique aqui para abrir o app do Louvor 😉',
+      conteudo: cultoId,
       pagina: Paginas.escalas.name,
     );
   }

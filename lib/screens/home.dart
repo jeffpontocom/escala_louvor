@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 
+import '../functions/conexao.dart';
 import '/rotas.dart';
 import '/global.dart';
 import '/functions/metodos_firebase.dart';
@@ -209,6 +210,8 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  final MinhaConexao _conexao = MinhaConexao();
+
   static int setPage(String rota) {
     rota = rota.substring(1, rota.contains('?') ? rota.indexOf('?') : null);
     dev.log(rota, name: 'log:Rota');
@@ -239,7 +242,14 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     setPage(Modular.routerDelegate.path);
+    _conexao.initialize();
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    _conexao.isOnline.dispose();
+    super.dispose();
   }
 
   @override
@@ -271,7 +281,7 @@ class _HomePageState extends State<HomePage> {
             icon: Hero(
               tag: FirebaseAuth.instance.currentUser?.uid ?? 'fotoUsuario',
               child: CircleAvatar(
-                child: const Icon(Icons.person),
+                child: const Icon(Icons.account_circle, color: Colors.white),
                 backgroundColor: Colors.transparent,
                 foregroundImage: MyNetwork.getImageFromUrl(
                         widget.logado.data()?.fotoUrl,
@@ -285,7 +295,26 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
       // CORPO
-      body: const RouterOutlet(),
+      body: Flex(
+        direction: Axis.vertical,
+        children: [
+          // Container para informar status offline
+          ValueListenableBuilder<bool>(
+              valueListenable: _conexao.isOnline,
+              child: Container(
+                  color: Colors.orange,
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(8),
+                  child: const Text('OFFLINE', textAlign: TextAlign.center)),
+              builder: (context, value, child) {
+                dev.log('Home Online: $value');
+                return value ? const SizedBox() : child!;
+              }),
+          // Conteúdo
+          const Flexible(child: RouterOutlet()),
+        ],
+      ),
+
       // NAVIGATION BAR
       bottomNavigationBar: ValueListenableBuilder<int>(
         valueListenable: Global.paginaSelecionada,

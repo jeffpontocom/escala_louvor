@@ -2,6 +2,9 @@ import 'dart:convert';
 import 'dart:developer' as dev;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:escala_louvor/functions/metodos_firebase.dart';
+import 'package:escala_louvor/global.dart';
+import 'package:escala_louvor/preferencias.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -149,23 +152,31 @@ class Notificacoes {
     // Verifica se há alguma mensagem ao abrir o app
     FirebaseMessaging.instance
         .getInitialMessage()
-        .then((RemoteMessage? message) {
+        .then((RemoteMessage? message) async {
       dev.log('Mensagem inicial: ${message?.messageId}');
       if (message != null) {
-        String pagina = message.data['page'];
-        String id = message.data['id'];
-        dev.log('Abrindo app pela mensagem: /$pagina?id=$id');
-        Modular.to.navigate('/$pagina?id=$id');
+        String contexto = message.data['contexto'];
+        String pagina = message.data['pagina'];
+        String conteudo = message.data['conteudo'];
+        dev.log('Abrindo app pela mensagem: /$pagina?id=$conteudo');
+        Preferencias.igreja = contexto;
+        Global.igrejaSelecionada.value =
+            await MeuFirebase.obterSnapshotIgreja(contexto);
+        Modular.to.navigate('/$pagina?id=$conteudo');
       }
     });
 
     /// Recebimento em segundo plano
     /// Tratamento para ao clicar na notificação e abrir o app.
-    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      String pagina = message.data['page'];
-      String id = message.data['id'];
-      dev.log('Abrindo app pela mensagem: /$pagina?id=$id');
-      Modular.to.navigate('/$pagina?id=$id');
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) async {
+      String contexto = message.data['contexto'];
+      String pagina = message.data['pagina'];
+      String conteudo = message.data['conteudo'];
+      dev.log('Abrindo app pela mensagem: /$pagina?id=$conteudo');
+      Preferencias.igreja = contexto;
+      Global.igrejaSelecionada.value =
+          await MeuFirebase.obterSnapshotIgreja(contexto);
+      Modular.to.navigate('/$pagina?id=$conteudo');
       /* Modular.to.pushNamed('/notificacoes',
           arguments: MessageArguments(message, true)); */
     });
@@ -177,8 +188,9 @@ class Notificacoes {
     String? para,
     required String titulo,
     required String corpo,
+    String? contexto,
     String? pagina,
-    String? contentId,
+    String? conteudo,
   }) async {
     const postUrl = 'https://fcm.googleapis.com/fcm/send';
 
@@ -194,8 +206,9 @@ class Notificacoes {
         "body": corpo,
       },
       "data": {
-        "page": pagina ?? '',
-        "id": contentId ?? '',
+        "contexto": contexto ?? '',
+        "pagina": pagina ?? '',
+        "conteudo": conteudo ?? '',
         "click_action": "ABRIR_APP_LOUVOR",
       }
     };
@@ -216,8 +229,6 @@ class Notificacoes {
     }
   }
 }
-
-
 
   /// Permitir
   /* Future<void> _obterPermissao() async {
