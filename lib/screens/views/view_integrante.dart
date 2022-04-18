@@ -347,6 +347,7 @@ class ViewIntegrante extends StatelessWidget {
                             titulo: 'Falha',
                             mensagem:
                                 'Não foi possível registrar o novo integrante. Tente mais tarde novamente!',
+                            onPressed: popCallBack, // Fecha progresso
                           );
                         } else {
                           await MeuFirebase.salvarIntegrante(integrante,
@@ -362,6 +363,10 @@ class ViewIntegrante extends StatelessWidget {
             : const SizedBox(height: 24),
       ],
     );
+  }
+
+  void popCallBack() {
+    Modular.to.maybePop();
   }
 
   Widget _iconeComLegenda(IconData iconData, String legenda) {
