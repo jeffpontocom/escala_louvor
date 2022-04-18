@@ -1,6 +1,7 @@
 import 'dart:developer' as dev;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:escala_louvor/utils/medidas.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
@@ -288,10 +289,12 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
       // CORPO
-      body: Flex(
-        direction: Axis.vertical,
-        children: const [
-          /* StreamBuilder<DatabaseEvent>(
+      body: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 0),
+        child: Flex(
+          direction: Axis.vertical,
+          children: const [
+            /* StreamBuilder<DatabaseEvent>(
               stream: FirebaseDatabase.instance.ref('.info/connected').onValue,
               builder: (context, event) {
                 print('teste ${event.data?.snapshot.value}');
@@ -305,9 +308,10 @@ class _HomePageState extends State<HomePage> {
                         child: const Text('Offline. Verifique sua conexão!',
                             textAlign: TextAlign.center));
               }), */
-          // Conteúdo
-          Flexible(child: RouterOutlet()),
-        ],
+            // Conteúdo
+            Flexible(child: RouterOutlet()),
+          ],
+        ),
       ),
 
       // NAVIGATION BAR
