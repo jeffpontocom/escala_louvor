@@ -290,9 +290,10 @@ class _ViewCultoState extends State<ViewCulto> {
       dense: true,
       minLeadingWidth: 64,
       shape: UnderlineInputBorder(
-        borderSide: BorderSide(color: Colors.grey.withOpacity(0.26)),
-      ),
+          borderSide: BorderSide(color: Colors.grey.withOpacity(0.26))),
+      // Título
       leading: const Text('ENSAIO'),
+      // Texto de apoio
       title: Text(
         dataFormatada,
         style: Theme.of(context)
@@ -300,6 +301,7 @@ class _ViewCultoState extends State<ViewCulto> {
             .labelLarge!
             .copyWith(fontWeight: FontWeight.bold),
       ),
+      // Botão de edição (somente para dirigentes e coordenadores)
       trailing: mLogado.adm || _ehODirigente || _ehOCoordenador
           ? mCulto.dataEnsaio == null
               ? IconButton(
@@ -341,9 +343,10 @@ class _ViewCultoState extends State<ViewCulto> {
       dense: true,
       minLeadingWidth: 64,
       shape: UnderlineInputBorder(
-        borderSide: BorderSide(color: Colors.grey.withOpacity(0.26)),
-      ),
+          borderSide: BorderSide(color: Colors.grey.withOpacity(0.26))),
+      // Título
       leading: const Text('LITURGIA'),
+      // Texto de apoio
       title: mCulto.liturgiaUrl == null
           ? Text(
               'Nenhum arquivo carregado',
@@ -353,6 +356,7 @@ class _ViewCultoState extends State<ViewCulto> {
               'Abrir documento',
               style: TextStyle(color: Theme.of(context).colorScheme.primary),
             ),
+      // Botão de edição (somente para dirigente, coordenadores ou liturgos)
       trailing: mLogado.adm ||
               _ehODirigente ||
               _ehOCoordenador ||
@@ -378,6 +382,7 @@ class _ViewCultoState extends State<ViewCulto> {
                   icon: const Icon(Icons.clear),
                 )
           : null,
+      // Ação de toque
       onTap: mCulto.liturgiaUrl == null
           ? null
           : () => MeuFirebase.abrirArquivosPdf(context, [mCulto.liturgiaUrl!]),
@@ -419,7 +424,7 @@ class _ViewCultoState extends State<ViewCulto> {
       return 'Sem instrumentos cadastrados na base de dados';
     }
     List<String> instrumentosEscalados = mCulto.equipe?.keys.toList() ?? [];
-    // Lista de faltantes
+    // Lista de instrumentos faltantes
     Map<String, int> faltantes = {};
     // No mínimo 1 dirigente
     if (mCulto.dirigente == null) {
@@ -463,6 +468,7 @@ class _ViewCultoState extends State<ViewCulto> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Cabeçalho
           Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -476,15 +482,12 @@ class _ViewCultoState extends State<ViewCulto> {
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
-              // Botão de edição
+              // Botão de edição (somente para recrutadores)
               mLogado.adm || mLogado.ehRecrutador
                   ? IconButton(
                       onPressed: funcaoEditar,
-                      icon: const Icon(
-                        Icons.edit_note,
-                        color: Colors.grey,
-                        size: 16,
-                      ),
+                      icon: const Icon(Icons.edit_note,
+                          color: Colors.grey, size: 16),
                     )
                   : SizedBox(height: ButtonTheme.of(context).height),
             ],
@@ -504,45 +507,50 @@ class _ViewCultoState extends State<ViewCulto> {
     Map<String?, List<DocumentReference<Integrante>?>?> dados,
     Function()? funcaoEditar,
   ) {
-    // TODO: Ordenar escalados conforme ordem dos instrumento
-    List<Widget> escalados = [];
-    for (var entrada in dados.entries) {
-      var instrumentoId = entrada.key;
-      var integrantes = entrada.value;
-      if (integrantes != null && integrantes.isNotEmpty) {
-        var i = 0;
-        for (var integrante in integrantes) {
-          escalados.add(_cardIntegranteInstrumento(
-              integrante, instrumentoId, '${i++}_${integrante!.id}'));
-        }
-      }
-    }
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Cabeçalho
-            Row(children: [
-              // Icone
-              Icon(funcaoGetIcon(Funcao.membro), size: 20),
-              const SizedBox(width: 4),
-              // Título
-              Text(titulo.toUpperCase()),
-              // Botão de edição
-              mLogado.adm || mLogado.ehRecrutador
-                  ? IconButton(
-                      onPressed: funcaoEditar,
-                      icon: const Icon(Icons.edit_note,
-                          color: Colors.grey, size: 16),
-                    )
-                  : SizedBox(height: ButtonTheme.of(context).height),
-            ]),
-            // Integrantes
-            Wrap(spacing: 8, runSpacing: 8, children: escalados),
-          ]),
-    );
+    return FutureBuilder<QuerySnapshot<Instrumento>>(
+        future: MeuFirebase.obterListaInstrumentos(ativo: true),
+        builder: (context, snapshot) {
+          List<Widget> escalados = [];
+          if (snapshot.hasData && !snapshot.hasError) {
+            var instrumentos = snapshot.data!.docs;
+            var i = 0;
+            for (var instrumento in instrumentos) {
+              var instrumentoId = instrumento.id;
+              if (dados.containsKey(instrumentoId)) {
+                for (var integranteRef in dados[instrumentoId]!) {
+                  escalados.add(_cardIntegranteInstrumento(integranteRef,
+                      instrumentoId, '${i++}_${integranteRef!.id}'));
+                }
+              }
+            }
+          }
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  // Cabeçalho
+                  Row(children: [
+                    // Icone
+                    Icon(funcaoGetIcon(Funcao.membro), size: 20),
+                    const SizedBox(width: 4),
+                    // Título
+                    Text(titulo.toUpperCase()),
+                    // Botão de edição
+                    mLogado.adm || mLogado.ehRecrutador
+                        ? IconButton(
+                            onPressed: funcaoEditar,
+                            icon: const Icon(Icons.edit_note,
+                                color: Colors.grey, size: 16),
+                          )
+                        : SizedBox(height: ButtonTheme.of(context).height),
+                  ]),
+                  // Integrantes
+                  Wrap(spacing: 8, runSpacing: 8, children: escalados),
+                ]),
+          );
+        });
   }
 
   Widget _cardIntegranteResponsavel(
@@ -1007,8 +1015,9 @@ class _ViewCultoState extends State<ViewCulto> {
                     ativo: true, funcao: Funcao.membro.index),
                 builder: (context, snapIntegrantes) {
                   // Aguardando
-                  if (snapIntegrantes.connectionState ==
-                      ConnectionState.waiting) {
+                  if (!snapIntegrantes.hasData ||
+                      snapIntegrantes.connectionState ==
+                          ConnectionState.waiting) {
                     return const SizedBox(
                         height: 128,
                         child: Center(child: CircularProgressIndicator()));
@@ -1019,8 +1028,7 @@ class _ViewCultoState extends State<ViewCulto> {
                       child: Text('Falha ao buscar integrantes!'),
                     );
                   }
-                  if (!snapIntegrantes.hasData ||
-                      (snapIntegrantes.data?.docs.isEmpty ?? true)) {
+                  if (snapIntegrantes.data?.docs.isEmpty ?? true) {
                     return const Padding(
                       padding: EdgeInsets.all(24),
                       child: Text('Nenhum integrante disponível'),
@@ -1072,7 +1080,10 @@ class _ViewCultoState extends State<ViewCulto> {
                                 spacing: 4,
                                 runSpacing: 4,
                                 children: _integrantesDisponiveisNoInstrumento(
-                                    integrantes, instrumentos[index]),
+                                    integrantes,
+                                    instrumentos[index],
+                                    instrumentos,
+                                    innerState),
                               ),
                             ),
                           ]),
@@ -1086,9 +1097,11 @@ class _ViewCultoState extends State<ViewCulto> {
   }
 
   List<Widget> _integrantesDisponiveisNoInstrumento(
-      List<QueryDocumentSnapshot<Integrante>>? integrantes,
-      QueryDocumentSnapshot<Instrumento> instrumentoRef) {
-    //dev.log('Instrumento: ${instrumentoRef.data().nome}');
+    List<QueryDocumentSnapshot<Integrante>>? integrantes,
+    QueryDocumentSnapshot<Instrumento> instrumentoRef,
+    List<QueryDocumentSnapshot<Instrumento>>? listaInstrumentos,
+    Function innerSetState,
+  ) {
     // Ninguém disponível para nenhum instrumento
     if (integrantes == null || integrantes.isEmpty) {
       return const [Text('Ninguém disponível no momento!')];
@@ -1116,17 +1129,54 @@ class _ViewCultoState extends State<ViewCulto> {
       if (integrantesDoInstrumento.isEmpty) {
         return const [Text('Ninguém disponivel!')];
       }
+      // Lista de integrantes disponíveis
       return List.generate(integrantesDoInstrumento.length, (index) {
         bool loading = false;
         return StatefulBuilder(builder: (context, setState) {
-          bool selected = mCulto.equipe?[instrumentoRef.reference.id]
-                  ?.map((e) => e.toString())
-                  .contains(
-                      integrantesDoInstrumento[index].reference.toString()) ??
-              false;
+          var integranteRef =
+              integrantesDoInstrumento[index].reference.toString();
           var nomeSplit =
               integrantesDoInstrumento[index].data().nome.split(' ');
           var nomeCurto = '${nomeSplit.first} ${nomeSplit.last[0]}.';
+          // Verifica se integrante está recrutado para o instrumento
+          bool selected = mCulto.equipe?[instrumentoRef.reference.id]
+                  ?.map((e) => e.toString())
+                  .contains(integranteRef) ??
+              false;
+          // Verifica se integrante está recrutado em outro instrumento para habilitar seleção
+          bool disable = false;
+
+          // Se o instrumento permite outros recrutamentos, então ignorar
+          if (instrumentoRef.data().permiteOutro) {
+            disable = false;
+          }
+          // Varre a equipe para desabilitar o botão caso integrante já esteja recrutado
+          else if (mCulto.equipe != null && mCulto.equipe!.isNotEmpty) {
+            for (var entry in mCulto.equipe!.entries) {
+              Instrumento? instrumento = listaInstrumentos
+                  ?.where((element) => element.id == entry.key)
+                  .first
+                  .data();
+              if (instrumento != null) {
+                // Se instrumento não permite outro recrutamento
+                if (!instrumento.permiteOutro) {
+                  // Verifica se o integrante já está escalado
+                  if (entry.value
+                      .map((e) => e.toString())
+                      .contains(integranteRef)) {
+                    disable = true;
+                  }
+                }
+              }
+            }
+          }
+          // Por fim, desabilitar se excede a quantidade de recrutados no instrumento
+          if (mCulto.equipe?[instrumentoRef.id] != null &&
+              mCulto.equipe![instrumentoRef.id]!.length >=
+                  instrumentoRef.data().composMax) {
+            disable = true;
+          }
+          // CHIP
           return ChoiceChip(
             avatar: loading
                 ? const CircularProgressIndicator(strokeWidth: 1)
@@ -1134,25 +1184,29 @@ class _ViewCultoState extends State<ViewCulto> {
             label: Text(nomeCurto),
             selected: selected,
             selectedColor: Theme.of(context).colorScheme.primary,
-            onSelected:
-                // TODO: Verificar se integrante está em outro instrumento para habilitar seleção
-                (value) async {
-              setState((() => loading = true));
-              if (value) {
-                await widget.culto.update({
-                  'equipe.${instrumentoRef.reference.id}':
-                      FieldValue.arrayUnion(
-                          [integrantesDoInstrumento[index].reference])
-                });
-              } else {
-                await widget.culto.update({
-                  'equipe.${instrumentoRef.reference.id}':
-                      FieldValue.arrayRemove(
-                          [integrantesDoInstrumento[index].reference])
-                });
-              }
-              setState(() => loading = false);
-            },
+            disabledColor: Colors.grey.withOpacity(0.05),
+            onSelected: !selected && disable
+                ? null
+                : (value) async {
+                    setState(() => loading = true);
+                    if (value) {
+                      await widget.culto.update({
+                        'equipe.${instrumentoRef.reference.id}':
+                            FieldValue.arrayUnion(
+                                [integrantesDoInstrumento[index].reference])
+                      });
+                    } else {
+                      await widget.culto.update({
+                        'equipe.${instrumentoRef.reference.id}':
+                            FieldValue.arrayRemove(
+                                [integrantesDoInstrumento[index].reference])
+                      });
+                    }
+                    Future.delayed(const Duration(milliseconds: 50), () {
+                      innerSetState(() {});
+                    });
+                    //setState(() => loading = false);
+                  },
           );
         });
       }).toList();

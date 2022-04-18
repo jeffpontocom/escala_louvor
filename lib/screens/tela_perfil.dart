@@ -32,7 +32,6 @@ class _TelaPerfilState extends State<TelaPerfil> {
   void initState() {
     // Ao visitar o próprio perfil o usuário habilita o modo de edição.
     _ehMeuPerfil = (widget.id == FirebaseAuth.instance.currentUser?.uid);
-    print('home: ${widget.hero}');
     super.initState();
   }
 
