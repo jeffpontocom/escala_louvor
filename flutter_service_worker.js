@@ -25,18 +25,22 @@ const RESOURCES = {
 "assets/dotenv.txt": "cfabf78168df5f4c57517a4c71808415",
 "assets/FontManifest.json": "0ea9abdd987c9a26df71280858812560",
 "assets/fonts/MaterialIcons-Regular.otf": "7e7a6cccddf6d7b20012a548461d5d81",
-"assets/NOTICES": "4fbbb8f8c597ce66804f452778aa831b",
+"assets/NOTICES": "249628345ac126683b3897d911530db8",
+"canvaskit/canvaskit.js": "c2b4e5f3d7a3d82aed024e7249a78487",
+"canvaskit/canvaskit.wasm": "4b83d89d9fecbea8ca46f2f760c5a9ba",
+"canvaskit/profiling/canvaskit.js": "ae2949af4efc61d28a4a80fffa1db900",
+"canvaskit/profiling/canvaskit.wasm": "95e736ab31147d1b2c7b25f11d4c32cd",
 "favicon.png": "d9f0bfa8d2610aa0c02ab61c04f57df6",
-"firebase-messaging-sw.js": "8d7ab76ed93c3126a337537c28e28c6a",
+"firebase-messaging-sw.js": "a442c72dd7910b5de634ba1ce79a6fa2",
 "icons/Icon-192.png": "701e43ae3eb8ad390c9b65537bc8a169",
 "icons/Icon-512.png": "51cbe3b1cb0ac7ddd62f3833cba6f39a",
 "icons/Icon-maskable-192.png": "701e43ae3eb8ad390c9b65537bc8a169",
 "icons/Icon-maskable-512.png": "51cbe3b1cb0ac7ddd62f3833cba6f39a",
-"index.html": "2bd975d4a7a91278a53ae89ce14cca58",
-"/": "2bd975d4a7a91278a53ae89ce14cca58",
-"main.dart.js": "0de59dccda6efbaf77a3bcc295e940cb",
+"index.html": "b6aedc1ec1d9e9a87e7bb6b8c47f8ca2",
+"/": "b6aedc1ec1d9e9a87e7bb6b8c47f8ca2",
+"main.dart.js": "11977836d857974c19ccf632e1fb4fec",
 "manifest.json": "7051455cda8feb95c100f8203fb1431e",
-"version.json": "44ffd15aadf4dba20e2e6b82e85b00e7"
+"version.json": "6b51aaedd28287c1c3fddb53b0916830"
 };
 
 // The application shell files that are downloaded before a service worker can
