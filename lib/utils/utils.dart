@@ -92,8 +92,6 @@ class MyNetwork {
         );
       },
       frameBuilder: (context, child, frame, isSync) {
-        dev.log('image frame $frame');
-        dev.log('image isSync $isSync');
         return child;
       },
       errorBuilder: (context, error, stackTrace) =>

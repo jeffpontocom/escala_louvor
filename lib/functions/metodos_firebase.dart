@@ -212,6 +212,23 @@ class MeuFirebase {
         .get();
   }
 
+  /// Instrumento específico
+  static Future<DocumentSnapshot<Instrumento>?> obterSnapshotInstrumento(
+      String? id) async {
+    if (id == null) {
+      return null;
+    }
+    return await FirebaseFirestore.instance
+        .collection(Instrumento.collection)
+        .doc(id)
+        .withConverter<Instrumento>(
+          fromFirestore: (snapshot, _) =>
+              Instrumento.fromJson(snapshot.data()!),
+          toFirestore: (model, _) => model.toJson(),
+        )
+        .get();
+  }
+
   /// Culto especifico
   static Future<DocumentSnapshot<Culto>?> obterSnapshotCulto(String? id) async {
     if (id == null) {

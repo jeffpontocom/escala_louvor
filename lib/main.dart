@@ -24,7 +24,7 @@ void main() async {
     await Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform);
   } catch (e) {
-    dev.log('Main: A Firebase App named "[DEFAULT]" already exists');
+    dev.log('Main: Um App Firebase nomeado "[DEFAULT]" já existe!');
   }
   await Preferencias.carregarInstancia();
   runApp(
