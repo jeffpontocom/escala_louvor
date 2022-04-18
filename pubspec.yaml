@@ -18,7 +18,7 @@ description: App para controle da escala do louvor.
 publish_to: 'none'
 
 # VERSÃO DO APP
-version: 0.1.6+7
+version: 0.1.7+8
 
 # VERSÃO DO SDK FLUTTER
 environment:
