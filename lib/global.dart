@@ -7,7 +7,7 @@ import 'models/integrante.dart';
 class Global {
   // App Data
   static const String appName = 'Escala do Louvor';
-  static const String appVersion = '0.1.7';
+  static const String appVersion = '0.2.0';
 
   // Notificadores
   static DocumentSnapshot<Integrante>? integranteLogado;

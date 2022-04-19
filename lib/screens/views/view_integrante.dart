@@ -159,7 +159,7 @@ class ViewIntegrante extends StatelessWidget {
                         ),
                         // Data de Nascimento
                         SizedBox(
-                          width: MediaQuery.of(context).size.width / 3,
+                          width: 128,
                           child: TextFormField(
                             controller: nascimento,
                             enabled: editMode,
@@ -234,29 +234,36 @@ class ViewIntegrante extends StatelessWidget {
                           },
                         ),
                         // Telefone
-                        TextFormField(
-                          enabled: editMode,
-                          initialValue: integrante.telefone,
-                          decoration: InputDecoration(
-                            labelText: 'WhatsApp',
-                            disabledBorder: InputBorder.none,
-                            floatingLabelBehavior: FloatingLabelBehavior.always,
-                            suffixIcon: IconButton(
-                              onPressed: integrante.telefone == null ||
-                                      integrante.telefone!.isEmpty
-                                  ? null
-                                  : () => MyActions.openWhatsApp(
-                                      integrante.telefone!),
-                              icon: const Icon(
-                                Icons.whatsapp,
-                                color: Colors.green,
+                        Row(
+                          children: [
+                            Flexible(
+                              child: TextFormField(
+                                enabled: editMode,
+                                initialValue: integrante.telefone,
+                                decoration: const InputDecoration(
+                                  labelText: 'WhatsApp',
+                                  disabledBorder: InputBorder.none,
+                                  floatingLabelBehavior:
+                                      FloatingLabelBehavior.always,
+                                ),
+                                onChanged: (value) {
+                                  integrante.telefone = value;
+                                },
                               ),
                             ),
-                          ),
-                          onChanged: (value) {
-                            integrante.telefone = value;
-                          },
-                        ),
+                            integrante.telefone == null ||
+                                    integrante.telefone!.isEmpty
+                                ? const SizedBox()
+                                : IconButton(
+                                    onPressed: () => MyActions.openWhatsApp(
+                                        integrante.telefone!),
+                                    icon: const Icon(
+                                      Icons.whatsapp,
+                                      color: Colors.green,
+                                    ),
+                                  ),
+                          ],
+                        )
                       ],
                     ),
                   ),
@@ -336,18 +343,17 @@ class ViewIntegrante extends StatelessWidget {
                         // Salva os dados no firebase
                         var integranteId = id;
                         if (novoCadastro) {
-                          var auth = await MeuFirebase.criarUsuario(
+                          integranteId = await MeuFirebase.criarUsuario(
                               email: integrante.email,
                               senha: MyInputs.randomString(10));
-                          integranteId = auth?.user?.uid;
                         }
                         if (integranteId == null) {
+                          Modular.to.pop(); // Fecha progresso
                           Mensagem.simples(
                             context: context,
                             titulo: 'Falha',
                             mensagem:
-                                'Não foi possível registrar o novo integrante. Tente mais tarde novamente!',
-                            onPressed: popCallBack, // Fecha progresso
+                                'Não foi possível registrar o novo integrante. Verifique se já há um registro no Firebase ou tente mais tarde novamente!',
                           );
                         } else {
                           await MeuFirebase.salvarIntegrante(integrante,
@@ -363,10 +369,6 @@ class ViewIntegrante extends StatelessWidget {
             : const SizedBox(height: 24),
       ],
     );
-  }
-
-  void popCallBack() {
-    Modular.to.maybePop();
   }
 
   Widget _iconeComLegenda(IconData iconData, String legenda) {

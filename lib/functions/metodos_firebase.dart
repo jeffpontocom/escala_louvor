@@ -423,20 +423,21 @@ class MeuFirebase {
   }
 
   /// Criar novo usuário
-  static Future<UserCredential?> criarUsuario(
+  static Future<String?> criarUsuario(
       {required String email, required String senha}) async {
+    var tempName = MyInputs.randomString(6);
     FirebaseApp tempApp = await Firebase.initializeApp(
-        name: 'AppTemp', options: Firebase.app().options);
+        name: tempName, options: Firebase.app().options);
     UserCredential? userCredential;
     try {
       userCredential = await FirebaseAuth.instanceFor(app: tempApp)
           .createUserWithEmailAndPassword(email: email, password: senha);
       await FirebaseAuth.instance.sendPasswordResetEmail(email: email);
     } on FirebaseAuthException catch (e) {
-      dev.log(e.toString());
+      dev.log(e.code);
     }
     await tempApp.delete();
-    return Future.sync(() => userCredential);
+    return Future.sync(() => userCredential?.user?.uid);
   }
 
   /* UPDATES ESPECÍFICOS */

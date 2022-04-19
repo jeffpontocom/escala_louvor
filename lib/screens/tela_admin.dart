@@ -477,6 +477,7 @@ class AdminPage extends StatelessWidget {
         padding: const EdgeInsets.symmetric(horizontal: 24),
         children: [
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               // Icone
               StatefulBuilder(builder: (innerContext, StateSetter innerState) {
@@ -561,6 +562,19 @@ class AdminPage extends StatelessWidget {
                             : instrumento!.composMax = int.parse(value);
                       },
                     ),
+                    const SizedBox(height: 8),
+                    // Permite outros instrumentos
+                    StatefulBuilder(builder: (context, innerState) {
+                      return CheckboxListTile(
+                          dense: true,
+                          title: const Text('Permite outro instrumento?'),
+                          contentPadding: EdgeInsets.zero,
+                          value: instrumento?.permiteOutro ?? false,
+                          onChanged: (value) {
+                            innerState(
+                                () => instrumento?.permiteOutro = value!);
+                          });
+                    }),
                   ],
                 ),
               ),
