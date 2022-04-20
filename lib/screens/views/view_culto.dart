@@ -1234,9 +1234,10 @@ class _ViewCultoState extends State<ViewCulto> {
                   List<QueryDocumentSnapshot<Integrante>> disponiveis = [];
                   if (snap.hasData) {
                     for (var integrante in snap.data!.docs) {
-                      if (mCulto.disponiveis!
-                          .map((e) => e.toString())
-                          .contains(integrante.reference.toString())) {
+                      if (mCulto.disponiveis != null &&
+                          mCulto.disponiveis!
+                              .map((e) => e.toString())
+                              .contains(integrante.reference.toString())) {
                         disponiveis.add(integrante);
                       }
                     }

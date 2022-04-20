@@ -9,7 +9,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:upgrader/upgrader.dart';
 
-import '/global.dart';
 import '/models/integrante.dart';
 import '/utils/mensagens.dart';
 import '/utils/utils.dart';
