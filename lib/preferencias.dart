@@ -1,4 +1,6 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:upgrader/upgrader.dart';
 
 import 'functions/metodos_firebase.dart';
 import 'global.dart';
@@ -25,6 +27,7 @@ class Preferencias {
   }
 
   static _carregarIgrejaPreSelecionada() async {
+    if (FirebaseAuth.instance.currentUser == null) return;
     var value = await MeuFirebase.obterSnapshotIgreja(igreja);
     Global.igrejaSelecionada.value = value;
   }

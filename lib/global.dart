@@ -5,10 +5,6 @@ import 'models/igreja.dart';
 import 'models/integrante.dart';
 
 class Global {
-  // App Data
-  static const String appName = 'Escala do Louvor';
-  static const String appVersion = '0.2.0';
-
   // Notificadores
   static DocumentSnapshot<Integrante>? integranteLogado;
   static ValueNotifier<DocumentSnapshot<Igreja>?> igrejaSelecionada =

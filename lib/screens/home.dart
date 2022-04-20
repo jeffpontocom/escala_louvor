@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
+import 'package:upgrader/upgrader.dart';
 
 import '/rotas.dart';
 import '/global.dart';
@@ -179,17 +180,18 @@ Widget get _scaffoldSemIgrejaSelecionada {
   return Scaffold(
     body: SafeArea(
       child: Column(
-        children: const [
-          Padding(
+        children: [
+          const Padding(
             padding: EdgeInsets.all(24),
             child: Text('Selecionar igreja ou local',
                 style: TextStyle(fontSize: 22)),
           ),
-          Expanded(child: Center(child: ViewIgrejas())),
+          const Expanded(child: Center(child: ViewIgrejas())),
           Padding(
-            padding: EdgeInsets.all(24),
-            child: Text('Versão do app: ${Global.appVersion}',
-                style: TextStyle(color: Colors.grey)),
+            padding: const EdgeInsets.all(24),
+            child: Text(
+                'Versão do app: ${Upgrader().currentInstalledVersion()}',
+                style: const TextStyle(color: Colors.grey)),
           ),
         ],
       ),
@@ -288,12 +290,17 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
       // CORPO
-      body: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 0),
-        child: Flex(
-          direction: Axis.vertical,
-          children: const [
-            /* StreamBuilder<DatabaseEvent>(
+      body: UpgradeAlert(
+        //debugDisplayOnce: true,
+        debugLogging: true,
+        canDismissDialog: true,
+        shouldPopScope: () => true,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 0),
+          child: Flex(
+            direction: Axis.vertical,
+            children: const [
+              /* StreamBuilder<DatabaseEvent>(
               stream: FirebaseDatabase.instance.ref('.info/connected').onValue,
               builder: (context, event) {
                 print('teste ${event.data?.snapshot.value}');
@@ -307,9 +314,10 @@ class _HomePageState extends State<HomePage> {
                         child: const Text('Offline. Verifique sua conexão!',
                             textAlign: TextAlign.center));
               }), */
-            // Conteúdo
-            Flexible(child: RouterOutlet()),
-          ],
+              // Conteúdo
+              Flexible(child: RouterOutlet()),
+            ],
+          ),
         ),
       ),
 

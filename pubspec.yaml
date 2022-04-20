@@ -18,7 +18,7 @@ description: App para controle da escala do louvor.
 publish_to: 'none'
 
 # VERSÃO DO APP
-version: 0.2.0+9
+version: 0.2.1+10
 
 # VERSÃO DO SDK FLUTTER
 environment:
@@ -50,8 +50,10 @@ dependencies:
   table_calendar: ^3.0.4
   shared_preferences: ^2.0.13
   connectivity_plus: ^2.3.0
+  upgrader: ^3.13.0
   url_launcher: ^6.0.20
   url_strategy: ^0.2.0 # para remover o hash '#' das URLs (incluir 'setPathUrlStrategy();' em main) 
+
 
 dev_dependencies:
   flutter_test:
