@@ -1,17 +1,17 @@
 // ignore_for_file: constant_identifier_names
 
-import 'package:escala_louvor/screens/pages/home_agenda.dart';
-import 'package:escala_louvor/screens/pages/home_canticos.dart';
-import 'package:escala_louvor/screens/pages/home_chats.dart';
-import 'package:escala_louvor/screens/pages/home_escalas.dart';
-import 'package:escala_louvor/screens/tela_notificacoes.dart';
-import 'package:escala_louvor/screens/tela_pdf_view.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 
-import 'screens/tela_admin.dart';
 import 'screens/home.dart';
+import 'screens/pages/home_agenda.dart';
+import 'screens/pages/home_canticos.dart';
+import 'screens/pages/home_chats.dart';
+import 'screens/pages/home_escalas.dart';
+import 'screens/tela_admin.dart';
 import 'screens/tela_login.dart';
+import 'screens/tela_notificacoes.dart';
+import 'screens/tela_pdf_view.dart';
 import 'screens/tela_perfil.dart';
 
 class AppRotas extends Module {

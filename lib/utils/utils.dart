@@ -17,7 +17,7 @@ class MyStrings {
 
   static String getUserInitials(String name) {
     if (name.isEmpty) return '';
-    var split = name.split(' ');
+    var split = name.trim().split(' ');
     int count = split.length;
     var first = split.first.characters.first;
     var last = '';
@@ -40,7 +40,12 @@ class MyActions {
     if (value.length < 10) {
       value = STD_DDD + value;
     }
-    var url = 'https://wa.me/55$value';
+    var url = '';
+    if (value.startsWith('+')) {
+      url = 'https://wa.me/${value.substring(1)}';
+    } else {
+      url = 'https://wa.me/55$value';
+    }
     if (!await launch(url)) {
       throw 'Não é possível abrir o Whatsapp';
     }

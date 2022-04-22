@@ -17,16 +17,22 @@ import 'rotas.dart';
 import 'screens/home.dart';
 
 void main() async {
-  setPathUrlStrategy(); // remove o hash '#' das URLs
+  // remover o hash '#' das URLs
+  setPathUrlStrategy();
+  // Inicializar widgets antes de rodar o app
   WidgetsFlutterBinding.ensureInitialized();
+  // Carregar o arquivo de chaves (extensão .txt para poder ser lida na web)
   await dotenv.load(fileName: 'dotenv.txt');
+  // Inicializar o Firebase
   try {
     await Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform);
   } catch (e) {
     dev.log('Main: Um App Firebase nomeado "[DEFAULT]" já existe!');
   }
+  // Carregar preferências
   await Preferencias.carregarInstancia();
+  // Rodar aplicativo
   runApp(
     ModularApp(
       module: AppRotas(),
