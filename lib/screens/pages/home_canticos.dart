@@ -4,13 +4,16 @@ import 'package:escala_louvor/global.dart';
 import 'package:escala_louvor/models/integrante.dart';
 import 'package:escala_louvor/screens/views/dialogos.dart';
 import 'package:escala_louvor/utils/mensagens.dart';
+import 'package:escala_louvor/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../models/cantico.dart';
 import '../../models/culto.dart';
+import '../../rotas.dart';
 
 class TelaCanticos extends StatefulWidget {
   final DocumentSnapshot<Culto>? culto;
@@ -150,9 +153,11 @@ class _TelaCanticosState extends State<TelaCanticos> {
                             .addAll(listaOriginal.where((element) => true));
                       } else {
                         listaFiltrada.addAll(listaOriginal.where((element) =>
-                            element.data().nome.contains(filtro) ||
-                            (element.data().autor?.contains(filtro) ?? false) ||
-                            (element.data().letra?.contains(filtro) ?? false)));
+                            MyStrings.hasContain(element.data().nome, filtro) ||
+                            MyStrings.hasContain(
+                                element.data().autor ?? '', filtro) ||
+                            MyStrings.hasContain(
+                                element.data().letra ?? '', filtro)));
                       }
                       if (listaFiltrada.isEmpty) {
                         return Padding(
@@ -203,8 +208,12 @@ class _TelaCanticosState extends State<TelaCanticos> {
                                   )
                                 : IconButton(
                                     onPressed: () {
-                                      Dialogos.verLetraDoCantico(
-                                          context, listaFiltrada[index].data());
+                                      Modular.to.pushNamed(AppRotas.CANTICO,
+                                          arguments: [
+                                            listaFiltrada[index].data()
+                                          ]);
+                                      //Dialogos.verLetraDoCantico(
+                                      //    context, listaFiltrada[index].data());
                                     },
                                     icon: const Icon(Icons.abc)),
                             horizontalTitleGap: 4,
@@ -220,31 +229,39 @@ class _TelaCanticosState extends State<TelaCanticos> {
                               mainAxisSize: MainAxisSize.min,
                               children: [
                                 // Cifra
-                                IconButton(
-                                    onPressed:
-                                        listaFiltrada[index].data().cifraUrl ==
-                                                null
-                                            ? null
-                                            : () {
-                                                MeuFirebase.abrirArquivosPdf(
-                                                    context, [
-                                                  listaFiltrada[index]
-                                                      .data()
-                                                      .cifraUrl!
-                                                ]);
-                                              },
-                                    icon: const Icon(Icons.queue_music)),
+                                listaFiltrada[index].data().cifraUrl == null
+                                    ? const SizedBox()
+                                    : IconButton(
+                                        onPressed: () {
+                                          MeuFirebase.abrirArquivosPdf(
+                                              context, [
+                                            listaFiltrada[index]
+                                                .data()
+                                                .cifraUrl!
+                                          ]);
+                                        },
+                                        icon: const Icon(Icons.queue_music,
+                                            color: Colors.green)),
                                 // YouTube
-                                IconButton(
-                                    onPressed: () async {
-                                      if (!await launch(listaFiltrada[index]
-                                              .data()
-                                              .youTubeUrl ??
-                                          '')) {
-                                        throw 'Could not launch youTubeUrl';
-                                      }
-                                    },
-                                    icon: const Icon(Icons.ondemand_video)),
+                                listaFiltrada[index].data().youTubeUrl ==
+                                            null ||
+                                        listaFiltrada[index]
+                                            .data()
+                                            .youTubeUrl!
+                                            .isEmpty
+                                    ? const SizedBox()
+                                    : IconButton(
+                                        onPressed: () async {
+                                          if (!await launch(listaFiltrada[index]
+                                                  .data()
+                                                  .youTubeUrl ??
+                                              '')) {
+                                            throw 'Could not launch youTubeUrl';
+                                          }
+                                        },
+                                        icon: const FaIcon(
+                                            FontAwesomeIcons.youtube,
+                                            color: Colors.red)),
                                 // Menu
                                 logado!.adm ||
                                         logado!.ehDirigente ||

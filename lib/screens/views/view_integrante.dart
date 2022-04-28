@@ -423,10 +423,12 @@ class ViewIntegrante extends StatelessWidget {
         return StatefulBuilder(builder: (_, innerState) {
           return Wrap(
             spacing: 8,
+            runSpacing: 8,
             children: List.generate(instrumentos.length, (index) {
               var snapInstrumento = instrumentos[index];
               return ChoiceChip(
                 label: Text(snapInstrumento.data().nome),
+                materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                 avatar:
                     Image.asset(snapInstrumento.data().iconAsset, width: 12),
                 pressElevation: 0,

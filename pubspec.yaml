@@ -37,9 +37,9 @@ dependencies:
   flutter_local_notifications: ^9.4.0
   firebase_auth: ^3.3.13
   firebase_core: ^1.13.1
-  # firebase_database: ^9.0.11
   firebase_messaging: ^11.2.11
   firebase_storage: ^10.2.11
+  font_awesome_flutter: ^10.1.0
   cloud_firestore: ^3.1.11
   easy_mask: ^2.0.1
   file_picker: ^4.5.1
@@ -53,6 +53,7 @@ dependencies:
   upgrader: ^3.13.0
   url_launcher: ^6.0.20
   url_strategy: ^0.2.0 # para remover o hash '#' das URLs (incluir 'setPathUrlStrategy();' em main) 
+  wakelock: ^0.6.1+2
 
 
 dev_dependencies:

@@ -1,6 +1,7 @@
 import 'dart:developer' as dev;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:escala_louvor/rotas.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
@@ -807,7 +808,9 @@ class _ViewCultoState extends State<ViewCulto> {
               contentPadding: const EdgeInsets.symmetric(horizontal: 8),
               leading: IconButton(
                   onPressed: () {
-                    Dialogos.verLetraDoCantico(context, snapshot.data!.data()!);
+                    Modular.to.pushNamed(AppRotas.CANTICO,
+                        arguments: [snapshot.data!.data()]);
+                    //Dialogos.verLetraDoCantico(context, snapshot.data!.data()!);
                   },
                   icon: const Icon(Icons.abc)),
               horizontalTitleGap: 8,
@@ -1077,8 +1080,8 @@ class _ViewCultoState extends State<ViewCulto> {
                             // Integrantes
                             Expanded(
                               child: Wrap(
-                                spacing: 4,
-                                runSpacing: 4,
+                                spacing: 8,
+                                runSpacing: 8,
                                 children: _integrantesDisponiveisNoInstrumento(
                                     integrantes,
                                     instrumentos[index],
@@ -1182,6 +1185,7 @@ class _ViewCultoState extends State<ViewCulto> {
                 ? const CircularProgressIndicator(strokeWidth: 1)
                 : null,
             label: Text(nomeCurto),
+            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
             selected: selected,
             selectedColor: Theme.of(context).colorScheme.primary,
             disabledColor: Colors.grey.withOpacity(0.05),
@@ -1327,6 +1331,8 @@ class _ViewCultoState extends State<ViewCulto> {
                 return const CircularProgressIndicator();
               }
               Map<String, String> disponiveis = {};
+              Map<String, String> restritos = {};
+              Map<String, String> indecisos = {};
               for (var integrante in snapshot.data!.docs) {
                 if (integrante.data().ehDirigente ||
                     integrante.data().ehCoordenador ||
@@ -1337,17 +1343,7 @@ class _ViewCultoState extends State<ViewCulto> {
                       false) {
                     disponiveis.putIfAbsent(
                         integrante.id, () => integrante.data().nome);
-                    //disponiveis.add(integrante.data().nome);
-                  }
-                }
-              }
-
-              Map<String, String> restritos = {};
-              for (var integrante in snapshot.data!.docs) {
-                if (integrante.data().ehDirigente ||
-                    integrante.data().ehCoordenador ||
-                    integrante.data().ehComponente) {
-                  if (mCulto.restritos
+                  } else if (mCulto.restritos
                           ?.map((e) => e.toString())
                           .contains(integrante.reference.toString()) ??
                       false) {
@@ -1357,15 +1353,21 @@ class _ViewCultoState extends State<ViewCulto> {
                 }
               }
 
-              Map<String, String> indecisos = {};
               for (var integrante in snapshot.data!.docs) {
                 if (integrante.data().ehDirigente ||
                     integrante.data().ehCoordenador ||
                     integrante.data().ehComponente) {
-                  if (!disponiveis.containsKey(integrante.id) &&
-                      !restritos.containsKey(integrante.id)) {
-                    indecisos.putIfAbsent(
-                        integrante.id, () => integrante.data().nome);
+                  if (integrante
+                          .data()
+                          .igrejas
+                          ?.map((e) => e.toString())
+                          .contains(mCulto.igreja.toString()) ??
+                      false) {
+                    if (!disponiveis.containsKey(integrante.id) &&
+                        !restritos.containsKey(integrante.id)) {
+                      indecisos.putIfAbsent(
+                          integrante.id, () => integrante.data().nome);
+                    }
                   }
                 }
               }

@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 
 import '../../functions/metodos_firebase.dart';
@@ -194,65 +195,68 @@ class Dialogos {
       {DocumentReference<Cantico>? reference}) async {
     return Mensagem.bottomDialog(
       context: context,
-      titulo: 'Editar Cântico/Hino',
+      titulo: 'Editar cântico',
       conteudo: ListView(
           shrinkWrap: true,
           padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
           children: [
+            // É hino
             StatefulBuilder(builder: (_, innerState) {
               return Row(
                 children: [
                   // Cifra
-                  const Text('CIFRA:'),
-                  const SizedBox(width: 12),
-                  // Botão para abrir arquivo
-                  cantico.cifraUrl == null
-                      ? Text(
-                          'Nenhum arquivo carregado',
-                          style: Theme.of(context).textTheme.caption,
-                        )
-                      : TextButton(
-                          child: const Text('Ver arquivo'),
-                          style: TextButton.styleFrom(padding: EdgeInsets.zero),
-                          onPressed: () => MeuFirebase.abrirArquivosPdf(
-                              context, [cantico.cifraUrl!])),
-                  const SizedBox(width: 24),
-                  // Botão de ação limpar
-                  cantico.cifraUrl == null
-                      ? const SizedBox()
-                      : IconButton(
-                          onPressed: () async {
-                            innerState(() => cantico.cifraUrl = null);
-                          },
-                          icon: const Icon(Icons.clear, color: Colors.grey),
-                        ),
-                  // Botão de ação carregar arquivo
-                  IconButton(
-                    onPressed: () async {
-                      String? url = await MeuFirebase.carregarArquivoPdf(
-                          context,
-                          pasta: 'cifras');
-                      if (url != null && url.isNotEmpty) {
-                        innerState(() => cantico.cifraUrl = url);
-                      }
-                    },
-                    icon: const Icon(Icons.upload_file),
+                  Flexible(
+                    flex: 3,
+                    child: ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      horizontalTitleGap: 0,
+                      leading:
+                          const Icon(Icons.queue_music, color: Colors.green),
+                      title: const Text('Cifra'),
+                      trailing: cantico.cifraUrl == null
+                          ? const Icon(Icons.upload_file)
+                          : IconButton(
+                              // Ação para remover o arquivo
+                              onPressed: () async {
+                                innerState(() => cantico.cifraUrl = null);
+                              },
+                              icon: const Icon(Icons.delete_forever)),
+                      onTap: cantico.cifraUrl == null
+                          ?
+                          // Ação para carregar arquivo
+                          () async {
+                              String? url =
+                                  await MeuFirebase.carregarArquivoPdf(context,
+                                      pasta: 'cifras');
+                              if (url != null && url.isNotEmpty) {
+                                innerState(() => cantico.cifraUrl = url);
+                              }
+                            }
+                          :
+                          // Ação para abrir o arquivo
+                          () => MeuFirebase.abrirArquivosPdf(
+                              context, [cantico.cifraUrl!]),
+                    ),
                   ),
-                  // Espaço
-                  const Expanded(child: SizedBox()),
-                  // é hino
-                  const Text('É HINO?'),
-                  Checkbox(
-                      tristate: false,
-                      value: cantico.isHino,
-                      activeColor: Theme.of(context).colorScheme.primary,
-                      onChanged: (value) {
-                        innerState((() => cantico.isHino = value ?? false));
-                      }),
+                  const VerticalDivider(width: 12),
+                  // Tipo (é hino?)
+                  Flexible(
+                    flex: 2,
+                    child: CheckboxListTile(
+                        title: const Text('Hino', textAlign: TextAlign.center),
+                        activeColor: Theme.of(context).colorScheme.primary,
+                        contentPadding: EdgeInsets.zero,
+                        tileColor: Colors.grey.withOpacity(0.18),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8)),
+                        value: cantico.isHino,
+                        onChanged: (value) {
+                          innerState((() => cantico.isHino = value ?? false));
+                        }),
+                  ),
                 ],
               );
             }),
-            const SizedBox(height: 12),
             // Nome ou título
             TextFormField(
               initialValue: cantico.nome,
@@ -269,6 +273,7 @@ class Dialogos {
               initialValue: cantico.autor,
               decoration: const InputDecoration(
                 labelText: 'Autor(es)',
+                icon: Icon(Icons.co_present_rounded),
                 floatingLabelBehavior: FloatingLabelBehavior.always,
               ),
               onChanged: (value) {
@@ -279,9 +284,9 @@ class Dialogos {
             TextFormField(
               initialValue: cantico.youTubeUrl,
               decoration: const InputDecoration(
-                labelText: 'Link do vídeo',
-                floatingLabelBehavior: FloatingLabelBehavior.always,
-              ),
+                  labelText: 'Link do vídeo',
+                  floatingLabelBehavior: FloatingLabelBehavior.always,
+                  icon: FaIcon(FontAwesomeIcons.youtube, color: Colors.red)),
               onChanged: (value) {
                 cantico.youTubeUrl = value;
               },

@@ -9,6 +9,7 @@ import 'screens/pages/home_canticos.dart';
 import 'screens/pages/home_chats.dart';
 import 'screens/pages/home_escalas.dart';
 import 'screens/tela_admin.dart';
+import 'screens/tela_letra_view.dart';
 import 'screens/tela_login.dart';
 import 'screens/tela_notificacoes.dart';
 import 'screens/tela_pdf_view.dart';
@@ -20,6 +21,7 @@ class AppRotas extends Module {
   static const String PERFIL = '/perfil';
   static const String ADMIN = '/admin';
   static const String ARQUIVOS = '/arquivos';
+  static const String CANTICO = '/cantico';
 
   @override
   final List<Bind> binds = [];
@@ -75,6 +77,11 @@ class AppRotas extends Module {
     ChildRoute(
       ARQUIVOS,
       child: (_, args) => TelaPdfView(arquivos: args.data),
+      transition: TransitionType.downToUp,
+    ),
+    ChildRoute(
+      CANTICO,
+      child: (_, args) => TelaLetrasView(canticos: args.data),
       transition: TransitionType.downToUp,
     ),
     ChildRoute(

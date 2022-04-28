@@ -15,6 +15,23 @@ class MyStrings {
     return valor <= 1 ? '' : 's';
   }
 
+  static bool hasContain(String first, String second) {
+    first = normalize(first.toLowerCase());
+    second = normalize(second.toLowerCase());
+    return first.contains(second);
+  }
+
+  static String normalize(String str) {
+    var withDia =
+        'ÀÁÂÃÄÅàáâãäåÒÓÔÕÕÖØòóôõöøÈÉÊËèéêëðÇçÐÌÍÎÏìíîïÙÚÛÜùúûüÑñŠšŸÿýŽž';
+    var withoutDia =
+        'AAAAAAaaaaaaOOOOOOOooooooEEEEeeeeeCcDIIIIiiiiUUUUuuuuNnSsYyyZz';
+    for (int i = 0; i < withDia.length; i++) {
+      str = str.replaceAll(withDia[i], withoutDia[i]);
+    }
+    return str;
+  }
+
   static String getUserInitials(String name) {
     if (name.isEmpty) return '';
     var split = name.trim().split(' ');
