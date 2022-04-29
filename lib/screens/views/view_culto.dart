@@ -5,6 +5,7 @@ import 'package:escala_louvor/rotas.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 
 import '/functions/metodos_firebase.dart';
@@ -627,7 +628,10 @@ class _ViewCultoState extends State<ViewCulto> {
         future: refIntegrante?.get(),
         builder: (_, snapIntegrante) {
           // Recolhe dados do integrante
-          if (!snapIntegrante.hasData) return const SizedBox();
+          if (!snapIntegrante.hasData) {
+            // TODO: Tile de carregamento
+            return const SizedBox();
+          }
           var integrante = snapIntegrante.data;
           var nome = integrante?.data()?.nome ?? '';
           var nomePrimeiro = nome.split(' ').first;
@@ -792,15 +796,18 @@ class _ViewCultoState extends State<ViewCulto> {
           future: MeuFirebase.obterSnapshotCantico(mCulto.canticos![index].id),
           builder: (context, snapshot) {
             if (!snapshot.hasData) {
+              // TODO: Tile de carregamento
               return const Padding(
                 padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: Text('Carregando...'),
               );
             }
-            if (snapshot.hasError) {
-              return const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: Text('Falha ao carregar dados do cântico'),
+            if (snapshot.hasError || snapshot.data?.data() == null) {
+              return Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Text(
+                    'Falha ao carregar dados do cântico\nID:  ${snapshot.data?.id ?? '[nulo]'}'),
               );
             }
             return ListTile(
@@ -809,7 +816,7 @@ class _ViewCultoState extends State<ViewCulto> {
               leading: IconButton(
                   onPressed: () {
                     Modular.to.pushNamed(AppRotas.CANTICO,
-                        arguments: [snapshot.data!.data()]);
+                        arguments: [snapshot.data!.data()!]);
                     //Dialogos.verLetraDoCantico(context, snapshot.data!.data()!);
                   },
                   icon: const Icon(Icons.abc)),
@@ -826,21 +833,27 @@ class _ViewCultoState extends State<ViewCulto> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   // Cifra
-                  IconButton(
-                      onPressed: snapshot.data?.data()?.cifraUrl == null
-                          ? null
-                          : () {
-                              MeuFirebase.abrirArquivosPdf(
-                                  context, [snapshot.data!.data()!.cifraUrl!]);
-                            },
-                      icon: const Icon(Icons.queue_music)),
+                  snapshot.data?.data()?.cifraUrl == null
+                      ? const SizedBox()
+                      : IconButton(
+                          onPressed: () {
+                            MeuFirebase.abrirArquivosPdf(
+                                context, [snapshot.data!.data()!.cifraUrl!]);
+                          },
+                          icon: const Icon(
+                            Icons.queue_music,
+                            color: Colors.green,
+                          )),
                   // YouTube
-                  IconButton(
-                      onPressed: () async {
-                        MyActions.openSite(
-                            snapshot.data?.data()?.youTubeUrl ?? '');
-                      },
-                      icon: const Icon(Icons.ondemand_video)),
+                  snapshot.data?.data()?.youTubeUrl == null
+                      ? const SizedBox()
+                      : IconButton(
+                          onPressed: () async {
+                            MyActions.openSite(
+                                snapshot.data?.data()?.youTubeUrl ?? '');
+                          },
+                          icon: const FaIcon(FontAwesomeIcons.youtube,
+                              color: Colors.red)),
                   const SizedBox(width: kIsWeb ? 24 : 0),
                 ],
               ),

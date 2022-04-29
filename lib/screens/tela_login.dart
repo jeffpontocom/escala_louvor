@@ -27,6 +27,7 @@ class _LoginPageState extends State<LoginPage> {
   final _formSenha = TextEditingController();
 
   /* MÉTODOS DO SISTEMA */
+
   @override
   void dispose() {
     _formUsuario.dispose();

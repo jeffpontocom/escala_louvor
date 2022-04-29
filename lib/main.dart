@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_modular/flutter_modular.dart';
+import 'package:upgrader/upgrader.dart';
 import 'package:url_strategy/url_strategy.dart';
 
 import 'firebase_options.dart';
@@ -23,6 +24,7 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   // Carregar o arquivo de chaves (extensão .txt para poder ser lida na web)
   await dotenv.load(fileName: 'dotenv.txt');
+  await Upgrader().initialize();
   // Inicializar o Firebase
   try {
     await Firebase.initializeApp(
