@@ -1,5 +1,6 @@
 import 'dart:developer' as dev;
 
+import 'package:escala_louvor/global.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
@@ -8,7 +9,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_modular/flutter_modular.dart';
-import 'package:upgrader/upgrader.dart';
 import 'package:url_strategy/url_strategy.dart';
 
 import 'firebase_options.dart';
@@ -18,14 +18,18 @@ import 'rotas.dart';
 import 'screens/home.dart';
 
 void main() async {
-  // remover o hash '#' das URLs
-  setPathUrlStrategy();
-  // Inicializar widgets antes de rodar o app
+  setPathUrlStrategy(); // remover o hash '#' das URLs
   WidgetsFlutterBinding.ensureInitialized();
+  runApp(ModularApp(module: AppRotas(), child: const MyApp()));
+}
+
+Future<bool> iniciar(ValueNotifier<String> textoCarregamento) async {
   // Carregar o arquivo de chaves (extensão .txt para poder ser lida na web)
   await dotenv.load(fileName: 'dotenv.txt');
-  await Upgrader().initialize();
+  textoCarregamento.value = 'Checando dados do aplicativo...';
+  await Global.carregarAppInfo();
   // Inicializar o Firebase
+  textoCarregamento.value = 'Verificando base de dados...';
   try {
     await Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform);
@@ -33,15 +37,10 @@ void main() async {
     dev.log('Main: Um App Firebase nomeado "[DEFAULT]" já existe!');
   }
   // Carregar preferências
+  textoCarregamento.value = 'Aplicando preferências...';
   await Preferencias.carregarInstancia();
-  // Rodar aplicativo
-  runApp(
-    ModularApp(
-      module: AppRotas(),
-      child: const MyApp(),
-      debugMode: !kReleaseMode,
-    ),
-  );
+  textoCarregamento.value = 'Carregando aplicativo...';
+  return true;
 }
 
 class MyApp extends StatelessWidget {
@@ -49,63 +48,104 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Rota inicial
-    Modular.setInitialRoute('/${Paginas.values[0].name}');
-    // Escuta alterações no usuário autenticado
-    // pelas configurações de rota os usuários não logados são
-    // direcionados a tela de login
-    return StreamBuilder<User?>(
-        stream: FirebaseAuth.instance.userChanges(),
-        builder: (_, snapshotUser) {
-          dev.log('MyApp: ${snapshotUser.connectionState.name}');
-          if (snapshotUser.connectionState == ConnectionState.active) {
-            dev.log(
-                'Firebase Auth: ${snapshotUser.data?.email ?? 'não logado!'}');
-          }
-          if (snapshotUser.data?.email != null) {
-            // Carrega sistema de notificações
-            // Esse carregamento deve ser feito sempre após runApp() para evitar erros
-            Notificacoes.carregarInstancia();
-          }
-          // APP
-          return MaterialApp.router(
-            title: 'Escala do Louvor',
-            // Tema claro
-            theme: ThemeData(
-              primarySwatch: Colors.blue,
-              colorScheme: ColorScheme.light(
-                primary: Colors.blue,
-                secondary: Colors.blue.shade600,
+    ValueNotifier<String> textoCarregamento = ValueNotifier('Aguarde...');
+    return FutureBuilder<bool>(
+        future: iniciar(textoCarregamento),
+        builder: (context, snapshot) {
+          if (!snapshot.hasData) {
+            return MaterialApp(
+              home: Scaffold(
+                backgroundColor: Theme.of(context).primaryColor,
+                body: Padding(
+                  padding: const EdgeInsets.all(64),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      // Gif de carregamento
+                      Image.asset('assets/icons/ic_launcher.png',
+                          width: 64, height: 64),
+                      const SizedBox(height: 24),
+                      // Texto de carregamento
+                      ValueListenableBuilder<String>(
+                          valueListenable: textoCarregamento,
+                          builder: (context, value, _) {
+                            return Text(value, textAlign: TextAlign.center);
+                          })
+                    ],
+                  ),
+                ),
               ),
-              materialTapTargetSize:
-                  kIsWeb ? MaterialTapTargetSize.padded : null,
-              dividerTheme: const DividerThemeData(space: 4),
-            ),
-            // Tema Escuro
-            darkTheme: ThemeData(
-              brightness: Brightness.dark,
-              primarySwatch: Colors.blue,
-              colorScheme: ColorScheme.dark(
-                primary: Colors.blue,
-                secondary: Colors.blue.shade400,
+            );
+          }
+          /* if (snapshot.hasData) {
+            return const MaterialApp(
+              home: Scaffold(
+                body: Center(
+                  child: Text('OK'),
+                ),
               ),
-              materialTapTargetSize:
-                  kIsWeb ? MaterialTapTargetSize.padded : null,
-              dividerTheme: const DividerThemeData(space: 4),
-            ),
-            // Behaviors
-            scrollBehavior: MyCustomScrollBehavior(),
-            // Suporte a lingua português nos elementos globais
-            localizationsDelegates: const [
-              GlobalMaterialLocalizations.delegate,
-              GlobalCupertinoLocalizations.delegate,
-            ],
-            supportedLocales: const [Locale('pt')],
-            locale: const Locale('pt_BR'),
-            // Navegação Modular
-            routeInformationParser: Modular.routeInformationParser,
-            routerDelegate: Modular.routerDelegate,
-          );
+            );
+          } */
+
+          // Rota inicial
+          Modular.setInitialRoute('/${Paginas.values[0].name}');
+          // Escuta alterações no usuário autenticado
+          // pelas configurações de rota os usuários não logados são
+          // direcionados a tela de login
+          return StreamBuilder<User?>(
+              stream: FirebaseAuth.instance.userChanges(),
+              builder: (_, snapshotUser) {
+                dev.log('MyApp: ${snapshotUser.connectionState.name}');
+                if (snapshotUser.connectionState == ConnectionState.active) {
+                  dev.log(
+                      'Firebase Auth: ${snapshotUser.data?.email ?? 'não logado!'}');
+                }
+                if (snapshotUser.data?.email != null) {
+                  // Carrega sistema de notificações
+                  // Esse carregamento deve ser feito sempre após runApp() para evitar erros
+                  Notificacoes.carregarInstancia();
+                }
+                // APP
+                return MaterialApp.router(
+                  title: 'Escala do Louvor',
+                  // Tema claro
+                  theme: ThemeData(
+                    primarySwatch: Colors.blue,
+                    colorScheme: ColorScheme.light(
+                      primary: Colors.blue,
+                      secondary: Colors.blue.shade600,
+                    ),
+                    materialTapTargetSize:
+                        kIsWeb ? MaterialTapTargetSize.padded : null,
+                    dividerTheme: const DividerThemeData(space: 4),
+                  ),
+                  // Tema Escuro
+                  darkTheme: ThemeData(
+                    brightness: Brightness.dark,
+                    primarySwatch: Colors.blue,
+                    colorScheme: ColorScheme.dark(
+                      primary: Colors.blue,
+                      secondary: Colors.blue.shade400,
+                    ),
+                    materialTapTargetSize:
+                        kIsWeb ? MaterialTapTargetSize.padded : null,
+                    dividerTheme: const DividerThemeData(space: 4),
+                  ),
+                  // Behaviors
+                  scrollBehavior: MyCustomScrollBehavior(),
+                  // Suporte a lingua português nos elementos globais
+                  localizationsDelegates: const [
+                    GlobalMaterialLocalizations.delegate,
+                    GlobalCupertinoLocalizations.delegate,
+                  ],
+                  supportedLocales: const [Locale('pt')],
+                  locale: const Locale('pt_BR'),
+                  // Navegação Modular
+                  routeInformationParser: Modular.routeInformationParser,
+                  routerDelegate: Modular.routerDelegate,
+                );
+              });
         });
   }
 }

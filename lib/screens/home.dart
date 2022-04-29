@@ -189,8 +189,7 @@ Widget get _scaffoldSemIgrejaSelecionada {
           const Expanded(child: Center(child: ViewIgrejas())),
           Padding(
             padding: const EdgeInsets.all(24),
-            child: Text(
-                'Versão do app: ${Upgrader().currentInstalledVersion()}',
+            child: Text('Versão do app: ${Global.appInfo?.version ?? '...'}',
                 style: const TextStyle(color: Colors.grey)),
           ),
         ],
