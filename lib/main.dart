@@ -18,7 +18,7 @@ import 'rotas.dart';
 import 'screens/home.dart';
 
 void main() async {
-  setPathUrlStrategy(); // remover o hash '#' das URLs
+  setPathUrlStrategy();
   WidgetsFlutterBinding.ensureInitialized();
   runApp(ModularApp(module: AppRotas(), child: const MyApp()));
 }
@@ -52,6 +52,7 @@ class MyApp extends StatelessWidget {
     return FutureBuilder<bool>(
         future: iniciar(textoCarregamento),
         builder: (context, snapshot) {
+          // TELA DE CARREGAMENTO
           if (!snapshot.hasData) {
             return MaterialApp(
               home: Scaffold(
@@ -78,16 +79,7 @@ class MyApp extends StatelessWidget {
               ),
             );
           }
-          /* if (snapshot.hasData) {
-            return const MaterialApp(
-              home: Scaffold(
-                body: Center(
-                  child: Text('OK'),
-                ),
-              ),
-            );
-          } */
-
+          // PÓS CARREGAMENTO INICIAL
           // Rota inicial
           Modular.setInitialRoute('/${Paginas.values[0].name}');
           // Escuta alterações no usuário autenticado
