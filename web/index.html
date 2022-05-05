@@ -20,6 +20,7 @@
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
   <meta name="description" content="Escala do Louvor da Igreja Presbiteriana de Foz do Iguaçu">
+  <meta name="color-scheme" content="dark light">
 
   <!-- iOS meta tags & icons -->
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -34,8 +35,19 @@
   <link rel="icon" type="image/png" href="favicon.png"/>
   <!-- Para carregar imagem e textos centralizados na inicialização -->
   <style>
+    body {
+      background: #2094f3;
+      color: #222;
+      font: 100% system-ui;
+    }
+    @media (prefers-color-scheme: dark) {
+      body {
+        background: #121212;
+        color: #eee;
+      }
+    }
     div *{
-      font-family: "Offside","Trebuchet MS",monospace;
+      font-family: "Ubuntu","Trebuchet MS";
     }
     .centered {
       position: fixed;
@@ -46,7 +58,6 @@
     }
     .centered *{
       text-align: center;
-      color: black;
     }
   </style>
 
@@ -54,13 +65,12 @@
 <body>
   <!-- Interface de carregamento  -->
   <div class="centered">
-    <img src="icons/Icon-192.png" />
+    <img src="icons/Icon-192.png" width="128" />
     <span></br></span>
-    <span style="font-size: 32px; font-weight: bold;">Escala do Louvor</br></span>
-    <span style="font-size: 14px;">Igreja Presbiteriana de Foz do Iguaçu</br></span>
+    <span style="font-size: 32px; font-weight: bold; font-family: 'Offside','Trebuchet MS'">Escala do Louvor</br></span>
     <span></br></span>
     <span></br></span>
-    <span style="font-size: 14px; color: grey;" id="mStatus">Carregando app...</span>
+    <span style="font-size: 14px; opacity: 0.5;" id="mStatus">...</span>
   </div>
 
   <!-- Verifica se a internet esta disponivel
@@ -72,7 +82,6 @@
         console.log('Status de conexão com a internet = %d %s', response.status, response.statusText);
         if (response.status >= 200 && response.status < 300){
           document.getElementById('mStatus').innerText = 'Carregando app...';
-          document.getElementById('mStatus').style.color = '#1e90ff'; /* Color: dodgerblue */
         } else {
           document.getElementById('mStatus').innerText = 'Não é possível acessar o sistema!\nVerifique sua conexão com a Internet ou tente em outro navegador mais atualizado.';
           document.getElementById('mStatus').style.color = 'red';
@@ -82,7 +91,7 @@
         console.log('Conexão falhou', error)
         status = 'Não é possível acessar o sistema!\nVerifique sua conexão com a Internet.';
         document.getElementById('mStatus').innerText = status;
-        document.getElementById('mStatus').style.color = 'red';
+        document.getElementById('mStatus').style.color = 'orange';
       });
   </script>
 

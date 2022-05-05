@@ -65,7 +65,7 @@ dev_dependencies:
   flutter_lints: ^1.0.4
 
 flutter_app_name:
-  name: 'Escala Louvor'
+  name: 'Escala do Louvor'
   
 flutter_icons:
   image_path: 'assets/icons/ic_launcher.png'
@@ -78,6 +78,10 @@ flutter:
   assets:
     - dotenv.txt
     - assets/icons/ic_launcher.png
+    - assets/icons/ic_disponivel.png
+    - assets/icons/ic_escalado.png
+    - assets/icons/ic_indeciso.png
+    - assets/icons/ic_restrito.png
     # ÍCONES MÚSICA: https://www.flaticon.com/packs/music-icons-7?word=music%20instruments
     - assets/icons/music_baixo.png
     - assets/icons/music_bateria.png
@@ -100,3 +104,18 @@ flutter:
     - family: Offside
       fonts:
         - asset: assets/fonts/Offside-Regular.ttf
+    - family: Ubuntu
+      fonts:
+        - asset: assets/fonts/Ubuntu-Regular.ttf
+        - asset: assets/fonts/Ubuntu-Italic.ttf
+          style: italic
+        - asset: assets/fonts/Ubuntu-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/Ubuntu-BoldItalic.ttf
+          weight: 700
+          style: italic
+        - asset: assets/fonts/Ubuntu-Light.ttf
+          weight: 300
+        - asset: assets/fonts/Ubuntu-LightItalic.ttf
+          weight: 300
+          style: italic

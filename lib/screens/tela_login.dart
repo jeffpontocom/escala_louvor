@@ -1,15 +1,14 @@
 import 'dart:developer' as dev;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:escala_louvor/global.dart';
-import 'package:escala_louvor/screens/home.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 
+import '/global.dart';
 import '/models/integrante.dart';
+import '/screens/home.dart';
 import '/utils/mensagens.dart';
 import '/utils/utils.dart';
 
@@ -38,124 +37,135 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      extendBody: true,
       body: Center(
         child: SingleChildScrollView(
-          child: Container(
-            alignment: Alignment.center,
-            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-            child: Wrap(
-              alignment: WrapAlignment.center,
-              crossAxisAlignment: WrapCrossAlignment.center,
-              runAlignment: WrapAlignment.center,
-              runSpacing: 32,
-              spacing: 32,
-              children: [
-                // Cabeçalho
-                Column(
-                  children: [
-                    // Logotipo
-                    const Image(
-                      image: AssetImage('assets/images/login.png'),
-                      height: 256,
-                      width: 256,
-                    ),
-                    // Nome do App
-                    Text(
-                      kIsWeb
-                          ? 'Escala Louvor'
-                          : Global.appInfo?.appName ?? '...',
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 40,
-                        fontFamily: 'Offside',
-                      ),
-                    ),
-                    // Versão do App
-                    Text(
-                      'versão ${Global.appInfo?.version ?? '...'}',
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(color: Colors.grey),
-                    ),
-                  ],
-                ),
-                ConstrainedBox(
-                  constraints:
-                      const BoxConstraints(minWidth: 200, maxWidth: 450),
-                  // Formulário
-                  child: Form(
-                    key: _formKey,
-                    autovalidateMode: AutovalidateMode.disabled,
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        // Campo Usuário
-                        TextFormField(
-                          controller: _formUsuario,
-                          validator: MyInputs.validarEmail,
-                          keyboardType: TextInputType.emailAddress,
-                          textInputAction: TextInputAction.next,
-                          autofillHints: const [
-                            AutofillHints.username,
-                            AutofillHints.email
-                          ],
-                          inputFormatters: <TextInputFormatter>[
-                            FilteringTextInputFormatter.deny(' '),
-                          ],
-                          decoration: const InputDecoration(
-                            labelText: 'E-mail',
-                            prefixIcon: Icon(Icons.email),
-                          ),
-                        ),
-                        const SizedBox(height: 8.0),
-                        // Campo Senha
-                        TextFormField(
-                          controller: _formSenha,
-                          validator: MyInputs.validarSenha,
-                          obscureText: true,
-                          keyboardType: TextInputType.visiblePassword,
-                          textInputAction: TextInputAction.done,
-                          autofillHints: const [AutofillHints.password],
-                          enableSuggestions: false,
-                          decoration: const InputDecoration(
-                            labelText: 'Senha',
-                            prefixIcon: Icon(Icons.password),
-                          ),
-                          onFieldSubmitted: (_) => _logar(),
-                        ),
-                        const SizedBox(height: 24.0),
-                        // Botão Login
-                        ElevatedButton.icon(
-                          icon: const Icon(Icons.login),
-                          label: const Text('ENTRAR'),
-                          onPressed: _logar,
-                        ),
-                        const SizedBox(height: 24.0),
-                        // Botão esqueci minha senha
-                        TextButton(
-                          child: const Text(
-                            'Esqueci minha senha',
-                            style: TextStyle(color: Colors.red),
-                          ),
-                          onPressed: _esqueciMinhaSenha,
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-                // Texto Informativo
-                const SizedBox(
-                  width: double.maxFinite,
-                  child: Text(
-                    'Apenas usuários cadastrados pelo administrador tem acesso ao sistema.',
-                    style: TextStyle(color: Colors.grey),
-                    textAlign: TextAlign.center,
-                  ),
-                ),
-              ],
-            ),
+          padding: const EdgeInsets.all(16),
+          child: Wrap(
+            alignment: WrapAlignment.center, // Alinhamento horizontal
+            crossAxisAlignment: WrapCrossAlignment.center,
+            runAlignment: WrapAlignment.center,
+            spacing: 32,
+            runSpacing: 32,
+            children: [
+              cabecalho,
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  return ConstrainedBox(
+                    constraints:
+                        const BoxConstraints(minWidth: 200, maxWidth: 600),
+                    child: formularioLogin,
+                  );
+                },
+              ),
+              versaoDoApp,
+            ],
           ),
         ),
       ),
+    );
+  }
+
+  /* WIDGETS */
+  /// Cabeçalho (Column)
+  get cabecalho {
+    return Column(
+      children: const [
+        // Ilustração
+        Image(
+          image: AssetImage('assets/images/login.png'),
+          height: 256,
+          width: 256,
+        ),
+        // Nome do app
+        Text(
+          'Escala do Louvor',
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            fontFamily: 'Offside',
+            fontSize: 40,
+          ),
+        ),
+      ],
+    );
+  }
+
+  /// Formulário de Login
+  get formularioLogin {
+    return Form(
+      key: _formKey,
+      autovalidateMode: AutovalidateMode.disabled,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          // Campo Usuário
+          TextFormField(
+            controller: _formUsuario,
+            validator: MyInputs.validarEmail,
+            keyboardType: TextInputType.emailAddress,
+            textInputAction: TextInputAction.next,
+            autofillHints: const [AutofillHints.username, AutofillHints.email],
+            inputFormatters: <TextInputFormatter>[
+              FilteringTextInputFormatter.deny(' ')
+            ],
+            decoration: const InputDecoration(
+              labelText: 'E-mail',
+              prefixIcon: Icon(Icons.email),
+            ),
+          ),
+          const SizedBox(height: 12),
+          // Campo Senha
+          TextFormField(
+            controller: _formSenha,
+            validator: MyInputs.validarSenha,
+            obscureText: true,
+            keyboardType: TextInputType.visiblePassword,
+            textInputAction: TextInputAction.done,
+            autofillHints: const [AutofillHints.password],
+            enableSuggestions: false,
+            decoration: const InputDecoration(
+              labelText: 'Senha',
+              prefixIcon: Icon(Icons.password),
+            ),
+            onFieldSubmitted: (_) => _logar(),
+          ),
+          const SizedBox(height: 24),
+          // Botão Login
+          ElevatedButton.icon(
+            icon: const Icon(Icons.login),
+            label: const Text('Entrar'),
+            onPressed: _logar,
+          ),
+          const SizedBox(height: 24),
+          // Botão esqueci minha senha
+          TextButton(
+            child: const Text('Esqueci minha senha',
+                style: TextStyle(color: Colors.red)),
+            onPressed: _esqueciMinhaSenha,
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// Versão do App (Row)
+  get versaoDoApp {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        const Text(
+          'versão do app: ',
+          textAlign: TextAlign.center,
+          style: TextStyle(color: Colors.grey),
+        ),
+        Text(
+          Global.appInfo?.version ?? '...',
+          textAlign: TextAlign.center,
+          style:
+              const TextStyle(color: Colors.grey, fontWeight: FontWeight.bold),
+        ),
+      ],
     );
   }
 

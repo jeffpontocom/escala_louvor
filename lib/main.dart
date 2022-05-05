@@ -1,9 +1,7 @@
 import 'dart:developer' as dev;
 
-import 'package:escala_louvor/global.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
@@ -13,9 +11,11 @@ import 'package:url_strategy/url_strategy.dart';
 
 import 'firebase_options.dart';
 import 'functions/notificacoes.dart';
+import 'global.dart';
 import 'preferencias.dart';
 import 'rotas.dart';
 import 'screens/home.dart';
+import 'temas.dart';
 
 void main() async {
   setPathUrlStrategy();
@@ -56,7 +56,6 @@ class MyApp extends StatelessWidget {
           if (!snapshot.hasData) {
             return MaterialApp(
               home: Scaffold(
-                backgroundColor: Theme.of(context).primaryColor,
                 body: Padding(
                   padding: const EdgeInsets.all(64),
                   child: Column(
@@ -65,7 +64,7 @@ class MyApp extends StatelessWidget {
                     children: [
                       // Gif de carregamento
                       Image.asset('assets/icons/ic_launcher.png',
-                          width: 64, height: 64),
+                          width: 48, height: 48),
                       const SizedBox(height: 24),
                       // Texto de carregamento
                       ValueListenableBuilder<String>(
@@ -102,28 +101,9 @@ class MyApp extends StatelessWidget {
                 return MaterialApp.router(
                   title: 'Escala do Louvor',
                   // Tema claro
-                  theme: ThemeData(
-                    primarySwatch: Colors.blue,
-                    colorScheme: ColorScheme.light(
-                      primary: Colors.blue,
-                      secondary: Colors.blue.shade600,
-                    ),
-                    materialTapTargetSize:
-                        kIsWeb ? MaterialTapTargetSize.padded : null,
-                    dividerTheme: const DividerThemeData(space: 4),
-                  ),
+                  theme: temaClaro(),
                   // Tema Escuro
-                  darkTheme: ThemeData(
-                    brightness: Brightness.dark,
-                    primarySwatch: Colors.blue,
-                    colorScheme: ColorScheme.dark(
-                      primary: Colors.blue,
-                      secondary: Colors.blue.shade400,
-                    ),
-                    materialTapTargetSize:
-                        kIsWeb ? MaterialTapTargetSize.padded : null,
-                    dividerTheme: const DividerThemeData(space: 4),
-                  ),
+                  darkTheme: temaEscuro(),
                   // Behaviors
                   scrollBehavior: MyCustomScrollBehavior(),
                   // Suporte a lingua português nos elementos globais
