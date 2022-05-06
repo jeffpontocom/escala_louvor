@@ -9,6 +9,7 @@ import 'package:flutter_modular/flutter_modular.dart';
 import '/global.dart';
 import '/models/integrante.dart';
 import '/screens/home.dart';
+import '/utils/medidas.dart';
 import '/utils/mensagens.dart';
 import '/utils/utils.dart';
 
@@ -37,36 +38,58 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      extendBody: true,
-      body: Center(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Wrap(
-            alignment: WrapAlignment.center, // Alinhamento horizontal
-            crossAxisAlignment: WrapCrossAlignment.center,
-            runAlignment: WrapAlignment.center,
-            spacing: 32,
-            runSpacing: 32,
-            children: [
-              cabecalho,
-              LayoutBuilder(
+      body: SafeArea(
+        child: OrientationBuilder(builder: (context, orientation) {
+          var isPortrait = orientation == Orientation.portrait;
+          var padding = Medidas.bodyPadding(context);
+          return Center(
+            child: SingleChildScrollView(
+              padding: EdgeInsets.symmetric(horizontal: padding, vertical: 16),
+              child: LayoutBuilder(
                 builder: (context, constraints) {
-                  return ConstrainedBox(
-                    constraints:
-                        const BoxConstraints(minWidth: 200, maxWidth: 600),
-                    child: formularioLogin,
+                  var space = 32.0;
+                  return Wrap(
+                    alignment: WrapAlignment.center,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    spacing: space,
+                    runSpacing: space,
+                    children: [
+                      ConstrainedBox(
+                        child: cabecalho,
+                        constraints: BoxConstraints(
+                            maxWidth: isPortrait
+                                ? constraints.maxWidth
+                                : constraints.maxWidth * 2 / 5),
+                      ),
+                      ConstrainedBox(
+                        child: formularioLogin,
+                        constraints: BoxConstraints(
+                            maxWidth: isPortrait
+                                ? constraints.maxWidth
+                                : (constraints.maxWidth * 3 / 5) - space),
+                      ),
+                    ],
                   );
                 },
               ),
-              versaoDoApp,
-            ],
-          ),
+            ),
+          );
+        }),
+      ),
+      bottomNavigationBar: BottomAppBar(
+        elevation: 0,
+        child: Container(
+          alignment: Alignment.center,
+          height: 36,
+          color: Colors.black38,
+          child: Global.versaoDoAppText,
         ),
       ),
     );
   }
 
   /* WIDGETS */
+
   /// Cabeçalho (Column)
   get cabecalho {
     return Column(
@@ -83,7 +106,8 @@ class _LoginPageState extends State<LoginPage> {
           textAlign: TextAlign.center,
           style: TextStyle(
             fontFamily: 'Offside',
-            fontSize: 40,
+            fontSize: 36,
+            fontWeight: FontWeight.bold,
           ),
         ),
       ],
@@ -130,14 +154,17 @@ class _LoginPageState extends State<LoginPage> {
             ),
             onFieldSubmitted: (_) => _logar(),
           ),
+          const SizedBox(height: 12),
+          advertencia,
           const SizedBox(height: 24),
           // Botão Login
           ElevatedButton.icon(
             icon: const Icon(Icons.login),
             label: const Text('Entrar'),
+            style: ElevatedButton.styleFrom(minimumSize: const Size(172, 40)),
             onPressed: _logar,
           ),
-          const SizedBox(height: 24),
+          const SizedBox(height: 16),
           // Botão esqueci minha senha
           TextButton(
             child: const Text('Esqueci minha senha',
@@ -149,23 +176,12 @@ class _LoginPageState extends State<LoginPage> {
     );
   }
 
-  /// Versão do App (Row)
-  get versaoDoApp {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        const Text(
-          'versão do app: ',
-          textAlign: TextAlign.center,
-          style: TextStyle(color: Colors.grey),
-        ),
-        Text(
-          Global.appInfo?.version ?? '...',
-          textAlign: TextAlign.center,
-          style:
-              const TextStyle(color: Colors.grey, fontWeight: FontWeight.bold),
-        ),
-      ],
+  /// Advertência
+  get advertencia {
+    return const Text(
+      'Apenas usuários cadastrados pelo administrador tem acesso ao sistema',
+      textAlign: TextAlign.center,
+      style: TextStyle(color: Colors.grey),
     );
   }
 
@@ -220,13 +236,13 @@ class _LoginPageState extends State<LoginPage> {
               // Sucesso. Vai para home
               Modular.to.navigate('/${Paginas.values[0].name}');
             } catch (e) {
-              dev.log("Falha ao criar novo perfil de integrante: $e");
+              dev.log("Não foi possível criar novo perfil de integrante: $e.");
               Modular.to.pop(); // Fecha progresso
               // Falha. Abre dialogo
               Mensagem.simples(
                   context: context,
-                  titulo: 'Erro',
-                  mensagem: 'Não foi possível criar o perfil do integrante');
+                  titulo: 'Falhou!',
+                  mensagem: 'Não foi possível criar o perfil do integrante.');
             }
           }
         });
@@ -241,10 +257,8 @@ class _LoginPageState extends State<LoginPage> {
     // Ao falhar abre dialogo
     Mensagem.simples(
       context: context,
-      titulo: 'Erro',
+      titulo: 'Falhou!',
       mensagem: mensagemErro,
-      /* mensagem:
-          'Verifique seu usuário e senha.\n\nApenas usuários previamente cadastrados podem acessar o sistema.', */
     );
   }
 
@@ -265,17 +279,17 @@ class _LoginPageState extends State<LoginPage> {
       // Abre mensagem de sucesso
       Mensagem.simples(
           context: context,
-          titulo: 'Sucesso',
+          titulo: 'Sucesso!',
           mensagem:
-              'Verifique a sua caixa de entrada para redefinir a sua senha!');
+              'Verifique a sua caixa de entrada para redefinir a sua senha.');
     } catch (e) {
       Modular.to.pop(); // Fecha progresso
       // Abre mensagem de erro
       Mensagem.simples(
           context: context,
-          titulo: 'Falha',
+          titulo: 'Falha!',
           mensagem:
-              'Não foi possível localizar o email ${_formUsuario.text} em nosso cadastro!');
+              'Não foi possível localizar o e-mail ${_formUsuario.text} em nosso cadastro.');
     }
   }
 }
@@ -328,42 +342,41 @@ class AuthExceptionHandler {
     return status;
   }
 
-  ///
   /// Accepts AuthExceptionHandler.errorType
-  ///
   static generateExceptionMessage(exceptionCode) {
     String errorMessage;
     switch (exceptionCode) {
       case AuthResultStatus.invalidEmail:
-        errorMessage = "Seu endereço de e-mail parece estar incorreto.";
+        errorMessage = 'Seu endereço de e-mail parece estar incorreto.';
         break;
       case AuthResultStatus.wrongPassword:
-        errorMessage = "Senha incorreta.";
+        errorMessage =
+            'Senha incorreta.\n\nTente novamente ou redefina sua senha.';
         break;
       case AuthResultStatus.userNotFound:
         errorMessage =
-            "O usuário com este e-mail não existe.\n\nApenas usuários previamente cadastrados podem acessar o sistema.";
+            'O usuário com este e-mail não existe.\n\nApenas usuários previamente cadastrados podem acessar o sistema.';
         break;
       case AuthResultStatus.userDisabled:
         errorMessage =
-            "O usuário com este e-mail foi desativado.\n\nApenas usuários ativos podem acessar o sistema.";
+            'O usuário com este e-mail foi desativado.\n\nApenas usuários ativos podem acessar o sistema.';
         break;
       case AuthResultStatus.tooManyRequests:
-        errorMessage = "Muitos pedidos. Tente mais tarde novamente.";
+        errorMessage = 'Muitos pedidos. Tente mais tarde novamente.';
         break;
       case AuthResultStatus.operationNotAllowed:
-        errorMessage = "Entrar com e-mail e senha não está ativado.";
+        errorMessage = 'Entrar com e-mail e senha não está ativado.';
         break;
       case AuthResultStatus.emailAlreadyExists:
         errorMessage =
-            "O e-mail já foi cadastrado.\n\nPor favor, faça o login ou redefina sua senha.";
+            'O e-mail já foi cadastrado.\n\nPor favor, faça o login ou redefina sua senha.';
         break;
       case AuthResultStatus.networkRequestFailed:
         errorMessage =
-            "Ocorreu um erro de rede (como tempo limite, conexão interrompida ou host inacessível).\n\nVerifique sua conexão.";
+            'Verifique sua conexão.\n\nOcorreu um erro de rede (como tempo limite, conexão interrompida ou host inacessível).';
         break;
       default:
-        errorMessage = "Ocorreu um erro inesperado.";
+        errorMessage = 'Ocorreu um erro inesperado.';
     }
     return errorMessage;
   }

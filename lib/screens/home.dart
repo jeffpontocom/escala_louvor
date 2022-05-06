@@ -1,6 +1,7 @@
 import 'dart:developer' as dev;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:escala_louvor/screens/tela_selecao.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
@@ -49,7 +50,7 @@ class HomeInit extends StatelessWidget {
           // Ouvinte para igreja selecionada
           return ValueListenableBuilder<DocumentSnapshot<Igreja>?>(
               valueListenable: Global.igrejaSelecionada,
-              child: _scaffoldSemIgrejaSelecionada,
+              child: const TelaSelecao(),
               builder: (context, igreja, child) {
                 if (igreja == null) {
                   return child!;

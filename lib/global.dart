@@ -16,4 +16,23 @@ class Global {
   static carregarAppInfo() async {
     appInfo = await PackageInfo.fromPlatform();
   }
+
+  /// Versão do App
+  static get versaoDoAppText {
+    return Wrap(
+      children: [
+        const Text(
+          'versão do app: ',
+          textAlign: TextAlign.center,
+          style: TextStyle(color: Colors.grey),
+        ),
+        Text(
+          Global.appInfo?.version ?? '...',
+          textAlign: TextAlign.center,
+          style:
+              const TextStyle(color: Colors.grey, fontWeight: FontWeight.bold),
+        ),
+      ],
+    );
+  }
 }
