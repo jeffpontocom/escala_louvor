@@ -40,11 +40,11 @@ class _LoginPageState extends State<LoginPage> {
     return Scaffold(
       body: SafeArea(
         child: OrientationBuilder(builder: (context, orientation) {
-          var isPortrait = orientation == Orientation.portrait;
-          var padding = Medidas.bodyPadding(context);
+          var _isPortrait = orientation == Orientation.portrait;
+          var _padding = Medidas.bodyPadding(context);
           return Center(
             child: SingleChildScrollView(
-              padding: EdgeInsets.symmetric(horizontal: padding, vertical: 16),
+              padding: EdgeInsets.symmetric(horizontal: _padding, vertical: 16),
               child: LayoutBuilder(
                 builder: (context, constraints) {
                   var space = 32.0;
@@ -54,17 +54,19 @@ class _LoginPageState extends State<LoginPage> {
                     spacing: space,
                     runSpacing: space,
                     children: [
+                      // Cabeçalho
                       ConstrainedBox(
                         child: cabecalho,
                         constraints: BoxConstraints(
-                            maxWidth: isPortrait
+                            maxWidth: _isPortrait
                                 ? constraints.maxWidth
                                 : constraints.maxWidth * 2 / 5),
                       ),
+                      // Formulário
                       ConstrainedBox(
                         child: formularioLogin,
                         constraints: BoxConstraints(
-                            maxWidth: isPortrait
+                            maxWidth: _isPortrait
                                 ? constraints.maxWidth
                                 : (constraints.maxWidth * 3 / 5) - space),
                       ),
@@ -76,15 +78,6 @@ class _LoginPageState extends State<LoginPage> {
           );
         }),
       ),
-      bottomNavigationBar: BottomAppBar(
-        elevation: 0,
-        child: Container(
-          alignment: Alignment.center,
-          height: 36,
-          color: Colors.black38,
-          child: Global.versaoDoAppText,
-        ),
-      ),
     );
   }
 
@@ -93,15 +86,15 @@ class _LoginPageState extends State<LoginPage> {
   /// Cabeçalho (Column)
   get cabecalho {
     return Column(
-      children: const [
+      children: [
         // Ilustração
-        Image(
+        const Image(
           image: AssetImage('assets/images/login.png'),
           height: 256,
           width: 256,
         ),
         // Nome do app
-        Text(
+        const Text(
           'Escala do Louvor',
           textAlign: TextAlign.center,
           style: TextStyle(
@@ -110,6 +103,8 @@ class _LoginPageState extends State<LoginPage> {
             fontWeight: FontWeight.bold,
           ),
         ),
+        // Versão
+        Global.versaoDoAppText,
       ],
     );
   }
@@ -155,6 +150,7 @@ class _LoginPageState extends State<LoginPage> {
             onFieldSubmitted: (_) => _logar(),
           ),
           const SizedBox(height: 12),
+          // Advertência
           advertencia,
           const SizedBox(height: 24),
           // Botão Login
@@ -236,7 +232,7 @@ class _LoginPageState extends State<LoginPage> {
               // Sucesso. Vai para home
               Modular.to.navigate('/${Paginas.values[0].name}');
             } catch (e) {
-              dev.log("Não foi possível criar novo perfil de integrante: $e.");
+              dev.log("Não foi possível criar o perfil do integrante: $e.");
               Modular.to.pop(); // Fecha progresso
               // Falha. Abre dialogo
               Mensagem.simples(

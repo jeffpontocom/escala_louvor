@@ -248,59 +248,62 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        // Ícone da aplicação
-        leading: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Image.asset('assets/icons/ic_launcher.png')),
-        // Título da aplicação
-        title: ValueListenableBuilder<int>(
-            valueListenable: Global.paginaSelecionada,
-            builder: (context, pagina, _) {
-              return Text(titulos[pagina], style: Estilo.appBarTitulo);
-            }),
-        titleSpacing: 0,
-        // Ações
-        actions: [
-          // Tela administrador
-          (widget.logado.data()?.adm ?? false)
-              ? IconButton(
-                  onPressed: () => Modular.to.pushNamed('/admin'),
-                  icon: const Icon(Icons.admin_panel_settings),
-                )
-              : const SizedBox(),
-          // Tela perfil do usuário
-          IconButton(
-            icon: Hero(
-              tag: 'usuarioCorrente',
-              child: CircleAvatar(
-                child: const Icon(Icons.account_circle, color: Colors.white),
-                backgroundColor: Colors.transparent,
-                foregroundImage: MyNetwork.getImageFromUrl(
-                        widget.logado.data()?.fotoUrl,
-                        progressoSize: 12)
-                    ?.image,
+    return OrientationBuilder(
+      builder: (context, orientation) {
+        return Scaffold(
+          appBar: AppBar(
+            // Ícone da aplicação
+            leading: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Image.asset('assets/icons/ic_launcher.png')),
+            // Título da aplicação
+            title: ValueListenableBuilder<int>(
+                valueListenable: Global.paginaSelecionada,
+                builder: (context, pagina, _) {
+                  return Text(titulos[pagina], style: Estilo.appBarTitulo);
+                }),
+            titleSpacing: 0,
+            // Ações
+            actions: [
+              // Tela administrador
+              (widget.logado.data()?.adm ?? false)
+                  ? IconButton(
+                      onPressed: () => Modular.to.pushNamed('/admin'),
+                      icon: const Icon(Icons.admin_panel_settings),
+                    )
+                  : const SizedBox(),
+              // Tela perfil do usuário
+              IconButton(
+                icon: Hero(
+                  tag: 'usuarioCorrente',
+                  child: CircleAvatar(
+                    child:
+                        const Icon(Icons.account_circle, color: Colors.white),
+                    backgroundColor: Colors.transparent,
+                    foregroundImage: MyNetwork.getImageFromUrl(
+                            widget.logado.data()?.fotoUrl,
+                            progressoSize: 12)
+                        ?.image,
+                  ),
+                ),
+                onPressed: () => Modular.to.pushNamed(
+                    '${AppRotas.PERFIL}?id=${FirebaseAuth.instance.currentUser?.uid ?? ''}&hero=usuarioCorrente',
+                    arguments: widget.logado),
               ),
-            ),
-            onPressed: () => Modular.to.pushNamed(
-                '${AppRotas.PERFIL}?id=${FirebaseAuth.instance.currentUser?.uid ?? ''}&hero=usuarioCorrente',
-                arguments: widget.logado),
+            ],
           ),
-        ],
-      ),
-      // CORPO
-      body: UpgradeAlert(
-        //debugDisplayOnce: true,
-        debugLogging: true,
-        canDismissDialog: true,
-        shouldPopScope: () => true,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 0),
-          child: Flex(
-            direction: Axis.vertical,
-            children: const [
-              /* StreamBuilder<DatabaseEvent>(
+          // CORPO
+          body: UpgradeAlert(
+            //debugDisplayOnce: true,
+            debugLogging: true,
+            canDismissDialog: true,
+            shouldPopScope: () => true,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 0),
+              child: Flex(
+                direction: Axis.vertical,
+                children: const [
+                  /* StreamBuilder<DatabaseEvent>(
               stream: FirebaseDatabase.instance.ref('.info/connected').onValue,
               builder: (context, event) {
                 print('teste ${event.data?.snapshot.value}');
@@ -314,53 +317,61 @@ class _HomePageState extends State<HomePage> {
                         child: const Text('Offline. Verifique sua conexão!',
                             textAlign: TextAlign.center));
               }), */
-              // Conteúdo
-              Flexible(child: RouterOutlet()),
-            ],
+                  // Conteúdo
+                  Flexible(child: RouterOutlet()),
+                ],
+              ),
+            ),
           ),
-        ),
-      ),
 
-      // NAVIGATION BAR
-      bottomNavigationBar: ValueListenableBuilder<int>(
-        valueListenable: Global.paginaSelecionada,
-        builder: (context, pagina, _) {
-          return BottomNavigationBar(
-              items: _navigationItens,
-              currentIndex: pagina,
-              selectedItemColor: Colors.blue,
-              unselectedItemColor: Colors.grey.withOpacity(0.5),
-              type: BottomNavigationBarType.shifting,
-              onTap: (index) {
-                if (index == 4) return;
-                Global.paginaSelecionada.value = index;
-                Modular.to.navigate('/${Paginas.values[index].name}');
-              });
-        },
-      ),
+          // NAVIGATION BAR
+          bottomNavigationBar: ValueListenableBuilder<int>(
+            valueListenable: Global.paginaSelecionada,
+            builder: (context, pagina, _) {
+              return BottomNavigationBar(
+                  items: _navigationItens,
+                  currentIndex: pagina,
+                  selectedItemColor: Colors.blue,
+                  unselectedItemColor: Colors.grey.withOpacity(0.5),
+                  type: BottomNavigationBarType.shifting,
+                  onTap: (index) {
+                    if (index == 4) return;
+                    Global.paginaSelecionada.value = index;
+                    Modular.to.navigate('/${Paginas.values[index].name}');
+                  });
+            },
+          ),
 
-      // FLOAT ACTION
-      floatingActionButton: FloatingActionButton(
-        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-          const Icon(Icons.church, color: Colors.white),
-          Text(
-            Global.igrejaSelecionada.value?.data()?.sigla ?? '',
-            style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontFamily: 'Offside',
-                letterSpacing: 0),
-          )
-        ]),
-        onPressed: () {
-          showModalBottomSheet(
-              context: context,
-              builder: (context) {
-                return _scaffoldSemIgrejaSelecionada;
-              });
-        },
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
+          // FLOAT ACTION
+          floatingActionButton: FloatingActionButton(
+            child:
+                Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+              const Icon(Icons.church, color: Colors.white),
+              Text(
+                Global.igrejaSelecionada.value?.data()?.sigla ?? '',
+                style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                    fontFamily: 'Offside',
+                    letterSpacing: 0),
+              )
+            ]),
+            onPressed: () {
+              showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  builder: (context) {
+                    return OrientationBuilder(
+                      builder: (context, orientation) {
+                        return const TelaSelecao();
+                      },
+                    );
+                  });
+            },
+          ),
+          floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
+        );
+      },
     );
   }
 }

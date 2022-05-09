@@ -29,8 +29,10 @@ class Global {
         Text(
           Global.appInfo?.version ?? '...',
           textAlign: TextAlign.center,
-          style:
-              const TextStyle(color: Colors.grey, fontWeight: FontWeight.bold),
+          style: const TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.grey,
+          ),
         ),
       ],
     );

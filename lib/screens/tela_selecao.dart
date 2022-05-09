@@ -1,4 +1,5 @@
 import 'dart:developer' as dev;
+import 'dart:ui';
 
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -45,18 +46,7 @@ class _TelaSelecaoState extends State<TelaSelecao> {
               ),
             ),
             // Carrossel de opções
-            /* Flexible(
-              child: Container(
-                alignment: Alignment.center,
-                padding: EdgeInsets.symmetric(
-                    horizontal: Medidas.bodyPadding(context), vertical: 16),
-                child: OverflowBox(
-                  maxHeight: 250,
-                  child: carroselOpcoes,
-                ),
-              ),
-            ), */
-            Flexible(child: carroselOpcoes),
+            Flexible(child: Center(child: carroselOpcoes)),
             // Botão de inscrição
             Padding(
               padding: const EdgeInsets.all(24),
@@ -82,14 +72,20 @@ class _TelaSelecaoState extends State<TelaSelecao> {
         builder: (context, snapshot) {
           // Retorna interface de carregamento
           if (!snapshot.hasData) {
-            return const CircularProgressIndicator();
+            return const CircularProgressIndicator(color: Colors.orange);
           }
           // Preenchimento
           igrejas = snapshot.data?.docs ?? [];
           // Retorna interface de falha ao encontrar ao menos um grupo
           if (igrejas.isEmpty) {
-            return const Text(
-                'Nenhuma igreja encontrada na base de dados!\n\nFale com o administrador');
+            return Text(
+              'Nenhuma igreja encontrada na base de dados!\n\nFale com o administrador.',
+              textAlign: TextAlign.center,
+              style: Theme.of(context)
+                  .textTheme
+                  .titleMedium
+                  ?.copyWith(color: Colors.white),
+            );
           }
           List<QueryDocumentSnapshot<Igreja>> inscritas = [];
           for (var igreja in igrejas) {
@@ -104,115 +100,38 @@ class _TelaSelecaoState extends State<TelaSelecao> {
           }
           // Retorna interface de aviso para inscrição
           if (inscritas.isEmpty) {
-            return const Text('Inscreva-se em ao menos um igreja.');
+            return Text(
+              'Inscreva-se em ao menos um igreja.',
+              textAlign: TextAlign.center,
+              style: Theme.of(context)
+                  .textTheme
+                  .titleMedium
+                  ?.copyWith(color: Colors.white),
+            );
           }
           // Retorna carrossel
-          return Center(
+          var carouselController = CarouselController();
+          return SizedBox(
+            height: 250,
             child: CarouselSlider.builder(
-                itemCount: inscritas.length,
-                itemBuilder: (context, index, b) {
-                  bool inscrita = inscritas[index].reference.toString() ==
-                      Global.igrejaSelecionada.value?.reference.toString();
-                  // Card da Igreja
-                  return ConstrainedBox(
-                    constraints: const BoxConstraints(maxWidth: 150),
-                    child: Card(
-                      clipBehavior: Clip.antiAlias,
-                      elevation: 0,
-                      margin: EdgeInsets.zero,
-                      shape: RoundedRectangleBorder(
-                        side: inscrita
-                            ? const BorderSide(color: Colors.orange, width: 3)
-                            : const BorderSide(color: Colors.grey),
-                        borderRadius:
-                            const BorderRadius.all(Radius.circular(16)),
-                      ),
-                      child: InkWell(
-                        radius: 16,
-                        customBorder: const RoundedRectangleBorder(
-                          side: BorderSide(color: Colors.grey),
-                          borderRadius: BorderRadius.all(
-                            Radius.circular(16),
-                          ),
-                        ),
-                        onTap: () async {
-                          Mensagem.aguardar(context: context);
-                          String? id = inscritas[index].reference.id;
-                          Preferencias.igreja = id;
-                          Global.igrejaSelecionada.value =
-                              await MeuFirebase.obterSnapshotIgreja(id);
-                          Modular.to.pop(); // fecha progresso
-                          Modular.to.maybePop(true); // fecha dialog
-                        },
-                        child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            children: [
-                              // Foto da igreja
-                              SizedBox(
-                                height: 128,
-                                //width: 160,
-                                child: MyNetwork.getImageFromUrl(
-                                        inscritas[index].data().fotoUrl) ??
-                                    const Center(child: Icon(Icons.church)),
-                              ),
-                              // Sigla
-                              const SizedBox(height: 8),
-                              Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 12),
-                                  child: Text(
-                                    inscritas[index].data().sigla.toUpperCase(),
-                                    style: const TextStyle(
-                                        fontSize: 20,
-                                        fontWeight: FontWeight.bold),
-                                  )),
-                              // Nome
-                              Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 12, vertical: 8),
-                                //alignment: Alignment.center,
-                                //height: 64,
-                                child: Text(
-                                  inscritas[index].data().nome,
-                                  softWrap: true,
-                                  overflow: TextOverflow.ellipsis,
-                                  maxLines: 3,
-                                ),
-                              ),
-                              /* ElevatedButton.icon(
-                            onPressed: inscritas[index].data().endereco == null
-                                ? null
-                                : () => MyActions.openGoogleMaps(
-                                    street: inscritas[index].data().endereco!),
-                            style: ElevatedButton.styleFrom(
-                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                shape: const RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.zero)),
-                            icon: const Icon(Icons.map),
-                            label: const Text('Mapa'),
-                          ), */
-                            ]),
-                      ),
-                    ),
-                  );
-                },
-                options: CarouselOptions(
-                    enlargeStrategy: CenterPageEnlargeStrategy.scale)),
-          );
-          /* return ListView.separated(
-            scrollDirection: Axis.horizontal,
-            separatorBuilder: (context, index) => const SizedBox(width: 16),
-            itemCount: inscritas.length,
-            itemBuilder: (context, index) {
-              bool inscrita = inscritas[index].reference.toString() ==
-                  Global.igrejaSelecionada.value?.reference.toString();
-              // Card da Igreja
-              return ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 150),
-                child: Card(
+              carouselController: carouselController,
+              options: CarouselOptions(
+                //aspectRatio: 1,
+                enableInfiniteScroll: false,
+                enlargeCenterPage: true,
+              ),
+              itemCount: inscritas.length,
+              itemBuilder: (context, index, realIndex) {
+                bool inscrita = inscritas[index].reference.toString() ==
+                    Global.igrejaSelecionada.value?.reference.toString();
+                if (inscrita) {
+                  WidgetsBinding.instance?.scheduleFrameCallback((timeStamp) {
+                    carouselController.animateToPage(index);
+                  });
+                }
+                // Card da Igreja
+                return Card(
                   clipBehavior: Clip.antiAlias,
-                  elevation: 0,
-                  margin: EdgeInsets.zero,
                   shape: RoundedRectangleBorder(
                     side: inscrita
                         ? const BorderSide(color: Colors.orange, width: 3)
@@ -220,13 +139,6 @@ class _TelaSelecaoState extends State<TelaSelecao> {
                     borderRadius: const BorderRadius.all(Radius.circular(16)),
                   ),
                   child: InkWell(
-                    radius: 16,
-                    customBorder: const RoundedRectangleBorder(
-                      side: BorderSide(color: Colors.grey),
-                      borderRadius: BorderRadius.all(
-                        Radius.circular(16),
-                      ),
-                    ),
                     onTap: () async {
                       Mensagem.aguardar(context: context);
                       String? id = inscritas[index].reference.id;
@@ -236,58 +148,48 @@ class _TelaSelecaoState extends State<TelaSelecao> {
                       Modular.to.pop(); // fecha progresso
                       Modular.to.maybePop(true); // fecha dialog
                     },
-                    child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      width: double.maxFinite,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           // Foto da igreja
-                          SizedBox(
-                            height: 128,
-                            //width: 160,
-                            child: MyNetwork.getImageFromUrl(
-                                    inscritas[index].data().fotoUrl) ??
-                                const Center(child: Icon(Icons.church)),
-                          ),
-                          // Sigla
-                          const SizedBox(height: 8),
-                          Padding(
-                              padding:
-                                  const EdgeInsets.symmetric(horizontal: 12),
-                              child: Text(
-                                inscritas[index].data().sigla.toUpperCase(),
-                                style: const TextStyle(
-                                    fontSize: 20, fontWeight: FontWeight.bold),
-                              )),
-                          // Nome
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 12, vertical: 8),
-                            //alignment: Alignment.center,
-                            //height: 64,
-                            child: Text(
-                              inscritas[index].data().nome,
-                              softWrap: true,
-                              overflow: TextOverflow.ellipsis,
-                              maxLines: 3,
+                          Expanded(
+                            child: Container(
+                              width: double.maxFinite,
+                              clipBehavior: Clip.antiAlias,
+                              decoration: const BoxDecoration(
+                                  borderRadius: BorderRadius.vertical(
+                                      top: Radius.circular(12))),
+                              child: MyNetwork.getImageFromUrl(
+                                      inscritas[index].data().fotoUrl) ??
+                                  const Icon(Icons.church),
                             ),
                           ),
-                          /* ElevatedButton.icon(
-                            onPressed: inscritas[index].data().endereco == null
-                                ? null
-                                : () => MyActions.openGoogleMaps(
-                                    street: inscritas[index].data().endereco!),
-                            style: ElevatedButton.styleFrom(
-                                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                shape: const RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.zero)),
-                            icon: const Icon(Icons.map),
-                            label: const Text('Mapa'),
-                          ), */
-                        ]),
+                          const SizedBox(height: 8),
+                          // Sigla
+                          Text(
+                            inscritas[index].data().sigla.toUpperCase(),
+                            style: const TextStyle(
+                                fontSize: 20, fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 8),
+                          // Nome
+                          Text(
+                            inscritas[index].data().nome,
+                            softWrap: true,
+                            overflow: TextOverflow.ellipsis,
+                            maxLines: 3,
+                          ),
+                        ],
+                      ),
+                    ),
                   ),
-                ),
-              );
-            },
-          ); */
+                );
+              },
+            ),
+          );
         });
   }
 
@@ -302,23 +204,29 @@ class _TelaSelecaoState extends State<TelaSelecao> {
         primary: Colors.white,
         onPrimary: Colors.black,
       ),
-      onPressed: igrejas.isEmpty ? null : _mostrarOpcoesParaInscricao,
+      onPressed: _mostrarOpcoesParaInscricao,
     );
   }
 
   /* MÉTODOS */
   void _mostrarOpcoesParaInscricao() {
+    if (igrejas.isEmpty) {
+      return Mensagem.simples(
+          context: context,
+          titulo: 'Vazio',
+          mensagem: 'Nenhum igreja cadastrada na base de dados');
+    }
     Integrante integrante = Global.integranteLogado!.data()!;
     return Mensagem.bottomDialog(
       context: context,
-      titulo: 'Opções',
+      titulo: 'Inscrição',
       conteudo: StatefulBuilder(builder: (context, innerState) {
         return Center(
             child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             const Text(
-                'É necessário estar inscrito em ao menos uma igreja ou local de culto!'),
+                'Selecione uma ou mais igrejas e clique em "Inscrever-me"'),
             const SizedBox(height: 24),
             Wrap(
               spacing: 8,
@@ -395,16 +303,12 @@ class _TelaSelecaoState extends State<TelaSelecao> {
             ),
             const SizedBox(height: 24),
             ElevatedButton(
-              onPressed: (integrante.igrejas?.isNotEmpty ?? false)
-                  ? () async {
-                      await MeuFirebase.salvarIntegrante(integrante,
-                          id: Global.integranteLogado!.id);
-                      Global.igrejaSelecionada.value = igrejas.firstWhere(
-                          (element) =>
-                              element.reference.toString() ==
-                              integrante.igrejas![0].toString());
-                    }
-                  : null,
+              onPressed: () async {
+                Modular.to.pop(); // Fecha dialogo
+                await MeuFirebase.salvarIntegrante(integrante,
+                    id: Global.integranteLogado!.id);
+                setState(() {});
+              },
               child: const Text('INSCREVER-ME'),
             )
           ],
