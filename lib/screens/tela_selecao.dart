@@ -28,55 +28,83 @@ class _TelaSelecaoState extends State<TelaSelecao> {
     return Scaffold(
       backgroundColor: Theme.of(context).primaryColor,
       body: SafeArea(
-        child: Column(
-          children: [
-            // Título
-            const Padding(
-              padding: EdgeInsets.all(16),
-              child: Text(
-                'Selecione a igreja',
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  fontFamily: 'Offside',
-                  fontSize: 22,
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
+        child: OrientationBuilder(builder: (context, orientation) {
+          var _isPortrait = orientation == Orientation.portrait;
+          return Column(
+            children: [
+              // Título
+              const Padding(
+                padding: EdgeInsets.all(16),
+                child: Text(
+                  'Selecione a igreja',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    fontFamily: 'Offside',
+                    fontSize: 22,
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
-            ),
-            // Carrossel de opções
-            Flexible(child: Center(child: carroselOpcoes)),
-            // Espaço mínimo
-            const SizedBox(height: 16),
-            // Botão de inscrição
-            botaoInscricao,
-            // Opção mostrar todos os cultos
-            CheckboxListTile(
-              value: Preferencias.mostrarTodosOsCultos,
-              tristate: false,
-              contentPadding:
-                  const EdgeInsets.only(left: 72, right: 16, top: 8, bottom: 8),
-              onChanged: (value) {
-                setState(() {
-                  Preferencias.mostrarTodosOsCultos = value!;
-                });
-              },
-              activeColor: Colors.orange,
-              title: const Text(
-                'Apresentar a agenda de todas as igrejas na lista de cultos.',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.white),
+              // Corpo
+              const SizedBox(height: 16),
+              Expanded(child: LayoutBuilder(
+                builder: (context, constraints) {
+                  return Wrap(children: [
+                    // Carrossel de opções
+                    Container(
+                      alignment: Alignment.center,
+                      height: _isPortrait
+                          ? constraints.maxHeight * 0.7
+                          : constraints.maxHeight,
+                      width: _isPortrait
+                          ? constraints.maxWidth
+                          : constraints.maxWidth / 2,
+                      child: carroselOpcoes,
+                    ),
+                    // Divisor
+                    _isPortrait
+                        ? const SizedBox()
+                        : Container(
+                            height: constraints.maxHeight,
+                            width: 1,
+                            alignment: Alignment.center,
+                            child: Container(
+                              alignment: Alignment.center,
+                              height: constraints.maxHeight * 0.85,
+                              color: Colors.grey,
+                            ),
+                          ),
+                    // Botões
+                    Container(
+                      alignment: Alignment.center,
+                      height: _isPortrait
+                          ? constraints.maxHeight * 0.3
+                          : constraints.maxHeight,
+                      width: _isPortrait
+                          ? constraints.maxWidth
+                          : constraints.maxWidth / 2 - 1,
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        children: [
+                          botaoInscricao,
+                          opcaoMostrarTudo,
+                        ],
+                      ),
+                    ),
+                  ]);
+                },
+              )),
+              const SizedBox(height: 16),
+              // Versão do app
+              Container(
+                alignment: Alignment.center,
+                height: 36,
+                child: Global.versaoDoAppText,
               ),
-            ),
-            // Versão do app
-            Container(
-              alignment: Alignment.center,
-              height: 36,
-              //color: Colors.black12,
-              child: Global.versaoDoAppText,
-            ),
-          ],
-        ),
+            ],
+          );
+        }),
       ),
     );
   }
@@ -128,10 +156,11 @@ class _TelaSelecaoState extends State<TelaSelecao> {
           // Retorna carrossel
           var carouselController = CarouselController();
           return SizedBox(
-            height: 300,
+            //height: 300,
             child: CarouselSlider.builder(
               carouselController: carouselController,
               options: CarouselOptions(
+                //aspectRatio: 16 / 10,
                 enableInfiniteScroll: false,
                 enlargeCenterPage: true,
                 scrollPhysics: const BouncingScrollPhysics(),
@@ -156,7 +185,10 @@ class _TelaSelecaoState extends State<TelaSelecao> {
                   ),
                   child: InkWell(
                     onTap: () async {
-                      Mensagem.aguardar(context: context);
+                      Mensagem.aguardar(
+                        context: context,
+                        mensagem: 'Alterando contexto...',
+                      );
                       String? id = inscritas[index].reference.id;
                       Preferencias.igreja = id;
                       Global.igrejaSelecionada.value =
@@ -221,6 +253,27 @@ class _TelaSelecaoState extends State<TelaSelecao> {
         onPrimary: Colors.black,
       ),
       onPressed: _mostrarOpcoesParaInscricao,
+    );
+  }
+
+  /// Opção mostrar todos os cultos
+  get opcaoMostrarTudo {
+    return CheckboxListTile(
+      value: Preferencias.mostrarTodosOsCultos,
+      tristate: false,
+      contentPadding:
+          const EdgeInsets.only(left: 72, right: 16, top: 8, bottom: 8),
+      onChanged: (value) {
+        setState(() {
+          Preferencias.mostrarTodosOsCultos = value!;
+        });
+      },
+      activeColor: Colors.orange,
+      title: const Text(
+        'Apresentar a agenda de todas as igrejas na lista de escalas.',
+        textAlign: TextAlign.center,
+        style: TextStyle(color: Colors.white),
+      ),
     );
   }
 

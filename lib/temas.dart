@@ -11,10 +11,10 @@ ThemeData _base(Brightness brightness) {
     appBarTheme: const AppBarTheme(
       centerTitle: true,
       titleTextStyle: TextStyle(
-        fontFamily: 'Offside',
-        fontSize: 22,
-        fontWeight: FontWeight.bold,
-      ),
+          fontFamily: 'Offside',
+          fontSize: 22,
+          fontWeight: FontWeight.bold,
+          color: Colors.white),
     ),
     // Botões
     elevatedButtonTheme: ElevatedButtonThemeData(

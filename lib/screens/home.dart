@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:upgrader/upgrader.dart';
 
 import '/rotas.dart';
@@ -206,10 +207,14 @@ class _HomePageState extends State<HomePage> {
   ];
 
   final List<BottomNavigationBarItem> _navigationItens = const [
-    BottomNavigationBarItem(icon: Icon(Icons.access_time), label: 'Escalas'),
-    BottomNavigationBarItem(icon: Icon(Icons.calendar_month), label: 'Agenda'),
-    BottomNavigationBarItem(icon: Icon(Icons.chat), label: 'Chat'),
-    BottomNavigationBarItem(icon: Icon(Icons.music_note), label: 'Cânticos'),
+    BottomNavigationBarItem(
+        icon: FaIcon(FontAwesomeIcons.businessTime), label: 'Escalas'),
+    BottomNavigationBarItem(
+        icon: FaIcon(FontAwesomeIcons.calendarWeek), label: 'Agenda'),
+    BottomNavigationBarItem(
+        icon: FaIcon(FontAwesomeIcons.solidBell), label: 'Avisos'),
+    BottomNavigationBarItem(
+        icon: FaIcon(FontAwesomeIcons.music), label: 'Cânticos'),
     BottomNavigationBarItem(icon: SizedBox(), label: '')
   ];
 
