@@ -1,10 +1,13 @@
 {
     "cSpell.language": "en,pt,pt-BR",
     "cSpell.words": [
+        "Animacao",
         "appspot",
+        "botao",
         "cantico",
         "Cantico",
         "canticos",
+        "carrosel",
         "colecao",
         "conteudo",
         "decisao",
@@ -20,6 +23,7 @@
         "funcoes",
         "grey",
         "icone",
+        "Inscricao",
         "ipbfoz",
         "Metodo",
         "metodos",
@@ -29,6 +33,7 @@
         "observacoes",
         "ocasiao",
         "ocasioes",
+        "Opcoes",
         "percussao",
         "Permissao",
         "Reorderable",
@@ -37,10 +42,12 @@
         "Restricao",
         "rodape",
         "secao",
+        "selecao",
         "sonorizacao",
         "titulos",
         "transmissao",
         "usuario",
+        "versao",
         "violao",
         "wakelock"
     ]

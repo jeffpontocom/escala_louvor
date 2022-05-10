@@ -653,6 +653,4 @@ class MeuFirebase {
       throw Exception("Error opening url file");
     }
   }
-
-  static void _converterImagemEmPdf() {}
 }

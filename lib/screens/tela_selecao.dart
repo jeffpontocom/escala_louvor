@@ -1,4 +1,4 @@
-import 'dart:developer' as dev;
+//import 'dart:developer' as dev;
 
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';

@@ -1,6 +1,5 @@
 // ignore_for_file: constant_identifier_names
 
-import 'package:escala_louvor/global.dart';
 import 'package:escala_louvor/screens/tela_selecao.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_modular/flutter_modular.dart';

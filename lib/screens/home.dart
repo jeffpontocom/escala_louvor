@@ -12,8 +12,6 @@ import '/functions/metodos_firebase.dart';
 import '/models/integrante.dart';
 import '/models/igreja.dart';
 import '/screens/tela_selecao.dart';
-import '/screens/views/view_igrejas.dart';
-import '/utils/estilos.dart';
 import '/utils/utils.dart';
 
 enum Paginas { escalas, agenda, chats, canticos }
@@ -172,28 +170,6 @@ class HomeInit extends StatelessWidget {
       ),
     );
   }
-}
-
-Widget get _scaffoldSemIgrejaSelecionada {
-  return Scaffold(
-    body: SafeArea(
-      child: Column(
-        children: [
-          const Padding(
-            padding: EdgeInsets.all(24),
-            child: Text('Selecionar igreja ou local',
-                style: TextStyle(fontSize: 22)),
-          ),
-          const Expanded(child: Center(child: ViewIgrejas())),
-          Padding(
-            padding: const EdgeInsets.all(24),
-            child: Text('Versão do app: ${Global.appInfo?.version ?? '...'}',
-                style: const TextStyle(color: Colors.grey)),
-          ),
-        ],
-      ),
-    ),
-  );
 }
 
 class HomePage extends StatefulWidget {

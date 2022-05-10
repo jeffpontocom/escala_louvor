@@ -6,7 +6,6 @@ import 'package:flutter_modular/flutter_modular.dart';
 import '/functions/metodos_firebase.dart';
 import '/models/integrante.dart';
 import '/screens/views/view_integrante.dart';
-import '/utils/estilos.dart';
 import '/utils/mensagens.dart';
 import 'home.dart';
 
