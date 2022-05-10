@@ -10,12 +10,13 @@ import 'package:flutter_modular/flutter_modular.dart';
 import 'package:url_strategy/url_strategy.dart';
 
 import 'firebase_options.dart';
-import 'functions/notificacoes.dart';
 import 'global.dart';
 import 'preferencias.dart';
 import 'rotas.dart';
-import 'screens/home.dart';
 import 'temas.dart';
+import '/animations/bouncing.dart';
+import '/functions/notificacoes.dart';
+import '/screens/home.dart';
 
 void main() async {
   setPathUrlStrategy();
@@ -56,23 +57,14 @@ class MyApp extends StatelessWidget {
           if (!snapshot.hasData) {
             return MaterialApp(
               home: Scaffold(
-                body: Padding(
+                body: Container(
                   padding: const EdgeInsets.all(64),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      // Gif de carregamento
-                      Image.asset('assets/icons/ic_launcher.png',
-                          width: 48, height: 48),
-                      const SizedBox(height: 24),
-                      // Texto de carregamento
-                      ValueListenableBuilder<String>(
-                          valueListenable: textoCarregamento,
-                          builder: (context, value, _) {
-                            return Text(value, textAlign: TextAlign.center);
-                          })
-                    ],
+                  alignment: Alignment.center,
+                  color: Theme.of(context).primaryColor,
+                  // Animação
+                  child: AnimacaoPulando(
+                    objectToAnimate:
+                        Image.asset('assets/icons/ic_launcher.png'),
                   ),
                 ),
               ),

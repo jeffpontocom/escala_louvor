@@ -1,19 +1,17 @@
 import 'dart:developer' as dev;
-import 'dart:ui';
 
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:escala_louvor/utils/medidas.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 
-import '../functions/metodos_firebase.dart';
-import '../global.dart';
-import '../models/igreja.dart';
-import '../models/integrante.dart';
-import '../preferencias.dart';
-import '../utils/mensagens.dart';
-import '../utils/utils.dart';
+import '/functions/metodos_firebase.dart';
+import '/global.dart';
+import '/models/igreja.dart';
+import '/models/integrante.dart';
+import '/preferencias.dart';
+import '/utils/mensagens.dart';
+import '/utils/utils.dart';
 
 class TelaSelecao extends StatefulWidget {
   const TelaSelecao({Key? key}) : super(key: key);
@@ -34,7 +32,7 @@ class _TelaSelecaoState extends State<TelaSelecao> {
           children: [
             // Título
             const Padding(
-              padding: EdgeInsets.all(24),
+              padding: EdgeInsets.all(16),
               child: Text(
                 'Selecione a igreja',
                 textAlign: TextAlign.center,
@@ -42,21 +40,39 @@ class _TelaSelecaoState extends State<TelaSelecao> {
                   fontFamily: 'Offside',
                   fontSize: 22,
                   color: Colors.white,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
             ),
             // Carrossel de opções
             Flexible(child: Center(child: carroselOpcoes)),
+            // Espaço mínimo
+            const SizedBox(height: 16),
             // Botão de inscrição
-            Padding(
-              padding: const EdgeInsets.all(24),
-              child: botaoInscricao,
+            botaoInscricao,
+            // Opção mostrar todos os cultos
+            CheckboxListTile(
+              value: Preferencias.mostrarTodosOsCultos,
+              tristate: false,
+              contentPadding:
+                  const EdgeInsets.only(left: 72, right: 16, top: 8, bottom: 8),
+              onChanged: (value) {
+                setState(() {
+                  Preferencias.mostrarTodosOsCultos = value!;
+                });
+              },
+              activeColor: Colors.orange,
+              title: const Text(
+                'Apresentar a agenda de todas as igrejas na lista de cultos.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.white),
+              ),
             ),
             // Versão do app
             Container(
               alignment: Alignment.center,
               height: 36,
-              color: Colors.black38,
+              //color: Colors.black12,
               child: Global.versaoDoAppText,
             ),
           ],
@@ -112,19 +128,19 @@ class _TelaSelecaoState extends State<TelaSelecao> {
           // Retorna carrossel
           var carouselController = CarouselController();
           return SizedBox(
-            height: 250,
+            height: 300,
             child: CarouselSlider.builder(
               carouselController: carouselController,
               options: CarouselOptions(
-                //aspectRatio: 1,
                 enableInfiniteScroll: false,
                 enlargeCenterPage: true,
+                scrollPhysics: const BouncingScrollPhysics(),
               ),
               itemCount: inscritas.length,
               itemBuilder: (context, index, realIndex) {
-                bool inscrita = inscritas[index].reference.toString() ==
+                bool selecionada = inscritas[index].reference.toString() ==
                     Global.igrejaSelecionada.value?.reference.toString();
-                if (inscrita) {
+                if (selecionada) {
                   WidgetsBinding.instance?.scheduleFrameCallback((timeStamp) {
                     carouselController.animateToPage(index);
                   });
@@ -133,7 +149,7 @@ class _TelaSelecaoState extends State<TelaSelecao> {
                 return Card(
                   clipBehavior: Clip.antiAlias,
                   shape: RoundedRectangleBorder(
-                    side: inscrita
+                    side: selecionada
                         ? const BorderSide(color: Colors.orange, width: 3)
                         : const BorderSide(color: Colors.grey),
                     borderRadius: const BorderRadius.all(Radius.circular(16)),
@@ -197,7 +213,7 @@ class _TelaSelecaoState extends State<TelaSelecao> {
   get botaoInscricao {
     return ElevatedButton.icon(
       icon: const Icon(Icons.add),
-      label: const Text('Inscrever-me'),
+      label: const Text('IGREJAS'),
       style: ElevatedButton.styleFrom(
         elevation: 0,
         minimumSize: const Size(172, 40),
@@ -213,20 +229,19 @@ class _TelaSelecaoState extends State<TelaSelecao> {
     if (igrejas.isEmpty) {
       return Mensagem.simples(
           context: context,
-          titulo: 'Vazio',
-          mensagem: 'Nenhum igreja cadastrada na base de dados');
+          titulo: 'Atenção!',
+          mensagem: 'Nenhuma igreja cadastrada na base de dados');
     }
     Integrante integrante = Global.integranteLogado!.data()!;
     return Mensagem.bottomDialog(
       context: context,
-      titulo: 'Inscrição',
+      titulo: 'Igrejas',
       conteudo: StatefulBuilder(builder: (context, innerState) {
-        return Center(
-            child: Column(
+        return Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             const Text(
-                'Selecione uma ou mais igrejas e clique em "Inscrever-me"'),
+                'Selecione uma ou mais igrejas em que você pode ser escalado'),
             const SizedBox(height: 24),
             Wrap(
               spacing: 8,
@@ -239,7 +254,7 @@ class _TelaSelecaoState extends State<TelaSelecao> {
                           .contains(igrejas[index].reference.toString()) ??
                       false;
                   return InkWell(
-                    onTap: () {
+                    onTap: () async {
                       integrante.igrejas ??= [];
                       innerState(() {
                         inscrito
@@ -248,6 +263,17 @@ class _TelaSelecaoState extends State<TelaSelecao> {
                                 igrejas[index].reference.toString())
                             : integrante.igrejas?.add(igrejas[index].reference);
                       });
+                      if (!(integrante.igrejas
+                              ?.map((e) => e.toString())
+                              .contains(Global
+                                  .igrejaSelecionada.value?.reference
+                                  .toString()) ??
+                          false)) {
+                        Global.igrejaSelecionada.value = null;
+                      }
+                      await Global.integranteLogado?.reference
+                          .update({'igrejas': integrante.igrejas});
+                      setState(() {});
                     },
                     // Card da Igreja
                     child: Stack(
@@ -302,17 +328,18 @@ class _TelaSelecaoState extends State<TelaSelecao> {
               ).toList(),
             ),
             const SizedBox(height: 24),
-            ElevatedButton(
+            /* ElevatedButton(
               onPressed: () async {
                 Modular.to.pop(); // Fecha dialogo
                 await MeuFirebase.salvarIntegrante(integrante,
                     id: Global.integranteLogado!.id);
                 setState(() {});
               },
-              child: const Text('INSCREVER-ME'),
-            )
+              child: const Text('ATUALIZAR'),
+            ),
+            const SizedBox(height: 24), */
           ],
-        ));
+        );
       }),
     );
   }

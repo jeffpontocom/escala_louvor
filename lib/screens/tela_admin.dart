@@ -751,10 +751,7 @@ class AdminPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(
-          'Administração do sistema',
-          style: Estilo.appBarTitulo,
-        ),
+        title: const Text('Administração do sistema'),
         titleSpacing: 0,
       ),
       body: Scrollbar(

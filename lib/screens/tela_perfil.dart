@@ -40,7 +40,7 @@ class _TelaPerfilState extends State<TelaPerfil> {
     return Scaffold(
       // APP BAR
       appBar: AppBar(
-        title: Text('Perfil', style: Estilo.appBarTitulo),
+        title: const Text('Perfil'),
         titleSpacing: 0,
         actions: [
           _ehMeuPerfil

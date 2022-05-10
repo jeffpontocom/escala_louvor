@@ -1,7 +1,6 @@
 import 'dart:developer' as dev;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:escala_louvor/screens/tela_selecao.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
@@ -12,6 +11,7 @@ import '/global.dart';
 import '/functions/metodos_firebase.dart';
 import '/models/integrante.dart';
 import '/models/igreja.dart';
+import '/screens/tela_selecao.dart';
 import '/screens/views/view_igrejas.dart';
 import '/utils/estilos.dart';
 import '/utils/utils.dart';
@@ -76,18 +76,15 @@ class HomeInit extends StatelessWidget {
 
   Widget get _scaffoldCarregando {
     return Scaffold(
-      body: Padding(
-        padding: const EdgeInsets.all(64),
+      body: SafeArea(
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            // Gif de carregamento
-            Image.asset('assets/icons/ic_launcher.png', width: 64, height: 64),
-            const SizedBox(height: 24),
-            // Texto de carregamento
-            const Text('Carregando dados do usuário...',
-                textAlign: TextAlign.center),
+            const LinearProgressIndicator(minHeight: 4),
+            Center(
+                child: Image.asset('assets/icons/ic_launcher.png', height: 48)),
+            const SizedBox(height: 4)
           ],
         ),
       ),
@@ -260,7 +257,7 @@ class _HomePageState extends State<HomePage> {
             title: ValueListenableBuilder<int>(
                 valueListenable: Global.paginaSelecionada,
                 builder: (context, pagina, _) {
-                  return Text(titulos[pagina], style: Estilo.appBarTitulo);
+                  return Text(titulos[pagina]);
                 }),
             titleSpacing: 0,
             // Ações
@@ -357,7 +354,8 @@ class _HomePageState extends State<HomePage> {
               )
             ]),
             onPressed: () {
-              showModalBottomSheet(
+              Modular.to.pushNamed(AppRotas.CONTEXTO);
+              /* showModalBottomSheet(
                   context: context,
                   isScrollControlled: true,
                   builder: (context) {
@@ -366,7 +364,7 @@ class _HomePageState extends State<HomePage> {
                         return const TelaSelecao();
                       },
                     );
-                  });
+                  }); */
             },
           ),
           floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,

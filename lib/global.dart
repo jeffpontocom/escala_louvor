@@ -24,14 +24,14 @@ class Global {
         const Text(
           'versão do app: ',
           textAlign: TextAlign.center,
-          style: TextStyle(color: Colors.grey),
+          //style: TextStyle(color: Colors.grey),
         ),
         Text(
           Global.appInfo?.version ?? '...',
           textAlign: TextAlign.center,
           style: const TextStyle(
             fontWeight: FontWeight.bold,
-            color: Colors.grey,
+            //color: Colors.grey,
           ),
         ),
       ],

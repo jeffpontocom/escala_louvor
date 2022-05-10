@@ -25,6 +25,13 @@ class Preferencias {
     }
   }
 
+  /// Mostrar todos os eventos
+  static bool get mostrarTodosOsCultos =>
+      preferences?.getBool('mostrar_todos_cultos') ?? false;
+  static set mostrarTodosOsCultos(bool value) {
+    preferences?.setBool('mostrar_todos_cultos', value);
+  }
+
   static _carregarIgrejaPreSelecionada() async {
     if (FirebaseAuth.instance.currentUser == null) return;
     var value = await MeuFirebase.obterSnapshotIgreja(igreja);

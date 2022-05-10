@@ -1,5 +1,7 @@
 // ignore_for_file: constant_identifier_names
 
+import 'package:escala_louvor/global.dart';
+import 'package:escala_louvor/screens/tela_selecao.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 
@@ -22,6 +24,7 @@ class AppRotas extends Module {
   static const String ADMIN = '/admin';
   static const String ARQUIVOS = '/arquivos';
   static const String CANTICO = '/cantico';
+  static const String CONTEXTO = '/contexto';
 
   @override
   final List<Bind> binds = [];
@@ -59,6 +62,10 @@ class AppRotas extends Module {
       LOGIN,
       child: (_, __) => const LoginPage(),
       guards: [AuthGuard()],
+    ),
+    ChildRoute(
+      CONTEXTO,
+      child: (_, __) => const TelaSelecao(),
     ),
     ChildRoute(
       PERFIL,

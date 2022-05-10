@@ -8,6 +8,14 @@ ThemeData _base(Brightness brightness) {
     primarySwatch: Colors.blue,
     materialTapTargetSize: kIsWeb ? MaterialTapTargetSize.padded : null,
     dividerTheme: const DividerThemeData(space: 4),
+    appBarTheme: const AppBarTheme(
+      centerTitle: true,
+      titleTextStyle: TextStyle(
+        fontFamily: 'Offside',
+        fontSize: 22,
+        fontWeight: FontWeight.bold,
+      ),
+    ),
     // Botões
     elevatedButtonTheme: ElevatedButtonThemeData(
       style: ElevatedButton.styleFrom(
