@@ -570,7 +570,7 @@ class _ViewCultoState extends State<ViewCulto> {
               : nomePrimeiro + ' ' + nomeSegundo;
           return InkWell(
             onTap: () => Modular.to.pushNamed(
-                '/perfil?id=${integrante?.id}&hero=$hero',
+                '${AppRotas.PERFIL}?id=${integrante?.id}&hero=$hero',
                 arguments: integrante),
             child: Container(
               width: 128,
@@ -652,7 +652,7 @@ class _ViewCultoState extends State<ViewCulto> {
                 // Box
                 return InkWell(
                   onTap: () => Modular.to.pushNamed(
-                      '/perfil?id=${integrante?.id}&hero=$hero',
+                      '${AppRotas.PERFIL}?id=${integrante?.id}&hero=$hero',
                       arguments: integrante),
                   child: Container(
                     // Tamanho
@@ -852,8 +852,10 @@ class _ViewCultoState extends State<ViewCulto> {
                             MyActions.openSite(
                                 snapshot.data?.data()?.youTubeUrl ?? '');
                           },
-                          icon: const FaIcon(FontAwesomeIcons.youtube,
-                              color: Colors.red)),
+                          icon: const FaIcon(
+                            FontAwesomeIcons.youtube,
+                            color: Colors.red,
+                          )),
                   const SizedBox(width: kIsWeb ? 24 : 0),
                 ],
               ),

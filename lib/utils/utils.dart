@@ -120,6 +120,11 @@ class MyNetwork {
           const Center(child: Icon(Icons.error, color: Colors.red)),
     );
   }
+
+  static ImageProvider? getImageProvider(String? url) {
+    if (url == null || url.isEmpty) return null;
+    return NetworkImage(url);
+  }
 }
 
 /// Classe para mascaras de texto

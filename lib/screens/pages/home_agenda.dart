@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:escala_louvor/rotas.dart';
 import 'package:escala_louvor/screens/home.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
@@ -282,7 +283,7 @@ class TelaAgenda extends StatelessWidget {
                                       ),
                                     ),
                                     onPressed: () => Modular.to.pushNamed(
-                                        '/perfil?id=${aniversariantes[index].id}&hero=aniversariante',
+                                        '${AppRotas.PERFIL}?id=${aniversariantes[index].id}&hero=aniversariante',
                                         arguments: aniversariantes[index]),
                                   ),
                                 );
