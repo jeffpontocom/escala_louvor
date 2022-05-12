@@ -60,7 +60,7 @@ class MyApp extends StatelessWidget {
                 body: Container(
                   padding: const EdgeInsets.all(64),
                   alignment: Alignment.center,
-                  color: Theme.of(context).colorScheme.primary,
+                  color: Theme.of(context).primaryColor,
                   // Animação
                   child: AnimacaoPulando(
                     objectToAnimate:

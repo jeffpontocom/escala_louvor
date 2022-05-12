@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:escala_louvor/preferencias.dart';
+import 'package:escala_louvor/functions/metodos_integrante.dart';
+import 'package:escala_louvor/models/igreja.dart';
+import 'package:escala_louvor/screens/views/tile_igreja.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -7,11 +9,13 @@ import 'package:flutter_modular/flutter_modular.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 
-import '../utils/utils.dart';
+import '../models/instrumento.dart';
 import '/functions/metodos_firebase.dart';
 import '/global.dart';
 import '/models/integrante.dart';
 import '/utils/mensagens.dart';
+import '/utils/utils.dart';
+import '/preferencias.dart';
 import 'home.dart';
 
 class TelaPerfil extends StatefulWidget {
@@ -29,14 +33,18 @@ class _TelaPerfilState extends State<TelaPerfil> {
   /* VARIÁVEIS */
   //late DocumentReference _documentReference;
   Integrante? _integrante;
+  late MetodosIntegrante _metodos;
   late bool _ehMeuPerfil;
+  late bool _ehAdm;
 
   /* SISTEMA */
   @override
   void initState() {
     // Ao visitar o próprio perfil o usuário habilita o modo de edição.
     _integrante = widget.snapIntegrante?.data();
+    _metodos = MetodosIntegrante(context);
     _ehMeuPerfil = (widget.id == FirebaseAuth.instance.currentUser?.uid);
+    _ehAdm = Global.integranteLogado?.data()?.adm ?? false;
     super.initState();
   }
 
@@ -45,12 +53,10 @@ class _TelaPerfilState extends State<TelaPerfil> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Perfil'),
-        actions: _ehMeuPerfil || (Global.integranteLogado?.data()?.adm ?? false)
-            ? [_menuSuspenso]
-            : null,
+        actions: _ehMeuPerfil || _ehAdm ? [_menuSuspenso] : null,
       ),
       body: widget.snapIntegrante != null
-          ? _body
+          ? _corpo
           : FutureBuilder<DocumentSnapshot<Integrante>?>(
               future: MeuFirebase.obterSnapshotIntegrante(widget.id),
               builder: (context, snap) {
@@ -62,18 +68,13 @@ class _TelaPerfilState extends State<TelaPerfil> {
                       child: Text('Falha ao obter dados do integrante.'));
                 }
                 _integrante = snap.data?.data();
-                return _body;
+                return _corpo;
               }),
-      /* floatingActionButton: FloatingActionButton(
-        child: const FaIcon(FontAwesomeIcons.whatsapp),
-        backgroundColor: Colors.green,
-        onPressed: () {},
-      ), */
     );
   }
 
   /// Corpo
-  get _body {
+  get _corpo {
     return OrientationBuilder(builder: (context, orientation) {
       var _isPortrait = orientation == Orientation.portrait;
       return LayoutBuilder(
@@ -90,7 +91,7 @@ class _TelaPerfilState extends State<TelaPerfil> {
                     width: _isPortrait
                         ? constraints.maxWidth
                         : constraints.maxWidth * 0.35,
-                    color: Theme.of(context).colorScheme.primary,
+                    color: Theme.of(context).primaryColor,
                     padding: const EdgeInsets.all(16),
                     child: _cabecalho,
                   ),
@@ -106,7 +107,8 @@ class _TelaPerfilState extends State<TelaPerfil> {
                   ),
                 ],
               ),
-              _integrante?.telefone != null
+              // Botão flutuante
+              _integrante?.telefone != null && _integrante!.telefone!.isNotEmpty
                   ? Positioned(
                       top: _isPortrait
                           ? constraints.maxHeight * 0.35 - 28
@@ -210,59 +212,6 @@ class _TelaPerfilState extends State<TelaPerfil> {
         minRadius: 12,
       ),
     );
-    /* return Stack(
-      alignment: AlignmentDirectional.bottomEnd,
-      children: [
-        // Foto
-        Hero(
-          tag: widget.hero ?? 'fotoPerfil',
-          child: CircleAvatar(
-            child: Text(
-              MyStrings.getUserInitials(_integrante!.nome),
-              style: Theme.of(context).textTheme.headlineLarge,
-            ),
-            foregroundImage:
-                MyNetwork.getImageFromUrl(_integrante!.fotoUrl)?.image,
-            backgroundColor:
-                Theme.of(context).colorScheme.onPrimary.withOpacity(0.5),
-            maxRadius: 128,
-            minRadius: 48,
-          ),
-        ),
-        _ehMeuPerfil
-            ? CircleAvatar(
-                radius: 24,
-                backgroundColor: _integrante!.fotoUrl == null ||
-                        _integrante!.fotoUrl!.isEmpty
-                    ? null
-                    : Colors.red,
-                child: _integrante!.fotoUrl == null ||
-                        _integrante!.fotoUrl!.isEmpty
-                    ? IconButton(
-                        iconSize: 24,
-                        onPressed: () async {
-                          var url = await MeuFirebase.carregarFoto(context);
-                          if (url != null && url.isNotEmpty) {
-                            setState(() {
-                              _integrante!.fotoUrl = url;
-                              // TODO: alterar no firebase
-                            });
-                          }
-                        },
-                        icon: const Icon(Icons.add_a_photo))
-                    : IconButton(
-                        iconSize: 24,
-                        onPressed: () async {
-                          setState(() {
-                            _integrante!.fotoUrl = null;
-                            // TODO: alterar no firebase
-                          });
-                        },
-                        icon: const Icon(Icons.no_photography)),
-              )
-            : const SizedBox(),
-      ],
-    ); */
   }
 
   /// Dados
@@ -270,33 +219,49 @@ class _TelaPerfilState extends State<TelaPerfil> {
     return ListView(
       shrinkWrap: true,
       children: [
+        // Funções
         const Padding(
           padding: EdgeInsets.only(left: 16, right: 16, top: 24),
           child: Text('FUNÇÕES'),
         ),
         ListTile(
-          title: Text('mostrar funções'),
-          onTap: () {},
+          title: _funcoes,
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          trailing: _ehAdm
+              ? IconButton(onPressed: () {}, icon: const Icon(Icons.edit_note))
+              : null,
         ),
         const Divider(height: 1),
+        // Instrumentos
         const Padding(
           padding: EdgeInsets.only(left: 16, right: 16, top: 24),
           child: Text('INSTRUMENTOS E HABILIDADES'),
         ),
         ListTile(
-          title: Text('mostrar habilidades'),
-          onTap: () {},
+          title: _instrumentos,
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          trailing: _ehMeuPerfil || _ehAdm
+              ? IconButton(onPressed: () {}, icon: const Icon(Icons.edit_note))
+              : null,
         ),
         const Divider(height: 1),
+        // Igrejas
         const Padding(
           padding: EdgeInsets.only(left: 16, right: 16, top: 24),
           child: Text('IGREJAS (em que pode ser escalado)'),
         ),
         ListTile(
-          title: Text('mostrar igrejas'),
-          onTap: () {},
+          title: _igrejas,
+          contentPadding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          trailing: _ehMeuPerfil || _ehAdm
+              ? IconButton(onPressed: () {}, icon: const Icon(Icons.edit_note))
+              : null,
         ),
         const Divider(height: 1),
+        // Observações
         const Padding(
           padding: EdgeInsets.only(left: 16, right: 16, top: 24),
           child: Text('Observações'),
@@ -306,6 +271,101 @@ class _TelaPerfilState extends State<TelaPerfil> {
           child: Text(_integrante?.obs ?? ''),
         ),
       ],
+    );
+  }
+
+  /// Funções
+  get _funcoes {
+    return Wrap(
+      spacing: 8,
+      children: List.generate(
+        _integrante?.funcoes?.length ?? 0,
+        (index) => Tooltip(
+          message: funcaoGetString(_integrante!.funcoes![index]),
+          child: CircleAvatar(
+            child: Icon(funcaoGetIcon(_integrante!.funcoes![index])),
+            backgroundColor: Colors.orange,
+          ),
+        ),
+      ),
+    );
+  }
+
+  /// Instrumentos
+  get _instrumentos {
+    return FutureBuilder<QuerySnapshot<Instrumento>>(
+      future: MeuFirebase.obterListaInstrumentos(ativo: true),
+      builder: (context, snapshot) {
+        // Carregando
+        if (!snapshot.hasData) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        var instrumentos = snapshot.data?.docs;
+        if (instrumentos == null || instrumentos.isEmpty) {
+          return const Text('Nenhum instrumento cadastrado!');
+        }
+        List<Instrumento> instrumentosDoIntegrante = [];
+        for (var instrumento in instrumentos) {
+          if (_integrante!.instrumentos!
+              .map((e) => e.toString())
+              .contains(instrumento.reference.toString())) {
+            instrumentosDoIntegrante.add(instrumento.data());
+          }
+        }
+        if (instrumentosDoIntegrante.isEmpty) {
+          return const Text('Nenhum instrumento selecionado!');
+        }
+        return Wrap(
+          spacing: 8,
+          children: List.generate(instrumentosDoIntegrante.length, (index) {
+            return Tooltip(
+              message: instrumentosDoIntegrante[index].nome,
+              child: CircleAvatar(
+                child: Image.asset(instrumentosDoIntegrante[index].iconAsset,
+                    height: 24),
+                backgroundColor: Colors.cyan,
+              ),
+            );
+          }),
+        );
+      },
+    );
+  }
+
+  /// Igrejas
+  get _igrejas {
+    return FutureBuilder<QuerySnapshot<Igreja>>(
+      future: MeuFirebase.obterListaIgrejas(ativo: true),
+      builder: (context, snapshot) {
+        // Carregando
+        if (!snapshot.hasData) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        var igrejas = snapshot.data?.docs;
+        if (igrejas == null || igrejas.isEmpty) {
+          return const Text('Nenhuma igreja cadastrada!');
+        }
+        List<Igreja> igrejasDoIntegrante = [];
+        for (var igreja in igrejas) {
+          if (_integrante!.igrejas!
+              .map((e) => e.toString())
+              .contains(igreja.reference.toString())) {
+            igrejasDoIntegrante.add(igreja.data());
+          }
+        }
+        if (igrejasDoIntegrante.isEmpty) {
+          return const Text('Nenhuma igreja selecionada!');
+        }
+        return Wrap(
+          spacing: 8,
+          children: List.generate(igrejasDoIntegrante.length, (index) {
+            return Tooltip(
+              message: igrejasDoIntegrante[index].nome,
+              child: TileIgrejaSmall(igreja: igrejasDoIntegrante[index]),
+            );
+          }),
+        );
+      },
     );
   }
 
@@ -325,30 +385,47 @@ class _TelaPerfilState extends State<TelaPerfil> {
             )
           : null,
       itemBuilder: (context) {
-        List<PopupMenuEntry> opcoes = [
-          PopupMenuItem(
-            child: const Text('Editar dados'),
-            onTap: _editarDados,
-          ),
-        ];
-        if (Global.integranteLogado?.data()?.adm ?? false) {
-          opcoes.add(PopupMenuItem(
-            child: const Text('Editar funções'),
-            onTap: _editarFuncoes,
-          ));
-        }
+        List<PopupMenuEntry> opcoes = [];
+        opcoes.add(const PopupMenuItem(
+          child: Text('Editar dados'),
+          value: 'editar',
+        ));
         if (_ehMeuPerfil) {
-          opcoes.add(PopupMenuItem(
-            child: const Text('Sair'),
-            onTap: _sair,
+          opcoes.add(const PopupMenuItem(
+            child: Text('Sair'),
+            value: 'sair',
           ));
         }
         return opcoes;
+      },
+      onSelected: (value) {
+        switch (value) {
+          case 'editar':
+            _editarDadosDoIntegrante();
+            break;
+          case 'sair':
+            _sair();
+            break;
+          default:
+        }
       },
     );
   }
 
   /* MÉTODOS */
+
+  void _editarDadosDoIntegrante() async {
+    _metodos.editarDados(
+      widget.snapIntegrante!,
+      () => setState(() {}),
+    );
+  }
+
+  void _editarFuncoesDoIntegrante() {}
+
+  void _editarInstrumentosDoIntegrante() {}
+
+  void _editarIgrejasDoIntegrante() {}
 
   /// Logout
   Future _sair() async {
@@ -357,8 +434,4 @@ class _TelaPerfilState extends State<TelaPerfil> {
     await FirebaseAuth.instance.signOut();
     Modular.to.navigate('/${Paginas.values[0].name}');
   }
-
-  void _editarDados() {}
-
-  void _editarFuncoes() {}
 }

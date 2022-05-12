@@ -114,13 +114,13 @@ class _TelaSelecaoState extends State<TelaSelecao> {
     return FutureBuilder<QuerySnapshot<Igreja>>(
         future: MeuFirebase.obterListaIgrejas(ativo: true),
         builder: (context, snapshot) {
-          // Retorna interface de carregamento
+          // Carregamento
           if (!snapshot.hasData) {
             return const CircularProgressIndicator(color: Colors.orange);
           }
           // Preenchimento
           igrejas = snapshot.data?.docs ?? [];
-          // Retorna interface de falha ao encontrar ao menos um grupo
+          // Falha ao não encontrar ao menos um grupo
           if (igrejas.isEmpty) {
             return Text(
               'Nenhuma igreja encontrada na base de dados!\n\nFale com o administrador.',
@@ -153,90 +153,87 @@ class _TelaSelecaoState extends State<TelaSelecao> {
                   ?.copyWith(color: Colors.white),
             );
           }
-          // Retorna carrossel
+          // Carrossel
           var carouselController = CarouselController();
           return SizedBox(
-            //height: 300,
             child: CarouselSlider.builder(
-              carouselController: carouselController,
-              options: CarouselOptions(
-                //aspectRatio: 16 / 10,
-                enableInfiniteScroll: false,
-                enlargeCenterPage: true,
-                scrollPhysics: const BouncingScrollPhysics(),
-              ),
-              itemCount: inscritas.length,
-              itemBuilder: (context, index, realIndex) {
-                bool selecionada = inscritas[index].reference.toString() ==
-                    Global.igrejaSelecionada.value?.reference.toString();
-                if (selecionada) {
-                  WidgetsBinding.instance?.scheduleFrameCallback((timeStamp) {
-                    carouselController.animateToPage(index);
-                  });
-                }
-                // Card da Igreja
-                return Card(
-                  clipBehavior: Clip.antiAlias,
-                  shape: RoundedRectangleBorder(
-                    side: selecionada
-                        ? const BorderSide(color: Colors.orange, width: 3)
-                        : const BorderSide(color: Colors.grey),
-                    borderRadius: const BorderRadius.all(Radius.circular(16)),
-                  ),
-                  child: InkWell(
-                    onTap: () async {
-                      Mensagem.aguardar(
-                        context: context,
-                        mensagem: 'Alterando contexto...',
-                      );
-                      String? id = inscritas[index].reference.id;
-                      Preferencias.igreja = id;
-                      Global.igrejaSelecionada.value =
-                          await MeuFirebase.obterSnapshotIgreja(id);
-                      Modular.to.pop(); // fecha progresso
-                      Modular.to.maybePop(true); // fecha dialog
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.all(16),
-                      width: double.maxFinite,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Foto da igreja
-                          Expanded(
-                            child: Container(
-                              width: double.maxFinite,
-                              clipBehavior: Clip.antiAlias,
-                              decoration: const BoxDecoration(
-                                  borderRadius: BorderRadius.vertical(
-                                      top: Radius.circular(12))),
-                              child: MyNetwork.getImageFromUrl(
-                                      inscritas[index].data().fotoUrl) ??
-                                  const Icon(Icons.church),
+                carouselController: carouselController,
+                options: CarouselOptions(
+                  enableInfiniteScroll: false,
+                  enlargeCenterPage: true,
+                  scrollPhysics: const BouncingScrollPhysics(),
+                ),
+                itemCount: inscritas.length,
+                itemBuilder: (context, index, realIndex) {
+                  bool selecionada = inscritas[index].reference.toString() ==
+                      Global.igrejaSelecionada.value?.reference.toString();
+                  if (selecionada) {
+                    WidgetsBinding.instance?.scheduleFrameCallback((timeStamp) {
+                      carouselController.animateToPage(index);
+                    });
+                  }
+                  // Card da Igreja
+                  return Card(
+                    clipBehavior: Clip.antiAlias,
+                    shape: RoundedRectangleBorder(
+                      side: selecionada
+                          ? const BorderSide(color: Colors.orange, width: 3)
+                          : const BorderSide(color: Colors.grey),
+                      borderRadius: const BorderRadius.all(Radius.circular(16)),
+                    ),
+                    child: InkWell(
+                      onTap: () async {
+                        Mensagem.aguardar(
+                          context: context,
+                          mensagem: 'Alterando contexto...',
+                        );
+                        String? id = inscritas[index].reference.id;
+                        Preferencias.igreja = id;
+                        Global.igrejaSelecionada.value =
+                            await MeuFirebase.obterSnapshotIgreja(id);
+                        Modular.to.pop(); // fecha progresso
+                        Modular.to.maybePop(true); // fecha dialog
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        width: double.maxFinite,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            // Foto da igreja
+                            Expanded(
+                              child: Container(
+                                width: double.maxFinite,
+                                clipBehavior: Clip.antiAlias,
+                                decoration: const BoxDecoration(
+                                    borderRadius: BorderRadius.vertical(
+                                        top: Radius.circular(12))),
+                                child: MyNetwork.getImageFromUrl(
+                                        inscritas[index].data().fotoUrl) ??
+                                    const Icon(Icons.church),
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 8),
-                          // Sigla
-                          Text(
-                            inscritas[index].data().sigla.toUpperCase(),
-                            style: const TextStyle(
-                                fontSize: 20, fontWeight: FontWeight.bold),
-                          ),
-                          const SizedBox(height: 8),
-                          // Nome
-                          Text(
-                            inscritas[index].data().nome,
-                            softWrap: true,
-                            overflow: TextOverflow.ellipsis,
-                            maxLines: 3,
-                          ),
-                        ],
+                            const SizedBox(height: 8),
+                            // Sigla
+                            Text(
+                              inscritas[index].data().sigla.toUpperCase(),
+                              style: const TextStyle(
+                                  fontSize: 20, fontWeight: FontWeight.bold),
+                            ),
+                            const SizedBox(height: 8),
+                            // Nome
+                            Text(
+                              inscritas[index].data().nome,
+                              softWrap: true,
+                              overflow: TextOverflow.ellipsis,
+                              maxLines: 3,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
-                  ),
-                );
-              },
-            ),
+                  );
+                }),
           );
         });
   }
