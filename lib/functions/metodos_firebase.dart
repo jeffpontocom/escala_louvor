@@ -196,6 +196,19 @@ class MeuFirebase {
         .get();
   }
 
+  /// Integrante específico
+  static Stream<DocumentSnapshot<Integrante>>? obterStreamIntegrante(
+      String id) {
+    return FirebaseFirestore.instance
+        .collection(Integrante.collection)
+        .doc(id)
+        .withConverter<Integrante>(
+            fromFirestore: (snapshot, _) =>
+                Integrante.fromJson(snapshot.data()),
+            toFirestore: (pacote, _) => pacote.toJson())
+        .snapshots();
+  }
+
   /// Igreja específica
   static Future<DocumentSnapshot<Igreja>?> obterSnapshotIgreja(
       String? id) async {

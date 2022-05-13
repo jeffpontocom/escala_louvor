@@ -11,21 +11,27 @@ import 'metodos_firebase.dart';
 
 class MetodosIntegrante {
   final BuildContext context;
+  final DocumentSnapshot<Integrante> snapshot;
 
-  MetodosIntegrante(this.context);
+  MetodosIntegrante(this.context, this.snapshot);
 
-  Future salvarDados(
-      DocumentReference referencia, Map<String, Object?> dados) async {
+  Future salvarDados(Map<String, Object?> dados) async {
     // Abre progresso
     Mensagem.aguardar(context: context, mensagem: 'Atualizando...');
-    await referencia.update(dados);
+    await snapshot.reference.update(dados);
     Modular.to.pop(); // Fecha progresso
   }
 
-  void editarDados(
-      DocumentSnapshot<Integrante> snapshot, VoidCallback callback) async {
+  void editarDados() async {
+    if (snapshot.data() == null) {
+      return Mensagem.simples(
+        context: context,
+        titulo: 'Falha',
+        mensagem:
+            'Houve um erro ao tentar executar a ação. Tente mais tarde novamente.',
+      );
+    }
     Integrante integrante = snapshot.data()!;
-
     // Foto
     var widgetFoto =
         StatefulBuilder(builder: (innerContext, StateSetter innerState) {
@@ -131,6 +137,21 @@ class MetodosIntegrante {
       },
     );
 
+    // Botão atualizar
+    var btnAtualizar = ElevatedButton.icon(
+        onPressed: () async {
+          await salvarDados({
+            'fotoUrl': integrante.fotoUrl,
+            'dataNascimento': integrante.dataNascimento,
+            'nome': integrante.nome,
+            'telefone': integrante.telefone,
+            'obs': integrante.obs,
+          });
+          Modular.to.pop(); // Fecha diálogo
+        },
+        icon: const Icon(Icons.save),
+        label: const Text('ATUALIZAR'));
+
     // Diálogo
     await showModalBottomSheet(
         context: context,
@@ -154,26 +175,15 @@ class MetodosIntegrante {
                   widgetTelefone,
                   widgetObs,
                   Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      ElevatedButton.icon(
-                          onPressed: () async {
-                            await salvarDados(snapshot.reference, {
-                              'fotoUrl': integrante.fotoUrl,
-                              'dataNascimento': integrante.dataNascimento,
-                              'nome': integrante.nome,
-                              'telefone': integrante.telefone,
-                              'obs': integrante.obs,
-                            });
-                            Modular.to.pop(); // Fecha diálogo
-                          },
-                          icon: const Icon(Icons.save),
-                          label: const Text('ATUALIZAR'))
+                      btnAtualizar,
                     ],
                   )
                 ],
               ),
             );
           });
-        }).then((value) => callback());
+        });
   }
 }

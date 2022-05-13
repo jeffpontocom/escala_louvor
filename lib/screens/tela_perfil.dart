@@ -31,18 +31,16 @@ class TelaPerfil extends StatefulWidget {
 
 class _TelaPerfilState extends State<TelaPerfil> {
   /* VARIÁVEIS */
-  //late DocumentReference _documentReference;
-  Integrante? _integrante;
+  late Integrante _integrante;
   late MetodosIntegrante _metodos;
   late bool _ehMeuPerfil;
   late bool _ehAdm;
+  late bool _isPortrait;
 
   /* SISTEMA */
   @override
   void initState() {
-    // Ao visitar o próprio perfil o usuário habilita o modo de edição.
-    _integrante = widget.snapIntegrante?.data();
-    _metodos = MetodosIntegrante(context);
+    // Ao visitar o próprio perfil o usuário habilita o botão de edição.
     _ehMeuPerfil = (widget.id == FirebaseAuth.instance.currentUser?.uid);
     _ehAdm = Global.integranteLogado?.data()?.adm ?? false;
     super.initState();
@@ -50,92 +48,94 @@ class _TelaPerfilState extends State<TelaPerfil> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Perfil'),
-        actions: _ehMeuPerfil || _ehAdm ? [_menuSuspenso] : null,
-      ),
-      body: widget.snapIntegrante != null
-          ? _corpo
-          : FutureBuilder<DocumentSnapshot<Integrante>?>(
-              future: MeuFirebase.obterSnapshotIntegrante(widget.id),
-              builder: (context, snap) {
-                if (!snap.hasData) {
-                  return const Center(child: CircularProgressIndicator());
-                }
-                if (!snap.data!.exists || snap.data!.data() == null) {
-                  return const Center(
-                      child: Text('Falha ao obter dados do integrante.'));
-                }
-                _integrante = snap.data?.data();
-                return _corpo;
-              }),
-    );
+    return OrientationBuilder(builder: (context, orientation) {
+      _isPortrait = orientation == Orientation.portrait;
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('Perfil'),
+          actions: _ehMeuPerfil || _ehAdm ? [_menuSuspenso] : null,
+          elevation: _isPortrait ? 0 : 4,
+        ),
+        body: StreamBuilder<DocumentSnapshot<Integrante>>(
+          initialData: widget.snapIntegrante,
+          stream: MeuFirebase.obterStreamIntegrante(widget.id),
+          builder: (context, snapshot) {
+            if (!snapshot.hasData) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (!snapshot.data!.exists || snapshot.data!.data() == null) {
+              return const Center(
+                  child: Text('Falha ao obter dados do integrante.'));
+            }
+            _integrante = snapshot.data!.data()!;
+            _metodos = MetodosIntegrante(context, snapshot.data!);
+            return _corpo;
+          },
+        ),
+      );
+    });
   }
 
   /// Corpo
   get _corpo {
-    return OrientationBuilder(builder: (context, orientation) {
-      var _isPortrait = orientation == Orientation.portrait;
-      return LayoutBuilder(
-        builder: (context, constraints) {
-          return Stack(
-            children: [
-              Wrap(
-                children: [
-                  // Cabeçalho
-                  Container(
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Stack(
+          children: [
+            Wrap(
+              children: [
+                // Cabeçalho
+                Material(
+                  elevation: _isPortrait ? 4 : 0,
+                  color: Theme.of(context).primaryColor,
+                  child: Container(
                     height: _isPortrait
                         ? constraints.maxHeight * 0.35
                         : constraints.maxHeight,
                     width: _isPortrait
                         ? constraints.maxWidth
                         : constraints.maxWidth * 0.35,
-                    color: Theme.of(context).primaryColor,
                     padding: const EdgeInsets.all(16),
                     child: _cabecalho,
                   ),
-                  // Conteúdo
-                  SizedBox(
-                    height: _isPortrait
-                        ? constraints.maxHeight * 0.65
-                        : constraints.maxHeight,
-                    width: _isPortrait
-                        ? constraints.maxWidth
-                        : constraints.maxWidth * 0.65,
-                    child: _dados,
-                  ),
-                ],
-              ),
-              // Botão flutuante
-              _integrante?.telefone != null && _integrante!.telefone!.isNotEmpty
-                  ? Positioned(
-                      top: _isPortrait
-                          ? constraints.maxHeight * 0.35 - 28
-                          : null,
-                      bottom: _isPortrait ? null : 28,
-                      right: 16,
-                      child: FloatingActionButton(
-                        child: const FaIcon(FontAwesomeIcons.whatsapp),
-                        backgroundColor: Colors.green,
-                        onPressed: () =>
-                            MyActions.openWhatsApp(_integrante!.telefone!),
-                      ),
-                    )
-                  : const SizedBox(),
-            ],
-          );
-        },
-      );
-    });
+                ),
+                // Conteúdo
+                SizedBox(
+                  height: _isPortrait
+                      ? constraints.maxHeight * 0.65
+                      : constraints.maxHeight,
+                  width: _isPortrait
+                      ? constraints.maxWidth
+                      : constraints.maxWidth * 0.65,
+                  child: _dados,
+                ),
+              ],
+            ),
+            // Botão flutuante
+            _integrante.telefone != null && _integrante.telefone!.isNotEmpty
+                ? Positioned(
+                    top: _isPortrait ? constraints.maxHeight * 0.35 - 28 : null,
+                    bottom: _isPortrait ? null : 28,
+                    right: 16,
+                    child: FloatingActionButton(
+                      child: const FaIcon(FontAwesomeIcons.whatsapp),
+                      backgroundColor: Colors.green,
+                      onPressed: () =>
+                          MyActions.openWhatsApp(_integrante.telefone!),
+                    ),
+                  )
+                : const SizedBox(),
+          ],
+        );
+      },
+    );
   }
 
   /// Cabeçalho
   get _cabecalho {
-    var nascimento = _integrante?.dataNascimento == null
+    var nascimento = _integrante.dataNascimento == null
         ? '?'
-        : DateFormat.MMMd('pt_BR')
-            .format(_integrante!.dataNascimento!.toDate());
+        : DateFormat.MMMd('pt_BR').format(_integrante.dataNascimento!.toDate());
     return Column(
       mainAxisSize: MainAxisSize.min,
       mainAxisAlignment: MainAxisAlignment.center,
@@ -158,7 +158,7 @@ class _TelaPerfilState extends State<TelaPerfil> {
         const SizedBox(height: 16),
         // Nome
         Text(
-          _integrante?.nome ?? '',
+          _integrante.nome,
           textAlign: TextAlign.center,
           style: const TextStyle(
             color: Colors.white,
@@ -167,47 +167,37 @@ class _TelaPerfilState extends State<TelaPerfil> {
             fontWeight: FontWeight.bold,
           ),
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 4),
         // E-mail
         Text(
-          _integrante?.email ?? '',
+          _integrante.email,
           textAlign: TextAlign.center,
-          style: const TextStyle(color: Colors.white),
+          style: const TextStyle(color: Colors.grey),
         ),
         const SizedBox(height: 16),
         // Aniversário
-        Wrap(
-          spacing: 8,
-          alignment: WrapAlignment.center,
-          crossAxisAlignment: WrapCrossAlignment.end,
-          children: [
-            const Icon(Icons.cake),
-            Text(
-              nascimento,
-              textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.white, fontSize: 16),
-            ),
-          ],
-        )
+        const Icon(Icons.cake, color: Colors.white, size: 20),
+        Text(
+          nascimento,
+          textAlign: TextAlign.center,
+          style: const TextStyle(color: Colors.white, fontSize: 18),
+        ),
       ],
     );
   }
 
   /// Foto
   get _foto {
-    if (_integrante == null) {
-      return const Text('Erro');
-    }
     return Hero(
       tag: widget.hero ?? 'fotoPerfil',
       child: CircleAvatar(
         child: Text(
-          MyStrings.getUserInitials(_integrante!.nome),
+          MyStrings.getUserInitials(_integrante.nome),
           style: Theme.of(context).textTheme.headlineLarge,
         ),
         backgroundColor:
             Theme.of(context).colorScheme.onPrimary.withOpacity(0.5),
-        foregroundImage: MyNetwork.getImageProvider(_integrante!.fotoUrl),
+        foregroundImage: MyNetwork.getImageProvider(_integrante.fotoUrl),
         maxRadius: 128,
         minRadius: 12,
       ),
@@ -268,7 +258,7 @@ class _TelaPerfilState extends State<TelaPerfil> {
         ),
         Padding(
           padding: const EdgeInsets.only(left: 16, right: 16, bottom: 24),
-          child: Text(_integrante?.obs ?? ''),
+          child: Text(_integrante.obs ?? ''),
         ),
       ],
     );
@@ -277,13 +267,14 @@ class _TelaPerfilState extends State<TelaPerfil> {
   /// Funções
   get _funcoes {
     return Wrap(
-      spacing: 8,
+      spacing: 4,
+      runSpacing: 4,
       children: List.generate(
-        _integrante?.funcoes?.length ?? 0,
+        _integrante.funcoes?.length ?? 0,
         (index) => Tooltip(
-          message: funcaoGetString(_integrante!.funcoes![index]),
+          message: funcaoGetString(_integrante.funcoes![index]),
           child: CircleAvatar(
-            child: Icon(funcaoGetIcon(_integrante!.funcoes![index])),
+            child: Icon(funcaoGetIcon(_integrante.funcoes![index])),
             backgroundColor: Colors.orange,
           ),
         ),
@@ -306,7 +297,7 @@ class _TelaPerfilState extends State<TelaPerfil> {
         }
         List<Instrumento> instrumentosDoIntegrante = [];
         for (var instrumento in instrumentos) {
-          if (_integrante!.instrumentos!
+          if (_integrante.instrumentos!
               .map((e) => e.toString())
               .contains(instrumento.reference.toString())) {
             instrumentosDoIntegrante.add(instrumento.data());
@@ -316,7 +307,8 @@ class _TelaPerfilState extends State<TelaPerfil> {
           return const Text('Nenhum instrumento selecionado!');
         }
         return Wrap(
-          spacing: 8,
+          spacing: 4,
+          runSpacing: 4,
           children: List.generate(instrumentosDoIntegrante.length, (index) {
             return Tooltip(
               message: instrumentosDoIntegrante[index].nome,
@@ -347,7 +339,7 @@ class _TelaPerfilState extends State<TelaPerfil> {
         }
         List<Igreja> igrejasDoIntegrante = [];
         for (var igreja in igrejas) {
-          if (_integrante!.igrejas!
+          if (_integrante.igrejas!
               .map((e) => e.toString())
               .contains(igreja.reference.toString())) {
             igrejasDoIntegrante.add(igreja.data());
@@ -357,7 +349,8 @@ class _TelaPerfilState extends State<TelaPerfil> {
           return const Text('Nenhuma igreja selecionada!');
         }
         return Wrap(
-          spacing: 8,
+          spacing: 4,
+          runSpacing: 4,
           children: List.generate(igrejasDoIntegrante.length, (index) {
             return Tooltip(
               message: igrejasDoIntegrante[index].nome,
@@ -401,7 +394,7 @@ class _TelaPerfilState extends State<TelaPerfil> {
       onSelected: (value) {
         switch (value) {
           case 'editar':
-            _editarDadosDoIntegrante();
+            _metodos.editarDados();
             break;
           case 'sair':
             _sair();
@@ -413,13 +406,6 @@ class _TelaPerfilState extends State<TelaPerfil> {
   }
 
   /* MÉTODOS */
-
-  void _editarDadosDoIntegrante() async {
-    _metodos.editarDados(
-      widget.snapIntegrante!,
-      () => setState(() {}),
-    );
-  }
 
   void _editarFuncoesDoIntegrante() {}
 
