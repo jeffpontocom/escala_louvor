@@ -34,8 +34,11 @@ Future<bool> iniciar(ValueNotifier<String> textoCarregamento) async {
   try {
     await Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform);
+  } on UnsupportedError catch (e) {
+    dev.log('Main: ${e.toString()}');
+    return false;
   } catch (e) {
-    dev.log('Main: Um App Firebase nomeado "[DEFAULT]" já existe!');
+    dev.log('Main: ${e.toString()}');
   }
   // Carregar preferências
   textoCarregamento.value = 'Aplicando preferências...';
@@ -65,6 +68,32 @@ class MyApp extends StatelessWidget {
                   child: AnimacaoPulando(
                     objectToAnimate:
                         Image.asset('assets/icons/ic_launcher.png'),
+                  ),
+                ),
+              ),
+            );
+          }
+          if (snapshot.data == false) {
+            return MaterialApp(
+              home: Scaffold(
+                body: Container(
+                  padding: const EdgeInsets.all(64),
+                  alignment: Alignment.center,
+                  // Animação
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // logo
+                      Image.asset('assets/icons/ic_launcher.png', width: 64),
+                      const SizedBox(height: 32),
+                      // texto
+                      Text(
+                          'Não é possível abrir o aplicativo nesta plataforma.',
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleMedium
+                              ?.copyWith(color: Colors.red)),
+                    ],
                   ),
                 ),
               ),
