@@ -116,15 +116,17 @@
       //register firebase-messaging service worker
       //navigator.serviceWorker.register("/firebase-messaging-sw.js");
       // Service workers are supported. Use them.
+      
+      // Registro para Firebase Cloud Message
       window.addEventListener('load', function () {
         // Wait for registration to finish before dropping the <script> tag.
         // Otherwise, the browser will load the script multiple times,
         // potentially different versions.
-        var serviceWorkerUrl = 'firebase-messaging-sw.js';
-        //var serviceWorkerUrl = 'flutter_service_worker.js?v=' + serviceWorkerVersion;
-        navigator.serviceWorker.register(serviceWorkerUrl)
+        /* navigator.serviceWorker.register('/firebase-messaging-sw.js')
           .then((reg) => {
             function waitForActivation(serviceWorker) {
+              var serviceWorkerUrl = 'flutter_service_worker.js?v=' + serviceWorkerVersion;
+              console.log(serviceWorkerUrl);
               serviceWorker.addEventListener('statechange', () => {
                 if (serviceWorker.state == 'activated') {
                   console.log('Installed new service worker.');
@@ -147,21 +149,18 @@
               console.log('Loading app from service worker.');
               loadMainDartJs();
             }
-          });
-
-        // Registro para Firebase Cloud Message
-        //navigator.serviceWorker.register("/firebase-messaging-sw.js"); 
+          }); */
         
         // If service worker doesn't succeed in a reasonable amount of time,
         // fallback to plaint <script> tag.
-        setTimeout(() => {
+        //setTimeout(() => {
           if (!scriptLoaded) {
             console.warn(
               'Failed to load app from service worker. Falling back to plain <script> tag.',
             );
             loadMainDartJs();
           }
-        }, 4000);
+        //}, 4000);
       });
     } else {
       // Service workers not supported. Just drop the <script> tag.
