@@ -72,8 +72,10 @@ class DefaultFirebaseOptions {
     projectId: 'escala-louvor-ipbfoz',
     databaseURL: 'https://escala-louvor-ipbfoz-default-rtdb.firebaseio.com',
     storageBucket: 'escala-louvor-ipbfoz.appspot.com',
-    androidClientId: '420088880029-k909hketimsl2gsfhptk4oo6q6t0eba3.apps.googleusercontent.com',
-    iosClientId: '420088880029-p661620l119hqv9rcr6ijc8bpia28uld.apps.googleusercontent.com',
+    androidClientId:
+        '420088880029-k909hketimsl2gsfhptk4oo6q6t0eba3.apps.googleusercontent.com',
+    iosClientId:
+        '420088880029-p661620l119hqv9rcr6ijc8bpia28uld.apps.googleusercontent.com',
     iosBundleId: 'br.org.ipbfoz.escalaLouvor',
   );
 }

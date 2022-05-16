@@ -94,8 +94,9 @@ class Notificacoes {
     }
 
     // Obter token
-    var vapidKey = await FirebaseMessaging.instance.getToken();
-    instancia.setToken(vapidKey);
+    var fcmToken = await FirebaseMessaging.instance
+        .getToken(vapidKey: dotenv.env['FCM_VapidKey'] ?? '');
+    instancia.setToken(fcmToken);
     instancia._tokenStream = FirebaseMessaging.instance.onTokenRefresh;
     instancia._tokenStream.listen(instancia.setToken);
 
