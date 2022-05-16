@@ -39,14 +39,14 @@ class MetodosIntegrante {
         alignment: AlignmentDirectional.bottomEnd,
         children: [
           CircleAvatar(
+            radius: 56,
+            backgroundColor: Colors.grey.withOpacity(0.5),
+            foregroundImage:
+                MyNetwork.getImageFromUrl(integrante.fotoUrl)?.image,
             child: Text(
               MyStrings.getUserInitials(integrante.nome),
               style: Theme.of(context).textTheme.headlineLarge,
             ),
-            foregroundImage:
-                MyNetwork.getImageFromUrl(integrante.fotoUrl)?.image,
-            backgroundColor: Colors.grey.withOpacity(0.5),
-            radius: 56,
           ),
           CircleAvatar(
             radius: 16,

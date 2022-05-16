@@ -597,11 +597,11 @@ class MeuFirebase {
         Modular.to.pop(); // fecha progresso
       }
     } on PlatformException catch (e) {
-      dev.log('Unsupported operation: ' + e.toString(), name: 'CarregarFoto');
+      dev.log('Unsupported operation: ${e.toString()}', name: 'CarregarFoto');
     } on FirebaseException catch (e) {
-      dev.log('FirebaseException code: ' + e.code, name: 'CarregarFoto');
+      dev.log('FirebaseException code: ${e.code}', name: 'CarregarFoto');
     } catch (e) {
-      dev.log('Catch Exception: ' + e.toString(), name: 'CarregarFoto');
+      dev.log('Catch Exception: ${e.toString()}', name: 'CarregarFoto');
     }
     // Retorno
     return fotoUrl;
@@ -639,11 +639,11 @@ class MeuFirebase {
         Modular.to.pop(); // fecha progresso
       }
     } on PlatformException catch (e) {
-      dev.log('Unsupported operation: ' + e.toString(), name: 'log:LoadPDF');
+      dev.log('Unsupported operation: ${e.toString()}', name: 'log:LoadPDF');
     } on FirebaseException catch (e) {
-      dev.log('FirebaseException code: ' + e.code, name: 'log:LoadPDF');
+      dev.log('FirebaseException code: ${e.code}', name: 'log:LoadPDF');
     } catch (e) {
-      dev.log('Catch Exception: ' + e.toString(), name: 'log:LoadPDF');
+      dev.log('Catch Exception: ${e.toString()}', name: 'log:LoadPDF');
     }
     // Retorno
     return url;

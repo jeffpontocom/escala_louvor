@@ -52,13 +52,6 @@ class ViewIntegrante extends StatelessWidget {
                         color: Colors.grey,
                         selectedColor: Colors.orange,
                         fillColor: Colors.orange.withOpacity(0.15),
-                        children: List.generate(
-                          Funcao.values.length,
-                          (index) => _iconeComLegenda(
-                            funcaoGetIcon(Funcao.values[index]),
-                            funcaoGetString(Funcao.values[index]),
-                          ),
-                        ).toList(),
                         isSelected: List.generate(
                             Funcao.values.length,
                             (index) =>
@@ -82,6 +75,13 @@ class ViewIntegrante extends StatelessWidget {
                                 );
                               }
                             : (index) {},
+                        children: List.generate(
+                          Funcao.values.length,
+                          (index) => _iconeComLegenda(
+                            funcaoGetIcon(Funcao.values[index]),
+                            funcaoGetString(Funcao.values[index]),
+                          ),
+                        ).toList(),
                       );
                     },
                   );
@@ -109,16 +109,16 @@ class ViewIntegrante extends StatelessWidget {
                             Hero(
                               tag: hero,
                               child: CircleAvatar(
+                                radius: 56,
+                                backgroundColor: Colors.grey.withOpacity(0.5),
+                                foregroundImage: MyNetwork.getImageFromUrl(
+                                        integrante.fotoUrl)
+                                    ?.image,
                                 child: Text(
                                   MyStrings.getUserInitials(integrante.nome),
                                   style:
                                       Theme.of(context).textTheme.headlineLarge,
                                 ),
-                                foregroundImage: MyNetwork.getImageFromUrl(
-                                        integrante.fotoUrl)
-                                    ?.image,
-                                backgroundColor: Colors.grey.withOpacity(0.5),
-                                radius: 56,
                               ),
                             ),
                             editMode

@@ -29,7 +29,7 @@ class _TelaSelecaoState extends State<TelaSelecao> {
       backgroundColor: Theme.of(context).primaryColor,
       body: SafeArea(
         child: OrientationBuilder(builder: (context, orientation) {
-          var _isPortrait = orientation == Orientation.portrait;
+          var isPortrait = orientation == Orientation.portrait;
           return Column(
             children: [
               // Título
@@ -54,16 +54,16 @@ class _TelaSelecaoState extends State<TelaSelecao> {
                     // Carrossel de opções
                     Container(
                       alignment: Alignment.center,
-                      height: _isPortrait
+                      height: isPortrait
                           ? constraints.maxHeight * 0.7
                           : constraints.maxHeight,
-                      width: _isPortrait
+                      width: isPortrait
                           ? constraints.maxWidth
                           : constraints.maxWidth / 2,
                       child: carroselOpcoes,
                     ),
                     // Divisor
-                    _isPortrait
+                    isPortrait
                         ? const SizedBox()
                         : Container(
                             height: constraints.maxHeight,
@@ -78,10 +78,10 @@ class _TelaSelecaoState extends State<TelaSelecao> {
                     // Botões
                     Container(
                       alignment: Alignment.center,
-                      height: _isPortrait
+                      height: isPortrait
                           ? constraints.maxHeight * 0.3
                           : constraints.maxHeight,
-                      width: _isPortrait
+                      width: isPortrait
                           ? constraints.maxWidth
                           : constraints.maxWidth / 2 - 1,
                       child: Column(
@@ -168,7 +168,7 @@ class _TelaSelecaoState extends State<TelaSelecao> {
                   bool selecionada = inscritas[index].reference.toString() ==
                       Global.igrejaSelecionada.value?.reference.toString();
                   if (selecionada) {
-                    WidgetsBinding.instance?.scheduleFrameCallback((timeStamp) {
+                    WidgetsBinding.instance.scheduleFrameCallback((timeStamp) {
                       carouselController.animateToPage(index);
                     });
                   }

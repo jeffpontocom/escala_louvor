@@ -118,10 +118,10 @@ class _TelaPerfilState extends State<TelaPerfil> {
                     bottom: _isPortrait ? null : 28,
                     right: 16,
                     child: FloatingActionButton(
-                      child: const FaIcon(FontAwesomeIcons.whatsapp),
                       backgroundColor: Colors.green,
                       onPressed: () =>
                           MyActions.openWhatsApp(_integrante.telefone!),
+                      child: const FaIcon(FontAwesomeIcons.whatsapp),
                     ),
                   )
                 : const SizedBox(),
@@ -191,15 +191,15 @@ class _TelaPerfilState extends State<TelaPerfil> {
     return Hero(
       tag: widget.hero ?? 'fotoPerfil',
       child: CircleAvatar(
+        maxRadius: 128,
+        minRadius: 12,
+        backgroundColor:
+            Theme.of(context).colorScheme.onPrimary.withOpacity(0.5),
+        foregroundImage: MyNetwork.getImageProvider(_integrante.fotoUrl),
         child: Text(
           MyStrings.getUserInitials(_integrante.nome),
           style: Theme.of(context).textTheme.headlineLarge,
         ),
-        backgroundColor:
-            Theme.of(context).colorScheme.onPrimary.withOpacity(0.5),
-        foregroundImage: MyNetwork.getImageProvider(_integrante.fotoUrl),
-        maxRadius: 128,
-        minRadius: 12,
       ),
     );
   }
@@ -274,8 +274,8 @@ class _TelaPerfilState extends State<TelaPerfil> {
         (index) => Tooltip(
           message: funcaoGetString(_integrante.funcoes![index]),
           child: CircleAvatar(
-            child: Icon(funcaoGetIcon(_integrante.funcoes![index])),
             backgroundColor: Colors.orange,
+            child: Icon(funcaoGetIcon(_integrante.funcoes![index])),
           ),
         ),
       ),
@@ -313,9 +313,9 @@ class _TelaPerfilState extends State<TelaPerfil> {
             return Tooltip(
               message: instrumentosDoIntegrante[index].nome,
               child: CircleAvatar(
+                backgroundColor: Colors.cyan,
                 child: Image.asset(instrumentosDoIntegrante[index].iconAsset,
                     height: 24),
-                backgroundColor: Colors.cyan,
               ),
             );
           }),
@@ -380,13 +380,13 @@ class _TelaPerfilState extends State<TelaPerfil> {
       itemBuilder: (context) {
         List<PopupMenuEntry> opcoes = [];
         opcoes.add(const PopupMenuItem(
-          child: Text('Editar dados'),
           value: 'editar',
+          child: Text('Editar dados'),
         ));
         if (_ehMeuPerfil) {
           opcoes.add(const PopupMenuItem(
-            child: Text('Sair'),
             value: 'sair',
+            child: Text('Sair'),
           ));
         }
         return opcoes;

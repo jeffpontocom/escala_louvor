@@ -220,18 +220,18 @@ class Mensagem {
       {required BuildContext context,
       required String titulo,
       required Widget conteudo}) {
-    ScrollController _scrollController = ScrollController();
+    ScrollController scrollController = ScrollController();
     bottomDialog(
       context: context,
       titulo: titulo,
       conteudo: SingleChildScrollView(
-        controller: _scrollController,
+        controller: scrollController,
         child: SizedBox(
           height: MediaQuery.of(context).size.height * 0.75,
           child: conteudo,
         ),
       ),
-      scrollController: _scrollController,
+      scrollController: scrollController,
     );
   }
 }

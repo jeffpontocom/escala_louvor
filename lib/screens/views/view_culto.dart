@@ -182,7 +182,7 @@ class _ViewCultoState extends State<ViewCulto> {
             // Dia da Semana
             Text(diaSemana, style: Theme.of(context).textTheme.labelMedium),
             // Data e Hora abreviados
-            Text(diaMes + ' | ' + hora,
+            Text('$diaMes | $hora',
                 style: Theme.of(context).textTheme.headline5),
           ],
         ),
@@ -224,6 +224,21 @@ class _ViewCultoState extends State<ViewCulto> {
                   alterar = false;
                 });
               },
+        style: OutlinedButton.styleFrom(
+          minimumSize: const Size(128, 56),
+          maximumSize: const Size.fromWidth(128),
+          padding: const EdgeInsets.all(12),
+          backgroundColor: escalado
+              ? Colors.green
+              : disponivel
+                  ? Colors.blue
+                  : restrito
+                      ? Colors.red
+                      : null,
+          primary: escalado || disponivel || restrito
+              ? Colors.white
+              : Colors.grey.withOpacity(0.5),
+        ),
         child: Wrap(
           direction: Axis.vertical,
           crossAxisAlignment: WrapCrossAlignment.center,
@@ -245,21 +260,6 @@ class _ViewCultoState extends State<ViewCulto> {
                         ? 'Estou restrito!'
                         : 'Estou disponível?'),
           ],
-        ),
-        style: OutlinedButton.styleFrom(
-          minimumSize: const Size(128, 56),
-          maximumSize: const Size.fromWidth(128),
-          padding: const EdgeInsets.all(12),
-          backgroundColor: escalado
-              ? Colors.green
-              : disponivel
-                  ? Colors.blue
-                  : restrito
-                      ? Colors.red
-                      : null,
-          primary: escalado || disponivel || restrito
-              ? Colors.white
-              : Colors.grey.withOpacity(0.5),
         ),
       );
     });
@@ -452,7 +452,7 @@ class _ViewCultoState extends State<ViewCulto> {
       for (var falta in faltantes.entries) {
         resultado += '${falta.value} ${falta.key}; ';
       }
-      resultado = resultado.substring(0, resultado.length - 2) + '.';
+      resultado = '${resultado.substring(0, resultado.length - 2)}.';
       return resultado;
     }
     return 'Equipe mínima completa!';
@@ -567,7 +567,7 @@ class _ViewCultoState extends State<ViewCulto> {
           var nomeSegundo = nomeIntegrante.split(' ').last;
           nomeIntegrante = nomePrimeiro == nomeSegundo
               ? nomePrimeiro
-              : nomePrimeiro + ' ' + nomeSegundo;
+              : '$nomePrimeiro $nomeSegundo';
           return InkWell(
             onTap: () => Modular.to.pushNamed(
                 '${AppRotas.PERFIL}?id=${integrante?.id}&hero=$hero',
@@ -592,14 +592,14 @@ class _ViewCultoState extends State<ViewCulto> {
                 Hero(
                   tag: hero,
                   child: CircleAvatar(
-                    child: Text(MyStrings.getUserInitials(
-                        integrante?.data()?.nome ?? '')),
+                    radius: 24,
+                    backgroundColor: Colors.grey.withOpacity(0.5),
                     foregroundImage: MyNetwork.getImageFromUrl(
                             integrante?.data()?.fotoUrl,
                             progressoSize: 16)
                         ?.image,
-                    backgroundColor: Colors.grey.withOpacity(0.5),
-                    radius: 24,
+                    child: Text(MyStrings.getUserInitials(
+                        integrante?.data()?.nome ?? '')),
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -638,7 +638,7 @@ class _ViewCultoState extends State<ViewCulto> {
           var nomeUltimo = nome.split(' ').last;
           nome = nomePrimeiro == nomeUltimo
               ? nomePrimeiro
-              : nomePrimeiro + ' ' + nomeUltimo;
+              : '$nomePrimeiro $nomeUltimo';
           // Recolhe dados do instrumento
           return FutureBuilder<DocumentSnapshot<Instrumento>?>(
               future: instrumentoId == null || instrumentoId.isEmpty
@@ -681,13 +681,13 @@ class _ViewCultoState extends State<ViewCulto> {
                           Hero(
                             tag: hero,
                             child: CircleAvatar(
-                              child: Text(MyStrings.getUserInitials(
-                                  integrante?.data()?.nome ?? '')),
+                              backgroundColor: Colors.grey.withOpacity(0.5),
                               foregroundImage: MyNetwork.getImageFromUrl(
                                       integrante?.data()?.fotoUrl,
                                       progressoSize: 16)
                                   ?.image,
-                              backgroundColor: Colors.grey.withOpacity(0.5),
+                              child: Text(MyStrings.getUserInitials(
+                                  integrante?.data()?.nome ?? '')),
                             ),
                           ),
                           const SizedBox(width: 8),
@@ -783,14 +783,14 @@ class _ViewCultoState extends State<ViewCulto> {
   }
 
   Widget get _listaDeCanticos {
-    List<Widget> _list = [];
+    List<Widget> lista = [];
     if (mCulto.canticos == null || mCulto.canticos!.isEmpty) {
       return const Padding(
         padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         child: Text('Nenhum cântico selecionado'),
       );
     }
-    _list = List.generate(mCulto.canticos!.length, (index) {
+    lista = List.generate(mCulto.canticos!.length, (index) {
       return FutureBuilder<DocumentSnapshot<Cantico>?>(
           key: Key('Future${mCulto.canticos![index]}'),
           future: MeuFirebase.obterSnapshotCantico(mCulto.canticos![index].id),
@@ -865,32 +865,32 @@ class _ViewCultoState extends State<ViewCulto> {
     return ReorderableListView(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      children: _list,
       buildDefaultDragHandles: _ehODirigente || mLogado.adm,
       onReorder: (int old, int current) async {
         dev.log('${old.toString()} | ${current.toString()}');
         // dragging from top to bottom
-        Widget startItem = _list[old];
+        Widget startItem = lista[old];
         var startCantico = mCulto.canticos![old];
         if (old < current) {
           for (int i = old; i < current - 1; i++) {
-            _list[i] = _list[i + 1];
+            lista[i] = lista[i + 1];
             mCulto.canticos![i] = mCulto.canticos![i + 1];
           }
-          _list[current - 1] = startItem;
+          lista[current - 1] = startItem;
           mCulto.canticos![current - 1] = startCantico;
         }
         // dragging from bottom to top
         else if (old > current) {
           for (int i = old; i > current; i--) {
-            _list[i] = _list[i - 1];
+            lista[i] = lista[i - 1];
             mCulto.canticos![i] = mCulto.canticos![i - 1];
           }
-          _list[current] = startItem;
+          lista[current] = startItem;
           mCulto.canticos![current] = startCantico;
         }
         widget.culto.update({'canticos': mCulto.canticos});
       },
+      children: lista,
     );
   }
 

@@ -255,13 +255,13 @@ class _HomePageState extends State<HomePage> {
                 icon: Hero(
                   tag: 'usuarioCorrente',
                   child: CircleAvatar(
-                    child:
-                        const Icon(Icons.account_circle, color: Colors.white),
                     backgroundColor: Colors.transparent,
                     foregroundImage: MyNetwork.getImageFromUrl(
                             widget.logado.data()?.fotoUrl,
                             progressoSize: 12)
                         ?.image,
+                    child:
+                        const Icon(Icons.account_circle, color: Colors.white),
                   ),
                 ),
                 onPressed: () => Modular.to.pushNamed(
@@ -272,29 +272,18 @@ class _HomePageState extends State<HomePage> {
           ),
           // CORPO
           body: UpgradeAlert(
-            //debugDisplayOnce: true,
-            debugLogging: true,
-            canDismissDialog: true,
-            shouldPopScope: () => true,
+            upgrader: Upgrader(
+              debugDisplayOnce: true,
+              debugLogging: true,
+              canDismissDialog: true,
+              shouldPopScope: () => true,
+            ),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 0),
               child: Flex(
                 direction: Axis.vertical,
                 children: const [
-                  /* StreamBuilder<DatabaseEvent>(
-              stream: FirebaseDatabase.instance.ref('.info/connected').onValue,
-              builder: (context, event) {
-                print('teste ${event.data?.snapshot.value}');
-                bool isOnline = (event.data?.snapshot.value ?? false) as bool;
-                return isOnline
-                    ? const SizedBox()
-                    : Container(
-                        color: Colors.orange,
-                        width: double.infinity,
-                        padding: const EdgeInsets.all(8),
-                        child: const Text('Offline. Verifique sua conexão!',
-                            textAlign: TextAlign.center));
-              }), */
+                  // TODO: Container para aviso sem rede
                   // Conteúdo
                   Flexible(child: RouterOutlet()),
                 ],

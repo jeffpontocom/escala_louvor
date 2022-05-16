@@ -1,6 +1,7 @@
 {
     "cSpell.language": "en,pt,pt-BR",
     "cSpell.words": [
+        "advertencia",
         "Animacao",
         "appspot",
         "botao",
@@ -19,6 +20,7 @@
         "endereco",
         "firebaseapp",
         "firestore",
+        "formulario",
         "funcao",
         "Funcao",
         "funcoes",
@@ -51,6 +53,7 @@
         "usuario",
         "versao",
         "violao",
-        "wakelock"
+        "wakelock",
+        "youtube"
     ]
 }

@@ -6,7 +6,7 @@ class AnimacaoPulando extends StatefulWidget {
   const AnimacaoPulando({Key? key, required this.objectToAnimate})
       : super(key: key);
   @override
-  _AnimacaoPulandoState createState() => _AnimacaoPulandoState();
+  State createState() => _AnimacaoPulandoState();
 }
 
 class _AnimacaoPulandoState extends State<AnimacaoPulando> {

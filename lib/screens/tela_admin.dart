@@ -110,10 +110,10 @@ class AdminPage extends StatelessWidget {
                                   snapshot.data!.docs[index].reference;
                               return ListTile(
                                 leading: CircleAvatar(
-                                  child: const Icon(Icons.church),
                                   foregroundImage:
                                       MyNetwork.getImageFromUrl(igreja.fotoUrl)
                                           ?.image,
+                                  child: const Icon(Icons.church),
                                 ),
                                 title: Text(igreja.sigla),
                                 subtitle: Text(igreja.nome),
@@ -163,11 +163,11 @@ class AdminPage extends StatelessWidget {
                   alignment: AlignmentDirectional.bottomEnd,
                   children: [
                     CircleAvatar(
-                      child: const Icon(Icons.church),
+                      radius: 56,
+                      backgroundColor: Colors.grey.withOpacity(0.5),
                       foregroundImage:
                           MyNetwork.getImageFromUrl(igreja?.fotoUrl)?.image,
-                      backgroundColor: Colors.grey.withOpacity(0.5),
-                      radius: 56,
+                      child: const Icon(Icons.church),
                     ),
                     CircleAvatar(
                       radius: 16,
@@ -226,8 +226,7 @@ class AdminPage extends StatelessWidget {
             future: MeuFirebase.obterListaIntegrantes(ativo: true),
             builder: ((context, snapshot) {
               // Chave para redefinir formulários
-              final GlobalKey<FormFieldState> _key =
-                  GlobalKey<FormFieldState>();
+              final GlobalKey<FormFieldState> key = GlobalKey<FormFieldState>();
               // Lista dos integrantes ativos
               var lista = List.generate(
                 snapshot.data?.size ?? 0,
@@ -244,7 +243,7 @@ class AdminPage extends StatelessWidget {
                     element.id == (igreja?.responsavel?.id ?? 'erro'));
                 initialData = lista[index ?? 0].value;
               } catch (e) {
-                dev.log('Exception ' + e.toString(), name: 'CarregarFoto');
+                dev.log('Exception ${e.toString()}', name: 'CarregarFoto');
               }
               return StatefulBuilder(builder: (_, innerState) {
                 return Row(
@@ -253,7 +252,7 @@ class AdminPage extends StatelessWidget {
                     Expanded(
                       child: DropdownButtonFormField<
                           QueryDocumentSnapshot<Integrante>>(
-                        key: _key,
+                        key: key,
                         value: initialData,
                         items: lista,
                         onChanged: (value) {
@@ -269,7 +268,7 @@ class AdminPage extends StatelessWidget {
                         (() {
                           initialData = null;
                           igreja!.responsavel = null;
-                          _key.currentState?.reset();
+                          key.currentState?.reset();
                         }),
                       ),
                     )
@@ -396,7 +395,7 @@ class AdminPage extends StatelessWidget {
                   );
                 }
                 List<DocumentReference> references = [];
-                List<Widget> _list =
+                List<Widget> lista =
                     List.generate(snapshot.data!.size, (index) {
                   Instrumento instrumento = snapshot.data!.docs[index].data();
                   DocumentReference reference =
@@ -422,29 +421,29 @@ class AdminPage extends StatelessWidget {
                 return Expanded(
                   child: ReorderableListView(
                     shrinkWrap: true,
-                    children: _list,
+                    children: lista,
                     onReorder: (int old, int current) async {
                       dev.log('${old.toString()} | ${current.toString()}');
                       // dragging from top to bottom
                       if (old < current) {
-                        Widget startItem = _list[old];
+                        Widget startItem = lista[old];
                         // 0 para 4 (i = 0; i < 4-1 ; i++)
                         for (int i = old; i < current - 1; i++) {
-                          _list[i] = _list[i + 1];
+                          lista[i] = lista[i + 1];
                           references[i + 1].update({'ordem': i});
                         }
-                        _list[current - 1] = startItem;
+                        lista[current - 1] = startItem;
                         references[old].update({'ordem': current - 1});
                       }
                       // dragging from bottom to top
                       else if (old > current) {
-                        Widget startItem = _list[old];
+                        Widget startItem = lista[old];
                         // 4 para 0 (i = 4; i > 0 ; i--)
                         for (int i = old; i > current; i--) {
-                          _list[i] = _list[i - 1];
+                          lista[i] = lista[i - 1];
                           references[i - 1].update({'ordem': i});
                         }
-                        _list[current] = startItem;
+                        lista[current] = startItem;
                         references[old].update({'ordem': current});
                       }
                       //innerState(() {});
@@ -482,6 +481,7 @@ class AdminPage extends StatelessWidget {
               // Icone
               StatefulBuilder(builder: (innerContext, StateSetter innerState) {
                 return CircleAvatar(
+                  radius: 48,
                   child: PopupMenuButton<String>(
                     icon: Image.asset(
                       instrumento?.iconAsset ?? 'assets/icons/music_voz.png',
@@ -523,7 +523,6 @@ class AdminPage extends StatelessWidget {
                       innerState((() => instrumento!.iconAsset = value));
                     },
                   ),
-                  radius: 48,
                 );
               }),
               const SizedBox(width: 24),
@@ -694,11 +693,11 @@ class AdminPage extends StatelessWidget {
                                   snapshot.data!.docs[index].reference;
                               return ListTile(
                                 leading: CircleAvatar(
-                                  child: Text(MyStrings.getUserInitials(
-                                      integrante.nome)),
                                   foregroundImage: MyNetwork.getImageFromUrl(
                                           integrante.fotoUrl)
                                       ?.image,
+                                  child: Text(MyStrings.getUserInitials(
+                                      integrante.nome)),
                                 ),
                                 title: Text(integrante.nome),
                                 subtitle: Text(integrante.email),
@@ -755,7 +754,6 @@ class AdminPage extends StatelessWidget {
         titleSpacing: 0,
       ),
       body: Scrollbar(
-        isAlwaysShown: true,
         child: ListView(
           padding: const EdgeInsets.symmetric(vertical: 24),
           children: [

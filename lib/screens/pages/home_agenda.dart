@@ -27,20 +27,20 @@ class TelaAgenda extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final _agora = DateTime.now();
-    var _format = CalendarFormat.month;
-    var _diaSelecionado = _agora;
-    var _diaEmFoco = _agora;
+    final agora = DateTime.now();
+    var formato = CalendarFormat.month;
+    var sDiaSelecionado = agora;
+    var sDiaEmFoco = agora;
 
     /// Notificador para calendário
-    final ValueNotifier<Map<DateTime, String>> _meusEventos = ValueNotifier({});
+    final ValueNotifier<Map<DateTime, String>> meusEventos = ValueNotifier({});
 
     /// Notificador para lista de eventos
-    final ValueNotifier<DateTime> _mesCorrente =
-        ValueNotifier(DateTime(_agora.year, _agora.month));
+    final ValueNotifier<DateTime> mesCorrente =
+        ValueNotifier(DateTime(agora.year, agora.month));
 
     void _setMesCorrente(DateTime dia) {
-      _mesCorrente.value = DateTime(dia.year, dia.month);
+      mesCorrente.value = DateTime(dia.year, dia.month);
     }
 
     bool _ehMesmoDia(DateTime dia1, DateTime dia2) {
@@ -53,33 +53,33 @@ class TelaAgenda extends StatelessWidget {
       children: [
         // Calendário
         ValueListenableBuilder<Map<DateTime, String>>(
-            valueListenable: _meusEventos,
+            valueListenable: meusEventos,
             builder: (context, eventos, _) {
               return StatefulBuilder(builder: (context, setState) {
                 return TableCalendar(
-                  focusedDay: _diaEmFoco,
-                  firstDay: DateTime(_agora.year, _agora.month),
-                  lastDay: DateTime(_agora.year, _agora.month + 6, 0),
+                  focusedDay: sDiaEmFoco,
+                  firstDay: DateTime(agora.year, agora.month),
+                  lastDay: DateTime(agora.year, agora.month + 6, 0),
                   onFormatChanged: (format) {
                     setState((() {
-                      _format = format;
+                      formato = format;
                     }));
                   },
                   onPageChanged: (diaEmFoco) {
                     setState(() {
-                      _diaEmFoco = diaEmFoco;
+                      sDiaEmFoco = diaEmFoco;
                       _setMesCorrente(diaEmFoco);
                     });
                   },
                   onDaySelected: (diaSelecionado, diaEmFoco) {
                     setState(() {
-                      _diaEmFoco = diaEmFoco;
-                      _diaSelecionado = diaSelecionado;
+                      sDiaEmFoco = diaEmFoco;
+                      sDiaSelecionado = diaSelecionado;
                       _setMesCorrente(diaSelecionado);
                     });
                   },
                   selectedDayPredicate: (dia) {
-                    return _ehMesmoDia(dia, _diaSelecionado);
+                    return _ehMesmoDia(dia, sDiaSelecionado);
                   },
                   holidayPredicate: (dia) {
                     var datas = eventos.entries
@@ -104,7 +104,7 @@ class TelaAgenda extends StatelessWidget {
                   },
                   locale: 'pt_BR',
                   startingDayOfWeek: StartingDayOfWeek.monday,
-                  calendarFormat: _format,
+                  calendarFormat: formato,
                   availableCalendarFormats: const {
                     CalendarFormat.month: 'Mês',
                     CalendarFormat.twoWeeks: 'Quinzena',
@@ -199,8 +199,8 @@ class TelaAgenda extends StatelessWidget {
                                   'Isso não deveria ter acontecido. Sem igreja selecionada.');
                           return;
                         }
-                        var dataInicial = DateTime(_diaSelecionado.year,
-                            _diaSelecionado.month, _diaSelecionado.day, 9, 30);
+                        var dataInicial = DateTime(sDiaSelecionado.year,
+                            sDiaSelecionado.month, sDiaSelecionado.day, 9, 30);
                         var culto = Culto(
                           dataCulto: Timestamp.fromDate(dataInicial),
                           igreja: Global.igrejaSelecionada.value!.reference,
@@ -223,25 +223,25 @@ class TelaAgenda extends StatelessWidget {
                   stream:
                       MeuFirebase.obterListaIntegrantes(ativo: true).asStream(),
                   builder: (context, snapshot) {
-                    _meusEventos.value
+                    meusEventos.value
                         .removeWhere((key, value) => value == 'aniversario');
                     if (snapshot.hasData) {
                       var integrantes = snapshot.data!.docs;
                       return ValueListenableBuilder<DateTime>(
-                        valueListenable: _mesCorrente,
+                        valueListenable: mesCorrente,
                         builder: (context, dataMin, _) {
                           List<QueryDocumentSnapshot<Integrante>>
                               aniversariantes = [];
                           aniversariantes.addAll(integrantes.where((element) =>
                               element.data().dataNascimento?.toDate().month ==
-                              _mesCorrente.value.month));
+                              mesCorrente.value.month));
                           // Notificar após carregamento da interface
-                          WidgetsBinding.instance?.addPostFrameCallback(
-                              (_) => _meusEventos.notifyListeners());
+                          WidgetsBinding.instance.addPostFrameCallback(
+                              (_) => meusEventos.notifyListeners());
                           if (aniversariantes.isEmpty) {
                             return Center(
                               child: Text(
-                                  'Nenhum aniversariante em ${DateFormat.MMMM('pt_BR').format(_mesCorrente.value)}'),
+                                  'Nenhum aniversariante em ${DateFormat.MMMM('pt_BR').format(mesCorrente.value)}'),
                             );
                           }
                           return ListView(
@@ -257,7 +257,7 @@ class TelaAgenda extends StatelessWidget {
                                   dn = DateTime(
                                       DateTime.now().year, dn.month, dn.day);
                                   data = DateFormat.Md('pt_BR').format(dn);
-                                  _meusEventos.value
+                                  meusEventos.value
                                       .putIfAbsent(dn, () => 'aniversario');
                                 }
                                 return Padding(
@@ -268,18 +268,18 @@ class TelaAgenda extends StatelessWidget {
                                     avatar: Hero(
                                       tag: 'aniversariante',
                                       child: CircleAvatar(
-                                        child: Text(
-                                            MyStrings.getUserInitials(
-                                                aniversariantes[index]
-                                                    .data()
-                                                    .nome),
-                                            textScaleFactor: 0.6),
                                         foregroundImage:
                                             MyNetwork.getImageFromUrl(
                                                     aniversariantes[index]
                                                         .data()
                                                         .fotoUrl)
                                                 ?.image,
+                                        child: Text(
+                                            MyStrings.getUserInitials(
+                                                aniversariantes[index]
+                                                    .data()
+                                                    .nome),
+                                            textScaleFactor: 0.6),
                                       ),
                                     ),
                                     onPressed: () => Modular.to.pushNamed(
@@ -300,14 +300,14 @@ class TelaAgenda extends StatelessWidget {
             Expanded(
               child: StreamBuilder<QuerySnapshot<Culto>>(
                   stream: MeuFirebase.escutarCultos(
-                      dataMinima: Timestamp.fromDate(_agora),
+                      dataMinima: Timestamp.fromDate(agora),
                       igreja: Global.igrejaSelecionada.value?.reference),
                   builder: (context, snapshot) {
-                    _meusEventos.value
+                    meusEventos.value
                         .removeWhere((key, value) => value == 'culto');
                     if (snapshot.hasData) {
                       return ValueListenableBuilder<DateTime>(
-                          valueListenable: _mesCorrente,
+                          valueListenable: mesCorrente,
                           builder: (context, data, _) {
                             var cultos = snapshot.data!.docs
                                 .where((element) =>
@@ -317,8 +317,8 @@ class TelaAgenda extends StatelessWidget {
                                         data.month)
                                 .toList();
                             // Notificar após carregamento da interface
-                            WidgetsBinding.instance?.addPostFrameCallback(
-                                (_) => _meusEventos.notifyListeners());
+                            WidgetsBinding.instance.addPostFrameCallback(
+                                (_) => meusEventos.notifyListeners());
                             if (cultos.isEmpty) {
                               return const Center(
                                 child: Text(
@@ -336,7 +336,7 @@ class TelaAgenda extends StatelessWidget {
                                   DateFormat.yMEd('pt_BR').format(dataCulto);
                               var horaFormatada =
                                   DateFormat.Hm('pt_BR').format(dataCulto);
-                              _meusEventos.value
+                              meusEventos.value
                                   .putIfAbsent(dataCulto, () => 'culto');
                               // Analise do usuario logado em cada culto
                               bool escalado = culto.usuarioEscalado(

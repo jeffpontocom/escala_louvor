@@ -40,11 +40,11 @@ class _LoginPageState extends State<LoginPage> {
     return Scaffold(
       body: SafeArea(
         child: OrientationBuilder(builder: (context, orientation) {
-          var _isPortrait = orientation == Orientation.portrait;
-          var _padding = Medidas.bodyPadding(context);
+          var isPortrait = orientation == Orientation.portrait;
+          var padding = Medidas.bodyPadding(context);
           return Center(
             child: SingleChildScrollView(
-              padding: EdgeInsets.symmetric(horizontal: _padding, vertical: 16),
+              padding: EdgeInsets.symmetric(horizontal: padding, vertical: 16),
               child: LayoutBuilder(
                 builder: (context, constraints) {
                   var space = 32.0;
@@ -58,7 +58,7 @@ class _LoginPageState extends State<LoginPage> {
                       ConstrainedBox(
                         child: cabecalho,
                         constraints: BoxConstraints(
-                            maxWidth: _isPortrait
+                            maxWidth: isPortrait
                                 ? constraints.maxWidth
                                 : constraints.maxWidth * 2 / 5),
                       ),
@@ -66,7 +66,7 @@ class _LoginPageState extends State<LoginPage> {
                       ConstrainedBox(
                         child: formularioLogin,
                         constraints: BoxConstraints(
-                            maxWidth: _isPortrait
+                            maxWidth: isPortrait
                                 ? constraints.maxWidth
                                 : (constraints.maxWidth * 3 / 5) - space),
                       ),
@@ -163,9 +163,9 @@ class _LoginPageState extends State<LoginPage> {
           const SizedBox(height: 16),
           // Botão esqueci minha senha
           TextButton(
+            onPressed: _esqueciMinhaSenha,
             child: const Text('Esqueci minha senha',
                 style: TextStyle(color: Colors.red)),
-            onPressed: _esqueciMinhaSenha,
           ),
         ],
       ),

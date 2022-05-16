@@ -20,17 +20,17 @@ class ViewIgrejas extends StatelessWidget {
         builder: (context, snapshot) {
           if (!snapshot.hasData) {
             return const Center(
-              child: CircularProgressIndicator(),
               heightFactor: 4,
+              child: CircularProgressIndicator(),
             );
           }
           var igrejas = snapshot.data?.docs;
           if (igrejas == null || igrejas.isEmpty) {
             // acessar ambiente administrativo para cadastrar igrejas
             return const Center(
+              heightFactor: 4,
               child: Text(
                   'É necessário cadastrar ao menos uma igreja ou local de culto!'),
-              heightFactor: 4,
             );
           }
           List<QueryDocumentSnapshot<Igreja>> inscritas = [];

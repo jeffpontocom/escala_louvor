@@ -345,31 +345,31 @@ class Dialogos {
     ValueNotifier<double> fontSize = ValueNotifier(20);
     var minFontSize = 15.0;
     var maxFontSize = 50.0;
-    late double _textSizeBefore;
-    late double _textSizeAfter;
+    late double textSizeBefore;
+    late double textSizeAfter;
     return Mensagem.bottomDialog(
       context: context,
       titulo: cantico.nome,
       conteudo: GestureDetector(
         // Captura de gestos para alterar tamanho da fonte
         onScaleStart: (details) {
-          _textSizeAfter = fontSize.value;
-          _textSizeBefore = fontSize.value;
+          textSizeAfter = fontSize.value;
+          textSizeBefore = fontSize.value;
         },
         onScaleUpdate: (details) {
-          _textSizeAfter = _textSizeBefore * details.verticalScale;
-          if (_textSizeAfter > minFontSize && _textSizeAfter < maxFontSize) {
-            fontSize.value = _textSizeAfter;
+          textSizeAfter = textSizeBefore * details.verticalScale;
+          if (textSizeAfter > minFontSize && textSizeAfter < maxFontSize) {
+            fontSize.value = textSizeAfter;
           }
         },
         onScaleEnd: (details) {
-          if (_textSizeAfter < minFontSize) {
-            _textSizeAfter = minFontSize;
+          if (textSizeAfter < minFontSize) {
+            textSizeAfter = minFontSize;
           }
-          if (_textSizeAfter > maxFontSize) {
-            _textSizeAfter = maxFontSize;
+          if (textSizeAfter > maxFontSize) {
+            textSizeAfter = maxFontSize;
           }
-          fontSize.value = _textSizeAfter;
+          fontSize.value = textSizeAfter;
         },
         // Pagina principal
         child: ValueListenableBuilder<double>(

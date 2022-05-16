@@ -36,8 +36,8 @@ class _TelaCanticosState extends State<TelaCanticos> {
 
   @override
   Widget build(BuildContext context) {
-    final ValueNotifier<String> _filtro = ValueNotifier('');
-    TextEditingController _searchInputController = TextEditingController();
+    final ValueNotifier<String> sFiltro = ValueNotifier('');
+    TextEditingController searchInputController = TextEditingController();
     return Column(
       children: [
         // Filtros e Adição
@@ -92,19 +92,19 @@ class _TelaCanticosState extends State<TelaCanticos> {
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12),
           child: TextField(
-            controller: _searchInputController,
+            controller: searchInputController,
             decoration: InputDecoration(
               prefixIcon: const Icon(Icons.search),
               suffixIcon: IconButton(
                   icon: const Icon(Icons.clear),
                   onPressed: () {
-                    _searchInputController.clear();
-                    _filtro.value = '';
+                    searchInputController.clear();
+                    sFiltro.value = '';
                   }),
               hintText: 'Buscar...',
             ),
             onChanged: (value) {
-              _filtro.value = value;
+              sFiltro.value = value;
             },
           ),
         ),
@@ -145,7 +145,7 @@ class _TelaCanticosState extends State<TelaCanticos> {
                   );
                 }
                 return ValueListenableBuilder<String>(
-                    valueListenable: _filtro,
+                    valueListenable: sFiltro,
                     builder: (_, filtro, child) {
                       listaFiltrada.clear();
                       if (filtro.isEmpty || filtro.length < 4) {
@@ -199,12 +199,12 @@ class _TelaCanticosState extends State<TelaCanticos> {
                                 const EdgeInsets.symmetric(horizontal: 4),
                             leading: selecionado
                                 ? const SizedBox(
+                                    width: kMinInteractiveDimension,
+                                    height: kMinInteractiveDimension,
                                     child: Icon(
                                       Icons.check_circle,
                                       color: Colors.green,
                                     ),
-                                    width: kMinInteractiveDimension,
-                                    height: kMinInteractiveDimension,
                                   )
                                 : IconButton(
                                     onPressed: () {
@@ -278,8 +278,8 @@ class _TelaCanticosState extends State<TelaCanticos> {
                                         itemBuilder: (_) {
                                           return const [
                                             PopupMenuItem(
-                                              child: Text('Editar'),
                                               value: 'edit',
+                                              child: Text('Editar'),
                                             ),
                                           ];
                                         },
