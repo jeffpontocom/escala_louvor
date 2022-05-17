@@ -73,6 +73,7 @@ class MyApp extends StatelessWidget {
               ),
             );
           }
+          // TELA DE FALHA AO CARREGAR
           if (snapshot.data == false) {
             return MaterialApp(
               home: Scaffold(

@@ -43,6 +43,15 @@ IconData funcaoGetIcon(Funcao funcao) {
   }
 }
 
+List<int>? funcaoParseList(List<Funcao>? funcoes) {
+  if (funcoes == null) return null;
+  List<int> parsable = [];
+  for (var funcao in funcoes) {
+    parsable.add(funcao.index);
+  }
+  return parsable;
+}
+
 class Integrante {
   static const String collection = 'integrantes';
 
@@ -97,7 +106,7 @@ class Integrante {
       'fotoUrl': fotoUrl,
       'telefone': telefone,
       'dataNascimento': dataNascimento,
-      'funcoes': _parseListaFuncao(funcoes),
+      'funcoes': funcaoParseList(funcoes),
       'igrejas': igrejas,
       'grupos': grupos,
       'instrumentos': instrumentos,
@@ -127,15 +136,6 @@ class Integrante {
       default:
         return Funcao.membro;
     }
-  }
-
-  static List<int>? _parseListaFuncao(List<Funcao>? funcoes) {
-    if (funcoes == null) return null;
-    List<int> parsable = [];
-    for (var funcao in funcoes) {
-      parsable.add(funcao.index);
-    }
-    return parsable;
   }
 
   static List<DocumentReference<Igreja>>? _getIgrejas(var json) {

@@ -10,6 +10,7 @@ class TileIgrejaSmall extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
+      margin: EdgeInsets.zero,
       clipBehavior: Clip.antiAlias,
       shape: RoundedRectangleBorder(
         side: BorderSide(color: Colors.grey.withOpacity(0.5)),

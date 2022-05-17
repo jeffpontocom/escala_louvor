@@ -207,14 +207,11 @@ class _HomePageState extends State<HomePage> {
   ];
 
   final List<BottomNavigationBarItem> _navigationItens = const [
+    BottomNavigationBarItem(icon: Icon(Icons.timer_sharp), label: 'Escalas'),
+    BottomNavigationBarItem(icon: Icon(Icons.today), label: 'Agenda'),
     BottomNavigationBarItem(
-        icon: FaIcon(FontAwesomeIcons.businessTime), label: 'Escalas'),
-    BottomNavigationBarItem(
-        icon: FaIcon(FontAwesomeIcons.calendarWeek), label: 'Agenda'),
-    BottomNavigationBarItem(
-        icon: FaIcon(FontAwesomeIcons.solidBell), label: 'Avisos'),
-    BottomNavigationBarItem(
-        icon: FaIcon(FontAwesomeIcons.music), label: 'Cânticos'),
+        icon: Icon(Icons.notifications_on), label: 'Avisos'),
+    BottomNavigationBarItem(icon: Icon(Icons.music_note), label: 'Cânticos'),
     BottomNavigationBarItem(icon: SizedBox(), label: '')
   ];
 
@@ -273,7 +270,7 @@ class _HomePageState extends State<HomePage> {
           // CORPO
           body: UpgradeAlert(
             upgrader: Upgrader(
-              debugDisplayOnce: true,
+              //debugDisplayOnce: true,
               debugLogging: true,
               canDismissDialog: true,
               shouldPopScope: () => true,

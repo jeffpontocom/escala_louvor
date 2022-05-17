@@ -1,7 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:escala_louvor/functions/metodos_integrante.dart';
-import 'package:escala_louvor/models/igreja.dart';
-import 'package:escala_louvor/screens/views/tile_igreja.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -9,14 +6,17 @@ import 'package:flutter_modular/flutter_modular.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 
-import '../models/instrumento.dart';
-import '/functions/metodos_firebase.dart';
+import 'home.dart';
 import '/global.dart';
+import '/preferencias.dart';
+import '/functions/metodos_firebase.dart';
+import '/functions/metodos_integrante.dart';
+import '/models/igreja.dart';
+import '/models/instrumento.dart';
 import '/models/integrante.dart';
+import '/screens/views/tile_igreja.dart';
 import '/utils/mensagens.dart';
 import '/utils/utils.dart';
-import '/preferencias.dart';
-import 'home.dart';
 
 class TelaPerfil extends StatefulWidget {
   final String id;
@@ -60,13 +60,16 @@ class _TelaPerfilState extends State<TelaPerfil> {
           initialData: widget.snapIntegrante,
           stream: MeuFirebase.obterStreamIntegrante(widget.id),
           builder: (context, snapshot) {
+            // Tela em carregamento
             if (!snapshot.hasData) {
               return const Center(child: CircularProgressIndicator());
             }
+            // Tela de falha
             if (!snapshot.data!.exists || snapshot.data!.data() == null) {
               return const Center(
                   child: Text('Falha ao obter dados do integrante.'));
             }
+            // Tela carregada
             _integrante = snapshot.data!.data()!;
             _metodos = MetodosIntegrante(context, snapshot.data!);
             return _corpo;
@@ -172,7 +175,7 @@ class _TelaPerfilState extends State<TelaPerfil> {
         Text(
           _integrante.email,
           textAlign: TextAlign.center,
-          style: const TextStyle(color: Colors.grey),
+          style: TextStyle(color: Colors.white.withOpacity(0.5)),
         ),
         const SizedBox(height: 16),
         // Aniversário
@@ -209,64 +212,20 @@ class _TelaPerfilState extends State<TelaPerfil> {
     return ListView(
       shrinkWrap: true,
       children: [
-        // Funções
-        const Padding(
-          padding: EdgeInsets.only(left: 16, right: 16, top: 24),
-          child: Text('FUNÇÕES'),
-        ),
-        ListTile(
-          title: _funcoes,
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          trailing: _ehAdm
-              ? IconButton(onPressed: () {}, icon: const Icon(Icons.edit_note))
-              : null,
-        ),
-        const Divider(height: 1),
-        // Instrumentos
-        const Padding(
-          padding: EdgeInsets.only(left: 16, right: 16, top: 24),
-          child: Text('INSTRUMENTOS E HABILIDADES'),
-        ),
-        ListTile(
-          title: _instrumentos,
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          trailing: _ehMeuPerfil || _ehAdm
-              ? IconButton(onPressed: () {}, icon: const Icon(Icons.edit_note))
-              : null,
-        ),
-        const Divider(height: 1),
-        // Igrejas
-        const Padding(
-          padding: EdgeInsets.only(left: 16, right: 16, top: 24),
-          child: Text('IGREJAS (em que pode ser escalado)'),
-        ),
-        ListTile(
-          title: _igrejas,
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          trailing: _ehMeuPerfil || _ehAdm
-              ? IconButton(onPressed: () {}, icon: const Icon(Icons.edit_note))
-              : null,
-        ),
-        const Divider(height: 1),
-        // Observações
-        const Padding(
-          padding: EdgeInsets.only(left: 16, right: 16, top: 24),
-          child: Text('Observações'),
-        ),
-        Padding(
-          padding: const EdgeInsets.only(left: 16, right: 16, bottom: 24),
-          child: Text(_integrante.obs ?? ''),
-        ),
+        _tileFuncoes,
+        const Divider(height: 12),
+        _tileInstrumentos,
+        const Divider(height: 12),
+        _tileIgrejas,
+        const Divider(height: 12),
+        _tileObservacoes,
       ],
     );
   }
 
-  /// Funções
-  get _funcoes {
-    return Wrap(
+  /// Tile Funções
+  get _tileFuncoes {
+    var conteudo = Wrap(
       spacing: 4,
       runSpacing: 4,
       children: List.generate(
@@ -280,85 +239,175 @@ class _TelaPerfilState extends State<TelaPerfil> {
         ),
       ),
     );
+
+    return ListTile(
+      dense: true,
+      title: Row(
+        children: [
+          const Text('FUNÇÕES'),
+          const SizedBox(width: 8, height: kMinInteractiveDimension),
+          _ehAdm
+              ? ActionChip(
+                  avatar: const Icon(Icons.edit_note, size: 20),
+                  label: const Text('editar', textScaleFactor: 0.9),
+                  labelPadding: EdgeInsets.zero,
+                  visualDensity: VisualDensity.compact,
+                  onPressed: () => _metodos.editarFuncoes())
+              : const SizedBox(),
+        ],
+      ),
+      subtitle: conteudo,
+    );
   }
 
-  /// Instrumentos
-  get _instrumentos {
+  /// Tile Instrumentos
+  get _tileInstrumentos {
     return FutureBuilder<QuerySnapshot<Instrumento>>(
       future: MeuFirebase.obterListaInstrumentos(ativo: true),
       builder: (context, snapshot) {
-        // Carregando
-        if (!snapshot.hasData) {
-          return const Center(child: CircularProgressIndicator());
-        }
         var instrumentos = snapshot.data?.docs;
-        if (instrumentos == null || instrumentos.isEmpty) {
-          return const Text('Nenhum instrumento cadastrado!');
-        }
-        List<Instrumento> instrumentosDoIntegrante = [];
-        for (var instrumento in instrumentos) {
-          if (_integrante.instrumentos!
-              .map((e) => e.toString())
-              .contains(instrumento.reference.toString())) {
-            instrumentosDoIntegrante.add(instrumento.data());
+        Widget conteudo;
+        if (!snapshot.hasData) {
+          conteudo = const Center(child: CircularProgressIndicator());
+        } else {
+          if (instrumentos == null || instrumentos.isEmpty) {
+            conteudo = const Text('Nenhum instrumento cadastrado!');
+          } else {
+            List<Instrumento> instrumentosDoIntegrante = [];
+            for (var instrumento in instrumentos) {
+              if (_integrante.instrumentos!
+                  .map((e) => e.toString())
+                  .contains(instrumento.reference.toString())) {
+                instrumentosDoIntegrante.add(instrumento.data());
+              }
+            }
+            if (instrumentosDoIntegrante.isEmpty) {
+              conteudo = const Text('Nenhum instrumento selecionado!');
+            } else {
+              conteudo = Wrap(
+                spacing: 4,
+                runSpacing: 4,
+                children:
+                    List.generate(instrumentosDoIntegrante.length, (index) {
+                  return Tooltip(
+                    message: instrumentosDoIntegrante[index].nome,
+                    child: CircleAvatar(
+                      backgroundColor: Colors.cyan,
+                      child: Image.asset(
+                          instrumentosDoIntegrante[index].iconAsset,
+                          height: 24),
+                    ),
+                  );
+                }),
+              );
+            }
           }
         }
-        if (instrumentosDoIntegrante.isEmpty) {
-          return const Text('Nenhum instrumento selecionado!');
-        }
-        return Wrap(
-          spacing: 4,
-          runSpacing: 4,
-          children: List.generate(instrumentosDoIntegrante.length, (index) {
-            return Tooltip(
-              message: instrumentosDoIntegrante[index].nome,
-              child: CircleAvatar(
-                backgroundColor: Colors.cyan,
-                child: Image.asset(instrumentosDoIntegrante[index].iconAsset,
-                    height: 24),
-              ),
-            );
-          }),
+        // Tile
+        return ListTile(
+          dense: true,
+          title: Row(
+            children: [
+              const Text('INSTRUMENTO e HABILIDADES'),
+              const SizedBox(width: 8, height: kMinInteractiveDimension),
+              instrumentos != null &&
+                      instrumentos.isNotEmpty &&
+                      (_ehMeuPerfil || _ehAdm)
+                  ? ActionChip(
+                      avatar: const Icon(Icons.edit_note, size: 20),
+                      label: const Text('editar', textScaleFactor: 0.9),
+                      labelPadding: EdgeInsets.zero,
+                      visualDensity: VisualDensity.compact,
+                      onPressed: () =>
+                          _metodos.editarInstrumentos(instrumentos))
+                  : const SizedBox(),
+            ],
+          ),
+          subtitle: conteudo,
         );
       },
     );
   }
 
-  /// Igrejas
-  get _igrejas {
+  /// Tile Igrejas
+  get _tileIgrejas {
     return FutureBuilder<QuerySnapshot<Igreja>>(
       future: MeuFirebase.obterListaIgrejas(ativo: true),
       builder: (context, snapshot) {
-        // Carregando
-        if (!snapshot.hasData) {
-          return const Center(child: CircularProgressIndicator());
-        }
         var igrejas = snapshot.data?.docs;
-        if (igrejas == null || igrejas.isEmpty) {
-          return const Text('Nenhuma igreja cadastrada!');
-        }
-        List<Igreja> igrejasDoIntegrante = [];
-        for (var igreja in igrejas) {
-          if (_integrante.igrejas!
-              .map((e) => e.toString())
-              .contains(igreja.reference.toString())) {
-            igrejasDoIntegrante.add(igreja.data());
+        Widget conteudo;
+        if (!snapshot.hasData) {
+          conteudo = const Center(child: CircularProgressIndicator());
+        } else {
+          if (igrejas == null || igrejas.isEmpty) {
+            conteudo = const Text('Nenhuma igreja cadastrada!');
+          } else {
+            List<Igreja> igrejasDoIntegrante = [];
+            for (var igreja in igrejas) {
+              if (_integrante.igrejas!
+                  .map((e) => e.toString())
+                  .contains(igreja.reference.toString())) {
+                igrejasDoIntegrante.add(igreja.data());
+              }
+            }
+            if (igrejasDoIntegrante.isEmpty) {
+              conteudo = const Text('Nenhuma igreja selecionada!');
+            } else {
+              conteudo = Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: List.generate(igrejasDoIntegrante.length, (index) {
+                  return Tooltip(
+                    message: igrejasDoIntegrante[index].nome,
+                    child: TileIgrejaSmall(igreja: igrejasDoIntegrante[index]),
+                  );
+                }),
+              );
+            }
           }
         }
-        if (igrejasDoIntegrante.isEmpty) {
-          return const Text('Nenhuma igreja selecionada!');
-        }
-        return Wrap(
-          spacing: 4,
-          runSpacing: 4,
-          children: List.generate(igrejasDoIntegrante.length, (index) {
-            return Tooltip(
-              message: igrejasDoIntegrante[index].nome,
-              child: TileIgrejaSmall(igreja: igrejasDoIntegrante[index]),
-            );
-          }),
+        // Tile
+        return ListTile(
+          dense: true,
+          title: Row(
+            children: [
+              const Text('IGREJAS'),
+              const SizedBox(width: 8, height: kMinInteractiveDimension),
+              igrejas != null && igrejas.isNotEmpty && (_ehMeuPerfil || _ehAdm)
+                  ? ActionChip(
+                      avatar: const Icon(Icons.edit_note, size: 20),
+                      label: const Text('editar', textScaleFactor: 0.9),
+                      labelPadding: EdgeInsets.zero,
+                      visualDensity: VisualDensity.compact,
+                      onPressed: () => _metodos.editarIgrejas(igrejas))
+                  : const SizedBox(),
+            ],
+          ),
+          subtitle: conteudo,
         );
       },
+    );
+  }
+
+  /// Tile Observações
+  get _tileObservacoes {
+    return ListTile(
+      dense: true,
+      title: Row(
+        children: [
+          const Text('OBSERVAÇÕES'),
+          const SizedBox(width: 8, height: kMinInteractiveDimension),
+          _ehMeuPerfil || _ehAdm
+              ? ActionChip(
+                  avatar: const Icon(Icons.edit_note, size: 20),
+                  label: const Text('editar', textScaleFactor: 0.9),
+                  labelPadding: EdgeInsets.zero,
+                  visualDensity: VisualDensity.compact,
+                  onPressed: () => _metodos.editarDados())
+              : const SizedBox(),
+        ],
+      ),
+      subtitle: Text(_integrante.obs ?? ''),
     );
   }
 

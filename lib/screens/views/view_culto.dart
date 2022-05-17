@@ -2,6 +2,7 @@ import 'dart:developer' as dev;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:escala_louvor/rotas.dart';
+import 'package:escala_louvor/screens/views/tile_culto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
@@ -67,13 +68,17 @@ class _ViewCultoState extends State<ViewCulto> {
                 child: Text('Falha ao carregar dados do culto.'));
           }
           // Conteúdo
-          mCulto = snapshot.data!.data()!;
           mSnapshot = snapshot.data!;
+          mCulto = mSnapshot.data()!;
           mLogado = Global.integranteLogado!.data()!;
           return Column(
             children: [
               // Cabeçalho
-              Padding(
+              TileCulto(
+                culto: mCulto,
+                reference: mSnapshot.reference,
+              ),
+              /* Padding(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 child: Row(
@@ -86,7 +91,7 @@ class _ViewCultoState extends State<ViewCulto> {
                         : const SizedBox(),
                   ],
                 ),
-              ),
+              ), */
               const Divider(height: 1, color: Colors.grey),
               // Corpo
               Expanded(
