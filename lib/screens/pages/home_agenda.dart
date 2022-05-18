@@ -1,6 +1,8 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:escala_louvor/preferencias.dart';
 import 'package:escala_louvor/rotas.dart';
 import 'package:escala_louvor/screens/home.dart';
+import 'package:escala_louvor/screens/views/tile_culto.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:intl/intl.dart';
@@ -14,143 +16,436 @@ import '/screens/views/dialogos.dart';
 import '/utils/mensagens.dart';
 import '/utils/utils.dart';
 
-class TelaAgenda extends StatelessWidget {
+class TelaAgenda extends StatefulWidget {
   const TelaAgenda({Key? key}) : super(key: key);
 
-  Integrante get logado {
-    return Global.integranteLogado!.data()!;
+  @override
+  State<TelaAgenda> createState() => _TelaAgendaState();
+}
+
+class _TelaAgendaState extends State<TelaAgenda> {
+  Integrante get logado => Global.integranteLogado!.data()!;
+  bool get _podeSerEscalado =>
+      logado.ehDirigente || logado.ehCoordenador || logado.ehComponente;
+
+  ///
+  List<QueryDocumentSnapshot<Culto>> cultos = [];
+  final agora = DateTime.now();
+  var formato = CalendarFormat.month;
+  late DateTime sDiaSelecionado;
+  late DateTime sDiaEmFoco;
+  bool _isPortrait = true;
+
+  /// Notificador para calendário
+  final ValueNotifier<Map<DateTime, String>> meusEventos = ValueNotifier({});
+
+  /// Notificador para lista de eventos
+  late ValueNotifier<DateTime?> mesCorrente = ValueNotifier(null);
+
+  /// Define o mês corrente
+  void _setMesCorrente(DateTime dia) {
+    mesCorrente.value = DateTime(dia.year, dia.month);
   }
 
-  bool get _podeSerEscalado {
-    return logado.ehDirigente || logado.ehCoordenador || logado.ehComponente;
+  /// Verifica se duas datas são o mesmo dia
+  bool _ehMesmoDia(DateTime dia1, DateTime dia2) =>
+      (dia1.year == dia2.year) &&
+      (dia1.month == dia2.month) &&
+      (dia1.day == dia2.day);
+
+  @override
+  void initState() {
+    _setMesCorrente(DateTime(agora.year, agora.month));
+    sDiaSelecionado = agora;
+    sDiaEmFoco = agora;
+    super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
-    final agora = DateTime.now();
-    var formato = CalendarFormat.month;
-    var sDiaSelecionado = agora;
-    var sDiaEmFoco = agora;
+    return ValueListenableBuilder<FiltroAgenda>(
+        valueListenable: Global.meusFiltros,
+        builder: (context, filtros, _) {
+          cultos.clear();
+          return StreamBuilder<QuerySnapshot<Culto>>(
+              stream: MeuFirebase.escutarCultos(
+                  dataMinima: filtros.timeStampMin,
+                  dataMaxima: filtros.timeStampMax,
+                  igrejas: filtros.igrejas),
+              builder: (context, snapshot) {
+                if (!snapshot.hasData ||
+                    (snapshot.connectionState == ConnectionState.waiting &&
+                        cultos.isEmpty)) {
+                  return Column(
+                    children: const [
+                      LinearProgressIndicator(),
+                      Expanded(
+                        child: Center(
+                          child: Text('Carregando a lista...',
+                              textAlign: TextAlign.center),
+                        ),
+                      )
+                    ],
+                  );
+                }
+                if (snapshot.hasError) {
+                  return const Center(
+                    child: Text('Falha ao tentar obter dados',
+                        textAlign: TextAlign.center),
+                  );
+                }
+                cultos = snapshot.data!.docs.toList();
+                meusEventos.value.clear();
+                for (var culto in cultos) {
+                  var dataCulto = culto.data().dataCulto.toDate();
+                  meusEventos.value.putIfAbsent(dataCulto, () => 'culto');
+                }
+                return OrientationBuilder(builder: (context, orientation) {
+                  _isPortrait = orientation == Orientation.portrait;
+                  return LayoutBuilder(builder: (context, constraints) {
+                    return Wrap(children: [
+                      // Lado Esquerdo == Topo
+                      SizedBox(
+                        height: _isPortrait
+                            ? kMinInteractiveDimension + 1
+                            : constraints.maxHeight,
+                        width: _isPortrait
+                            ? constraints.maxWidth
+                            : constraints.maxWidth * 0.4 - 1,
+                        //constraints.maxHeight,
+                        child: _cabecalho,
+                      ),
+                      // Divisor
+                      _isPortrait
+                          ? const SizedBox()
+                          : Container(
+                              height: constraints.maxHeight,
+                              width: 1,
+                              color: Colors.grey,
+                            ),
+                      // Lado direito == Base
+                      SizedBox(
+                        height: _isPortrait
+                            ? constraints.maxHeight -
+                                (kMinInteractiveDimension + 1)
+                            : constraints.maxHeight,
+                        width: _isPortrait
+                            ? constraints.maxWidth
+                            : constraints.maxWidth * 0.6,
+                        //constraints.maxWidth - constraints.maxHeight - 1,
+                        child: _dados,
+                      ),
+                    ]);
+                  });
+                });
+              });
+        });
+  }
 
-    /// Notificador para calendário
-    final ValueNotifier<Map<DateTime, String>> meusEventos = ValueNotifier({});
+  get _cabecalho {
+    return Column(children: [
+      // Ações
+      Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        child: Row(
+          children: [
+            // Botão Novo Culto
+            (logado.adm || logado.ehRecrutador)
+                ? ActionChip(
+                    avatar: const Icon(Icons.add),
+                    label: const Text('Novo'),
+                    backgroundColor: Theme.of(context).colorScheme.primary,
+                    onPressed: () {
+                      // Tratamento de erros
+                      if (Global.igrejaSelecionada.value == null) {
+                        Mensagem.simples(
+                            context: context,
+                            mensagem:
+                                'Isso não deveria ter acontecido. Sem igreja selecionada.');
+                        return;
+                      }
+                      var dataInicial = DateTime(sDiaSelecionado.year,
+                          sDiaSelecionado.month, sDiaSelecionado.day, 9, 30);
+                      var culto = Culto(
+                        dataCulto: Timestamp.fromDate(dataInicial),
+                        igreja: Global.igrejaSelecionada.value!.reference,
+                      );
+                      Dialogos.editarCulto(context, culto);
+                    })
+                : const SizedBox(),
+            const Expanded(child: SizedBox(height: kMinInteractiveDimension)),
+            // Botão Filtro
+            ActionChip(
+                avatar: const Icon(Icons.filter_alt),
+                label: Text(Global.meusFiltros.value.dataMaxima == null
+                    ? 'Próximos'
+                    : 'Passados'),
+                onPressed: () {
+                  if (Global.meusFiltros.value.dataMaxima == null) {
+                    Global.meusFiltros.value.dataMaxima = DateTime.now();
+                    Global.meusFiltros.value.dataMinima = null;
+                  } else {
+                    Global.meusFiltros.value.dataMaxima = null;
+                    Global.meusFiltros.value.dataMinima = DateTime.now();
+                  }
+                  Global.meusFiltros.notifyListeners();
+                })
+          ],
+        ),
+      ),
+      const Divider(height: 1),
+      // Calendário
+      _isPortrait
+          ? const SizedBox()
+          : Expanded(
+              child: ValueListenableBuilder<Map<DateTime, String>>(
+                  valueListenable: meusEventos,
+                  builder: (context, eventos, _) {
+                    return StatefulBuilder(builder: (context, setState) {
+                      return TableCalendar(
+                        focusedDay: sDiaEmFoco,
+                        firstDay: DateTime(agora.year, agora.month),
+                        lastDay: DateTime(agora.year, agora.month + 6, 0),
+                        locale: 'pt_BR',
+                        shouldFillViewport: true,
+                        headerStyle:
+                            const HeaderStyle(headerPadding: EdgeInsets.zero),
+                        onPageChanged: (diaEmFoco) {
+                          setState(() {
+                            sDiaEmFoco = diaEmFoco;
+                            _setMesCorrente(diaEmFoco);
+                          });
+                        },
+                        onDaySelected: (diaSelecionado, diaEmFoco) {
+                          setState(() {
+                            sDiaEmFoco = diaEmFoco;
+                            sDiaSelecionado = diaSelecionado;
+                            _setMesCorrente(diaSelecionado);
+                          });
+                        },
+                        selectedDayPredicate: (dia) {
+                          return _ehMesmoDia(dia, sDiaSelecionado);
+                        },
+                        holidayPredicate: (dia) {
+                          var datas = eventos.entries.where(
+                              (element) => element.value == 'aniversario');
+                          for (var data in datas) {
+                            if (_ehMesmoDia(dia, data.key)) {
+                              return true;
+                            }
+                          }
+                          return false;
+                        },
+                        eventLoader: (data) {
+                          List cultos = [];
+                          eventos.entries
+                              .where((element) => element.value == 'culto')
+                              .forEach((element) {
+                            if (_ehMesmoDia(data, element.key)) {
+                              cultos.add(element.value);
+                            }
+                          });
+                          return cultos;
+                        },
+                        availableCalendarFormats: const {
+                          CalendarFormat.month: 'Mês'
+                        },
+                        calendarStyle: CalendarStyle(
+                          weekendTextStyle: TextStyle(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .onBackground
+                                  .withOpacity(0.7)),
+                          outsideTextStyle:
+                              TextStyle(color: Colors.grey.withOpacity(0.5)),
+                          todayDecoration: BoxDecoration(
+                              color: null,
+                              border: Border.fromBorderSide(BorderSide(
+                                  color: Theme.of(context).colorScheme.primary,
+                                  width: 1.4)),
+                              shape: BoxShape.circle),
+                          todayTextStyle: TextStyle(
+                              color: Theme.of(context).colorScheme.primary),
+                          selectedDecoration: BoxDecoration(
+                              color: Theme.of(context)
+                                  .colorScheme
+                                  .primary
+                                  .withOpacity(0.75),
+                              border: Border.fromBorderSide(
+                                BorderSide(
+                                    color:
+                                        Theme.of(context).colorScheme.primary,
+                                    width: 1.4),
+                              ),
+                              shape: BoxShape.circle),
+                          holidayDecoration: const BoxDecoration(
+                              border: Border.fromBorderSide(
+                                  BorderSide(color: Colors.orange, width: 1.4)),
+                              shape: BoxShape.circle),
+                          holidayTextStyle:
+                              const TextStyle(color: Colors.orange),
+                          markerDecoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(12),
+                              color: Theme.of(context).colorScheme.primary),
+                        ),
+                      );
+                    });
+                  }),
+            ),
+    ]);
+  }
 
-    /// Notificador para lista de eventos
-    final ValueNotifier<DateTime> mesCorrente =
-        ValueNotifier(DateTime(agora.year, agora.month));
+  // LISTA DE CULTOS
+  get _dados {
+    return cultos.isEmpty
+        ? const Center(
+            child: Text('Nenhum culto previsto.', textAlign: TextAlign.center),
+          )
+        : listaCultos;
+  }
 
-    void _setMesCorrente(DateTime dia) {
-      mesCorrente.value = DateTime(dia.year, dia.month);
-    }
+  /// View Lista de Cultos
+  get listaCultos {
+    bool mostrarCabecalho = true;
+    return ListView(
+      shrinkWrap: true,
+      children: List.generate(cultos.length, (index) {
+        var culto = cultos[index].data();
+        var reference = cultos[index].reference;
+        mostrarCabecalho = index - 1 < 0
+            ? true
+            : culto.dataCulto.toDate().month ==
+                        cultos[index - 1].data().dataCulto.toDate().month &&
+                    culto.dataCulto.toDate().year ==
+                        cultos[index - 1].data().dataCulto.toDate().year
+                ? false
+                : true;
+        return Column(
+          children: [
+            // Cabeçalho do mês
+            mostrarCabecalho
+                ? cabelhoDoMes(culto.dataCulto.toDate())
+                : const SizedBox(),
+            // Tile do culto
+            InkWell(
+              onTap: () {},
+              child: TileCulto(culto: culto, reference: reference),
+            ),
+            // Divisor
+            const Divider(height: 1),
+          ],
+        );
+      }),
+    );
+  }
 
-    bool _ehMesmoDia(DateTime dia1, DateTime dia2) {
-      return (dia1.year == dia2.year) &&
-          (dia1.month == dia2.month) &&
-          (dia1.day == dia2.day);
-    }
-
+  Widget cabelhoDoMes(DateTime data) {
     return Column(
       children: [
-        // Calendário
-        ValueListenableBuilder<Map<DateTime, String>>(
-            valueListenable: meusEventos,
-            builder: (context, eventos, _) {
-              return StatefulBuilder(builder: (context, setState) {
-                return TableCalendar(
-                  focusedDay: sDiaEmFoco,
-                  firstDay: DateTime(agora.year, agora.month),
-                  lastDay: DateTime(agora.year, agora.month + 6, 0),
-                  onFormatChanged: (format) {
-                    setState((() {
-                      formato = format;
-                    }));
-                  },
-                  onPageChanged: (diaEmFoco) {
-                    setState(() {
-                      sDiaEmFoco = diaEmFoco;
-                      _setMesCorrente(diaEmFoco);
-                    });
-                  },
-                  onDaySelected: (diaSelecionado, diaEmFoco) {
-                    setState(() {
-                      sDiaEmFoco = diaEmFoco;
-                      sDiaSelecionado = diaSelecionado;
-                      _setMesCorrente(diaSelecionado);
-                    });
-                  },
-                  selectedDayPredicate: (dia) {
-                    return _ehMesmoDia(dia, sDiaSelecionado);
-                  },
-                  holidayPredicate: (dia) {
-                    var datas = eventos.entries
-                        .where((element) => element.value == 'aniversario');
-                    for (var data in datas) {
-                      if (_ehMesmoDia(dia, data.key)) {
-                        return true;
+        // Mês e ano
+        Padding(
+          padding: const EdgeInsets.all(16),
+          child: Text(
+            DateFormat.yMMMM('pt_BR').format(data),
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.titleLarge,
+          ),
+        ),
+        // Aniversariantes
+        Row(
+          children: [
+            // Leading Icone
+            Container(
+              width: 56,
+              height: 32,
+              decoration: BoxDecoration(
+                  color: Theme.of(context).colorScheme.primary,
+                  borderRadius: const BorderRadius.horizontal(
+                      right: Radius.circular(32))),
+              child: const Icon(Icons.cake, color: Colors.white, size: 20),
+            ),
+            // Lista
+            Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8),
+                height: kToolbarHeight,
+                child: FutureBuilder<QuerySnapshot<Integrante>>(
+                  future: MeuFirebase.obterListaIntegrantes(ativo: true),
+                  builder: (context, snapshot) {
+                    List<QueryDocumentSnapshot<Integrante>> aniversariantes =
+                        [];
+                    if (!snapshot.hasData) {
+                      return Container(
+                        alignment: Alignment.centerLeft,
+                        height: kMinInteractiveDimension,
+                        child: Text('Analisando a equipe...',
+                            style: Theme.of(context).textTheme.caption),
+                      );
+                    }
+                    for (var integrante in snapshot.data!.docs) {
+                      if (integrante.data().dataNascimento?.toDate().month ==
+                          data.month) {
+                        aniversariantes.add(integrante);
                       }
                     }
-                    return false;
+                    if (aniversariantes.isEmpty) {
+                      return Container(
+                        alignment: Alignment.centerLeft,
+                        height: kMinInteractiveDimension,
+                        child: Text('Nenhum aniversariante esse mês!',
+                            style: Theme.of(context).textTheme.caption),
+                      );
+                    }
+                    return ListView(
+                      shrinkWrap: true,
+                      scrollDirection: Axis.horizontal,
+                      physics: const BouncingScrollPhysics(),
+                      children: List.generate(aniversariantes.length, (index) {
+                        var dn = aniversariantes[index]
+                            .data()
+                            .dataNascimento
+                            ?.toDate();
+                        var data = '';
+                        if (dn != null) {
+                          dn = DateTime(DateTime.now().year, dn.month, dn.day);
+                          data = DateFormat.Md('pt_BR').format(dn);
+                          meusEventos.value
+                              .putIfAbsent(dn, () => 'aniversario');
+                        }
+                        var hero = data.replaceAll('/', 'm');
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          child: RawChip(
+                            label: Text(data),
+                            avatar: Hero(
+                              tag: hero,
+                              child: CircleAvatar(
+                                foregroundImage: MyNetwork.getImageFromUrl(
+                                        aniversariantes[index].data().fotoUrl)
+                                    ?.image,
+                                child: Text(
+                                    MyStrings.getUserInitials(
+                                        aniversariantes[index].data().nome),
+                                    textScaleFactor: 0.6),
+                              ),
+                            ),
+                            onPressed: () => Modular.to.pushNamed(
+                                '${AppRotas.PERFIL}?id=${aniversariantes[index].id}&hero=$hero',
+                                arguments: aniversariantes[index]),
+                          ),
+                        );
+                      }, growable: false),
+                    );
                   },
-                  eventLoader: (data) {
-                    List cultos = [];
-                    eventos.entries
-                        .where((element) => element.value == 'culto')
-                        .forEach((element) {
-                      if (_ehMesmoDia(data, element.key)) {
-                        cultos.add(element.value);
-                      }
-                    });
-                    return cultos;
-                  },
-                  locale: 'pt_BR',
-                  startingDayOfWeek: StartingDayOfWeek.monday,
-                  calendarFormat: formato,
-                  availableCalendarFormats: const {
-                    CalendarFormat.month: 'Mês',
-                    CalendarFormat.twoWeeks: 'Quinzena',
-                  },
-                  calendarStyle: CalendarStyle(
-                    weekendTextStyle: TextStyle(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .onBackground
-                            .withOpacity(0.7)),
-                    outsideTextStyle:
-                        TextStyle(color: Colors.grey.withOpacity(0.5)),
-                    todayDecoration: BoxDecoration(
-                        color: null,
-                        border: Border.fromBorderSide(
-                          BorderSide(
-                              color: Theme.of(context).colorScheme.primary,
-                              width: 1.4),
-                        ),
-                        shape: BoxShape.circle),
-                    todayTextStyle:
-                        TextStyle(color: Theme.of(context).colorScheme.primary),
-                    selectedDecoration: BoxDecoration(
-                        color: Theme.of(context)
-                            .colorScheme
-                            .primary
-                            .withOpacity(0.75),
-                        border: Border.fromBorderSide(
-                          BorderSide(
-                              color: Theme.of(context).colorScheme.primary,
-                              width: 1.4),
-                        ),
-                        shape: BoxShape.circle),
-                    holidayDecoration: const BoxDecoration(
-                        border: Border.fromBorderSide(
-                            BorderSide(color: Colors.orange, width: 1.4)),
-                        shape: BoxShape.circle),
-                    holidayTextStyle: const TextStyle(color: Colors.orange),
-                    markerDecoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                        color: Theme.of(context).colorScheme.primary),
-                  ),
-                );
-              });
-            }),
-        const Divider(height: 1),
+                )),
+          ],
+        )
+      ],
+    );
+  }
+}
+
+/* return Column(
+      children: [
         // Linha com legenda e botão de criação de culto
         Container(
           color: Colors.grey.withOpacity(0.25),
@@ -182,120 +477,14 @@ class TelaAgenda extends StatelessWidget {
                 height: 12,
               ),
               const Text('Aniversários'),
-              // Espaço em branco
-              const Expanded(child: SizedBox()),
-              // Botão criar novo registro de culto
-              (logado.adm || logado.ehRecrutador)
-                  ? ActionChip(
-                      avatar: const Icon(Icons.add),
-                      label: const Text('Novo'),
-                      backgroundColor: Theme.of(context).colorScheme.primary,
-                      onPressed: () {
-                        // Tratamento de erros
-                        if (Global.igrejaSelecionada.value == null) {
-                          Mensagem.simples(
-                              context: context,
-                              mensagem:
-                                  'Isso não deveria ter acontecido. Sem igreja selecionada.');
-                          return;
-                        }
-                        var dataInicial = DateTime(sDiaSelecionado.year,
-                            sDiaSelecionado.month, sDiaSelecionado.day, 9, 30);
-                        var culto = Culto(
-                          dataCulto: Timestamp.fromDate(dataInicial),
-                          igreja: Global.igrejaSelecionada.value!.reference,
-                        );
-                        Dialogos.editarCulto(context, culto);
-                      })
-                  : const SizedBox(),
+              
             ],
           ),
         ),
-        const Divider(height: 1),
         // Listas
         Expanded(
           child: Column(children: [
-            // Lista de Aniversários
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              height: kToolbarHeight,
-              child: StreamBuilder<QuerySnapshot<Integrante>>(
-                  stream:
-                      MeuFirebase.obterListaIntegrantes(ativo: true).asStream(),
-                  builder: (context, snapshot) {
-                    meusEventos.value
-                        .removeWhere((key, value) => value == 'aniversario');
-                    if (snapshot.hasData) {
-                      var integrantes = snapshot.data!.docs;
-                      return ValueListenableBuilder<DateTime>(
-                        valueListenable: mesCorrente,
-                        builder: (context, dataMin, _) {
-                          List<QueryDocumentSnapshot<Integrante>>
-                              aniversariantes = [];
-                          aniversariantes.addAll(integrantes.where((element) =>
-                              element.data().dataNascimento?.toDate().month ==
-                              mesCorrente.value.month));
-                          // Notificar após carregamento da interface
-                          WidgetsBinding.instance.addPostFrameCallback(
-                              (_) => meusEventos.notifyListeners());
-                          if (aniversariantes.isEmpty) {
-                            return Center(
-                              child: Text(
-                                  'Nenhum aniversariante em ${DateFormat.MMMM('pt_BR').format(mesCorrente.value)}'),
-                            );
-                          }
-                          return ListView(
-                              scrollDirection: Axis.horizontal,
-                              children: List.generate(aniversariantes.length,
-                                      (index) {
-                                var dn = aniversariantes[index]
-                                    .data()
-                                    .dataNascimento
-                                    ?.toDate();
-                                var data = '';
-                                if (dn != null) {
-                                  dn = DateTime(
-                                      DateTime.now().year, dn.month, dn.day);
-                                  data = DateFormat.Md('pt_BR').format(dn);
-                                  meusEventos.value
-                                      .putIfAbsent(dn, () => 'aniversario');
-                                }
-                                return Padding(
-                                  padding:
-                                      const EdgeInsets.symmetric(horizontal: 4),
-                                  child: RawChip(
-                                    label: Text(data),
-                                    avatar: Hero(
-                                      tag: 'aniversariante',
-                                      child: CircleAvatar(
-                                        foregroundImage:
-                                            MyNetwork.getImageFromUrl(
-                                                    aniversariantes[index]
-                                                        .data()
-                                                        .fotoUrl)
-                                                ?.image,
-                                        child: Text(
-                                            MyStrings.getUserInitials(
-                                                aniversariantes[index]
-                                                    .data()
-                                                    .nome),
-                                            textScaleFactor: 0.6),
-                                      ),
-                                    ),
-                                    onPressed: () => Modular.to.pushNamed(
-                                        '${AppRotas.PERFIL}?id=${aniversariantes[index].id}&hero=aniversariante',
-                                        arguments: aniversariantes[index]),
-                                  ),
-                                );
-                              }, growable: false)
-                                  .toList());
-                        },
-                      );
-                    }
-                    return const Center(child: CircularProgressIndicator());
-                  }),
-            ),
-            const Divider(height: 1),
+            
             // Lista de Cultos
             Expanded(
               child: StreamBuilder<QuerySnapshot<Culto>>(
@@ -426,7 +615,5 @@ class TelaAgenda extends StatelessWidget {
           ]),
         ),
       ],
-    );
-    // FIM
-  }
-}
+    ); */
+// FIM

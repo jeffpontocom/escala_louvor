@@ -1,13 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:escala_louvor/functions/metodos_firebase.dart';
-import 'package:escala_louvor/utils/utils.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import '../../global.dart';
-import '../../models/culto.dart';
-import '../../models/igreja.dart';
-import '../../models/integrante.dart';
+import '/global.dart';
+import '/functions/metodos_firebase.dart';
+import '/models/culto.dart';
+import '/models/igreja.dart';
+import '/models/integrante.dart';
+import '/utils/utils.dart';
 
 class TileCulto extends StatelessWidget {
   final Culto culto;
@@ -17,57 +17,62 @@ class TileCulto extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.end,
-        children: [
-          Expanded(
-            child: Column(
-              children: [
-                // Dados básicos
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    iconDayNight,
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          diaDaSemana,
-                          ocasiao,
-                        ],
-                      ),
+    return Row(children: [
+      // Coluna 1: Dados Básicos
+      Expanded(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Column(
+            children: [
+              // Linha 1: Ocasião e Igreja
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  iconDayNight,
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        diaDaSemana,
+                        ocasiao,
+                      ],
                     ),
-                    igreja,
-                  ],
-                ),
-                Row(
-                  children: [
-                    const SizedBox(width: 20),
-                    diaDoMes,
-                    const SizedBox(width: 8),
-                    horario,
-                  ],
-                ),
-                // Dados da escala
-                Row(
-                  children: [
-                    Expanded(child: equipe),
-                    const SizedBox(width: 8),
-                    temObservacao,
-                    canticos,
-                  ],
-                )
-              ],
-            ),
+                  ),
+                  igreja,
+                ],
+              ),
+              const SizedBox(height: 4),
+              // Linha 2: Data e Horário
+              Row(
+                children: [
+                  const SizedBox(width: 28),
+                  diaDoMes,
+                  const SizedBox(width: 8),
+                  horario,
+                ],
+              ),
+              // Linhas 3: Escalados e Cânticos
+              Row(
+                children: [
+                  Expanded(child: equipe),
+                  const SizedBox(
+                    width: 8,
+                    height: kMinInteractiveDimension,
+                  ),
+                  precisaAtencao,
+                  const SizedBox(width: 4),
+                  canticos,
+                ],
+              ),
+            ],
           ),
-          const SizedBox(width: 16),
-          Container(child: botaoDisponibilidade),
-        ],
+        ),
       ),
-    );
+      //const SizedBox(width: 16),
+      // Coluna 2: Botão
+      Container(child: botaoDisponibilidade),
+    ]);
   }
 
   /// Icone manhã/noite
@@ -91,21 +96,26 @@ class TileCulto extends StatelessWidget {
 
   /// Ocasião
   get ocasiao {
-    return Text(culto.ocasiao ?? '');
+    return Text(
+      culto.ocasiao ?? '',
+      style: const TextStyle(fontWeight: FontWeight.bold),
+    );
   }
 
   /// Dia do Mês
   get diaDoMes {
     DateTime data = culto.dataCulto.toDate();
     var diaMes = DateFormat(DateFormat.ABBR_MONTH_DAY, 'pt_BR').format(data);
-    return Chip(
-      avatar: const Icon(Icons.today, size: 20),
-      label: Text(diaMes),
-      backgroundColor: Colors.transparent,
-      padding: EdgeInsets.zero,
-      labelPadding: EdgeInsets.zero,
-      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-      //visualDensity: VisualDensity.compact,
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const Icon(Icons.today, size: 20),
+        const SizedBox(width: 4),
+        Text(
+          diaMes,
+          style: const TextStyle(fontSize: 15),
+        ),
+      ],
     );
   }
 
@@ -113,14 +123,16 @@ class TileCulto extends StatelessWidget {
   get horario {
     DateTime data = culto.dataCulto.toDate();
     var hora = DateFormat(DateFormat.HOUR24_MINUTE, 'pt_BR').format(data);
-    return Chip(
-      avatar: const Icon(Icons.access_time, size: 20),
-      label: Text(hora),
-      backgroundColor: Colors.transparent,
-      padding: EdgeInsets.zero,
-      labelPadding: EdgeInsets.zero,
-      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-      //visualDensity: VisualDensity.compact,
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const Icon(Icons.access_time, size: 20),
+        const SizedBox(width: 4),
+        Text(
+          hora,
+          style: const TextStyle(fontSize: 15),
+        ),
+      ],
     );
   }
 
@@ -156,7 +168,7 @@ class TileCulto extends StatelessWidget {
         }
         if (snapshot.data?.isEmpty ?? true) {
           return const Text(
-            'Ninguém escalados',
+            'Ninguém escalado ainda!',
             textScaleFactor: 0.8,
             style: TextStyle(color: Colors.grey),
           );
@@ -178,6 +190,7 @@ class TileCulto extends StatelessWidget {
                   child: Text(
                     MyStrings.getUserInitials(escalados?[index].nome ?? ''),
                     textScaleFactor: 0.75,
+                    style: const TextStyle(color: Colors.black),
                   ),
                 ),
               ),
@@ -227,25 +240,27 @@ class TileCulto extends StatelessWidget {
   }
 
   /// Icone de atenção
-  get temObservacao {
+  get precisaAtencao {
     return culto.obs != null && culto.obs!.isNotEmpty
-        ? const Icon(Icons.whatshot, color: Colors.amber, size: 20)
+        ? const Tooltip(
+            message: 'Possui ponto de atenção!',
+            child: Icon(Icons.report, color: Colors.amber, size: 20),
+          )
         : const SizedBox();
   }
 
   /// Quantidade de cânticos
   get canticos {
-    return Chip(
-      avatar: const Icon(Icons.library_music, size: 20),
-      label: Text(
-        culto.canticos?.length.toString() ?? '0',
-        style: const TextStyle(color: Colors.grey),
-      ),
-      backgroundColor: Colors.transparent,
-      padding: EdgeInsets.zero,
-      labelPadding: EdgeInsets.zero,
-      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-      visualDensity: VisualDensity.compact,
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const Icon(Icons.library_music, size: 20),
+        const SizedBox(width: 4),
+        Text(
+          culto.canticos?.length.toString() ?? '0',
+          style: const TextStyle(color: Colors.grey),
+        ),
+      ],
     );
   }
 
@@ -277,8 +292,8 @@ class TileCulto extends StatelessWidget {
         style: OutlinedButton.styleFrom(
           maximumSize: const Size.fromWidth(92),
           padding: const EdgeInsets.all(12),
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.horizontal(left: Radius.circular(8))),
           backgroundColor: escalado
               ? Colors.green
               : disponivel

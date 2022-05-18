@@ -51,7 +51,7 @@ dependencies:
   table_calendar: ^3.0.4
   shared_preferences: ^2.0.15
   connectivity_plus: ^2.3.0
-  upgrader: ^4.1.1
+  upgrader: ^4.1.2
   url_launcher: ^6.1.2
   url_strategy: ^0.2.0 # para remover o hash '#' das URLs (incluir 'setPathUrlStrategy();' em main) 
   wakelock: ^0.6.1+2

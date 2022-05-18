@@ -4,6 +4,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 
 import 'models/igreja.dart';
 import 'models/integrante.dart';
+import 'preferencias.dart';
 
 class Global {
   // Notificadores
@@ -11,6 +12,12 @@ class Global {
   static ValueNotifier<DocumentSnapshot<Igreja>?> igrejaSelecionada =
       ValueNotifier(null);
   static ValueNotifier<int> paginaSelecionada = ValueNotifier(0);
+  static ValueNotifier<FiltroAgenda> meusFiltros = ValueNotifier(FiltroAgenda(
+    dataMinima: DateTime.now().subtract(const Duration(hours: 4)),
+    igrejas: Preferencias.mostrarTodosOsCultos
+        ? Global.integranteLogado!.data()!.igrejas
+        : [Global.igrejaSelecionada.value?.reference],
+  ));
   static PackageInfo? appInfo;
 
   static carregarAppInfo() async {
@@ -37,4 +44,17 @@ class Global {
       ],
     );
   }
+}
+
+class FiltroAgenda {
+  DateTime? dataMinima;
+  DateTime? dataMaxima;
+  List<DocumentReference?>? igrejas;
+
+  FiltroAgenda({this.dataMinima, this.dataMaxima, this.igrejas});
+
+  Timestamp? get timeStampMin =>
+      dataMinima == null ? null : Timestamp.fromDate(dataMinima!);
+  Timestamp? get timeStampMax =>
+      dataMaxima == null ? null : Timestamp.fromDate(dataMaxima!);
 }

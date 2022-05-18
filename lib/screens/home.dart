@@ -209,8 +209,7 @@ class _HomePageState extends State<HomePage> {
   final List<BottomNavigationBarItem> _navigationItens = const [
     BottomNavigationBarItem(icon: Icon(Icons.timer_sharp), label: 'Escalas'),
     BottomNavigationBarItem(icon: Icon(Icons.today), label: 'Agenda'),
-    BottomNavigationBarItem(
-        icon: Icon(Icons.notifications_on), label: 'Avisos'),
+    BottomNavigationBarItem(icon: Icon(Icons.campaign), label: 'Avisos'),
     BottomNavigationBarItem(icon: Icon(Icons.music_note), label: 'Cânticos'),
     BottomNavigationBarItem(icon: SizedBox(), label: '')
   ];

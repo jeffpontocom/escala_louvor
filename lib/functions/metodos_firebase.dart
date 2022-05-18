@@ -58,13 +58,14 @@ class MeuFirebase {
 
   /// Stream para escutar base de dados das Igrejas
   static Stream<QuerySnapshot<Culto>> escutarCultos({
-    DocumentReference? igreja,
+    List<DocumentReference?>? igrejas,
     Timestamp? dataMinima,
     Timestamp? dataMaxima,
   }) {
     return FirebaseFirestore.instance
         .collection(Culto.collection)
-        .where('igreja', isEqualTo: igreja)
+        //.where('igreja', isEqualTo: igrejas)
+        .where('igreja', whereIn: igrejas)
         .where('dataCulto', isGreaterThanOrEqualTo: dataMinima)
         .where('dataCulto', isLessThanOrEqualTo: dataMaxima)
         .orderBy('dataCulto')

@@ -264,6 +264,10 @@ class _TelaSelecaoState extends State<TelaSelecao> {
         setState(() {
           Preferencias.mostrarTodosOsCultos = value!;
         });
+        Global.meusFiltros.value.igrejas = Preferencias.mostrarTodosOsCultos
+            ? Global.integranteLogado!.data()!.igrejas
+            : [Global.igrejaSelecionada.value?.reference];
+        Global.meusFiltros.notifyListeners();
       },
       activeColor: Colors.orange,
       title: const Text(
