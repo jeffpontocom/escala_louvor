@@ -1,29 +1,29 @@
 // ignore_for_file: constant_identifier_names
 
-import 'package:escala_louvor/screens/tela_selecao.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 
-import 'screens/home.dart';
-import 'screens/pages/home_agenda.dart';
-import 'screens/pages/home_canticos.dart';
-import 'screens/pages/home_chats.dart';
-import 'screens/pages/home_escalas.dart';
-import 'screens/tela_admin.dart';
-import 'screens/tela_letra_view.dart';
-import 'screens/tela_login.dart';
-import 'screens/tela_notificacoes.dart';
-import 'screens/tela_pdf_view.dart';
-import 'screens/tela_perfil.dart';
+import 'app.dart';
+import 'screens/admin/tela_admin.dart';
+import 'screens/home/pagina_agenda.dart';
+import 'screens/home/pagina_avisos.dart';
+import 'screens/home/pagina_canticos.dart';
+import 'screens/home/tela_home.dart';
+import 'screens/secondaries/tela_cantico.dart';
+import 'screens/secondaries/tela_pdf_view.dart';
+import 'screens/secondaries/tela_selecao.dart';
+import 'screens/user/tela_login.dart';
+import 'screens/user/tela_perfil.dart';
+import 'deprecated/home_escalas.dart';
 
 class AppRotas extends Module {
   static const String HOME = '/';
   static const String LOGIN = '/login';
+  static const String CONTEXTO = '/contexto';
   static const String PERFIL = '/perfil';
   static const String ADMIN = '/admin';
   static const String ARQUIVOS = '/arquivos';
   static const String CANTICO = '/cantico';
-  static const String CONTEXTO = '/contexto';
 
   @override
   final List<Bind> binds = [];
@@ -32,7 +32,7 @@ class AppRotas extends Module {
   final List<ModularRoute> routes = [
     ChildRoute(
       HOME,
-      child: (_, args) => const HomeInit(),
+      child: (_, args) => const App(),
       guards: [NotAuthGuard()],
       children: [
         ChildRoute(
@@ -42,29 +42,29 @@ class AppRotas extends Module {
         ),
         ChildRoute(
           '/${Paginas.agenda.name}',
-          child: (context, args) => const TelaAgenda(),
+          child: (context, args) => const PaginaAgenda(),
           transition: TransitionType.upToDown,
         ),
         ChildRoute(
-          '/${Paginas.chats.name}',
-          child: (context, args) => const TelaChat(),
+          '/${Paginas.avisos.name}',
+          child: (context, args) => const PaginaAvisos(),
           transition: TransitionType.upToDown,
         ),
         ChildRoute(
           '/${Paginas.canticos.name}',
-          child: (context, args) => const TelaCanticos(),
+          child: (context, args) => const PaginaCanticos(),
           transition: TransitionType.upToDown,
         ),
       ],
     ),
     ChildRoute(
       LOGIN,
-      child: (_, __) => const LoginPage(),
+      child: (_, __) => const TelaLogin(),
       guards: [AuthGuard()],
     ),
     ChildRoute(
       CONTEXTO,
-      child: (_, __) => const TelaSelecao(),
+      child: (_, __) => const TelaContexto(),
     ),
     ChildRoute(
       PERFIL,
@@ -77,7 +77,7 @@ class AppRotas extends Module {
     ),
     ChildRoute(
       ADMIN,
-      child: (_, __) => const AdminPage(),
+      child: (_, __) => const TelaAdmin(),
       guards: [NotAuthGuard()],
     ),
     ChildRoute(
@@ -90,12 +90,7 @@ class AppRotas extends Module {
       child: (_, args) => TelaLetrasView(canticos: args.data),
       transition: TransitionType.downToUp,
     ),
-    ChildRoute(
-      '/notificacoes',
-      child: (_, arguments) => const MessageView(),
-      //transition: TransitionType.fadeIn,
-    ),
-    WildcardRoute(child: (_, __) => const HomeInit()),
+    WildcardRoute(child: (_, __) => const App()),
   ];
 }
 

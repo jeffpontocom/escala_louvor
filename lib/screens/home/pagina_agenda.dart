@@ -1,32 +1,32 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:escala_louvor/preferencias.dart';
 import 'package:escala_louvor/rotas.dart';
-import 'package:escala_louvor/screens/home.dart';
-import 'package:escala_louvor/screens/views/tile_culto.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 
+import '../../widgets/tile_culto.dart';
 import '/functions/metodos_firebase.dart';
-import '/global.dart';
+import '../../../utils/global.dart';
 import '/models/culto.dart';
 import '/models/integrante.dart';
-import '/screens/views/dialogos.dart';
+import '../../widgets/dialogos.dart';
 import '/utils/mensagens.dart';
 import '/utils/utils.dart';
 
-class TelaAgenda extends StatefulWidget {
-  const TelaAgenda({Key? key}) : super(key: key);
+class PaginaAgenda extends StatefulWidget {
+  const PaginaAgenda({Key? key}) : super(key: key);
 
   @override
-  State<TelaAgenda> createState() => _TelaAgendaState();
+  State<PaginaAgenda> createState() => _PaginaAgendaState();
 }
 
-class _TelaAgendaState extends State<TelaAgenda> {
-  Integrante get logado => Global.integranteLogado!.data()!;
+class _PaginaAgendaState extends State<PaginaAgenda> {
+  //Integrante get logado => Global.logadoSnapshot!.data()!;
   bool get _podeSerEscalado =>
-      logado.ehDirigente || logado.ehCoordenador || logado.ehComponente;
+      (Global.logado?.ehDirigente ?? false) ||
+      (Global.logado?.ehCoordenador ?? false) ||
+      (Global.logado?.ehComponente ?? false);
 
   ///
   List<QueryDocumentSnapshot<Culto>> cultos = [];
@@ -150,7 +150,8 @@ class _TelaAgendaState extends State<TelaAgenda> {
         child: Row(
           children: [
             // Botão Novo Culto
-            (logado.adm || logado.ehRecrutador)
+            ((Global.logado?.adm ?? false) ||
+                    (Global.logado?.ehRecrutador ?? false))
                 ? ActionChip(
                     avatar: const Icon(Icons.add),
                     label: const Text('Novo'),
@@ -278,12 +279,14 @@ class _TelaAgendaState extends State<TelaAgenda> {
                                     width: 1.4),
                               ),
                               shape: BoxShape.circle),
-                          holidayDecoration: const BoxDecoration(
-                              border: Border.fromBorderSide(
-                                  BorderSide(color: Colors.orange, width: 1.4)),
+                          holidayDecoration: BoxDecoration(
+                              border: Border.fromBorderSide(BorderSide(
+                                  color:
+                                      Theme.of(context).colorScheme.secondary,
+                                  width: 1.4)),
                               shape: BoxShape.circle),
-                          holidayTextStyle:
-                              const TextStyle(color: Colors.orange),
+                          holidayTextStyle: TextStyle(
+                              color: Theme.of(context).colorScheme.secondary),
                           markerDecoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(12),
                               color: Theme.of(context).colorScheme.primary),
@@ -324,7 +327,7 @@ class _TelaAgendaState extends State<TelaAgenda> {
           children: [
             // Cabeçalho do mês
             mostrarCabecalho
-                ? cabelhoDoMes(culto.dataCulto.toDate())
+                ? cabecalhoDoMes(culto.dataCulto.toDate())
                 : const SizedBox(),
             // Tile do culto
             InkWell(
@@ -339,7 +342,7 @@ class _TelaAgendaState extends State<TelaAgenda> {
     );
   }
 
-  Widget cabelhoDoMes(DateTime data) {
+  Widget cabecalhoDoMes(DateTime data) {
     return Column(
       children: [
         // Mês e ano

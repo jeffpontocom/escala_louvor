@@ -6,15 +6,14 @@ import 'package:flutter_modular/flutter_modular.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 
-import 'home.dart';
-import '/global.dart';
-import '/preferencias.dart';
+import '../../widgets/tile_igreja.dart';
+import '../home/tela_home.dart';
 import '/functions/metodos_firebase.dart';
 import '/functions/metodos_integrante.dart';
 import '/models/igreja.dart';
 import '/models/instrumento.dart';
 import '/models/integrante.dart';
-import '/screens/views/tile_igreja.dart';
+import '/utils/global.dart';
 import '/utils/mensagens.dart';
 import '/utils/utils.dart';
 
@@ -42,7 +41,7 @@ class _TelaPerfilState extends State<TelaPerfil> {
   void initState() {
     // Ao visitar o próprio perfil o usuário habilita o botão de edição.
     _ehMeuPerfil = (widget.id == FirebaseAuth.instance.currentUser?.uid);
-    _ehAdm = Global.integranteLogado?.data()?.adm ?? false;
+    _ehAdm = Global.logado?.adm ?? false;
     super.initState();
   }
 
@@ -233,7 +232,7 @@ class _TelaPerfilState extends State<TelaPerfil> {
         (index) => Tooltip(
           message: funcaoGetString(_integrante.funcoes![index]),
           child: CircleAvatar(
-            backgroundColor: Colors.orange,
+            backgroundColor: Theme.of(context).colorScheme.secondary,
             child: Icon(funcaoGetIcon(_integrante.funcoes![index])),
           ),
         ),
@@ -465,7 +464,7 @@ class _TelaPerfilState extends State<TelaPerfil> {
   /// Logout
   Future _sair() async {
     Mensagem.aguardar(context: context, mensagem: 'Saindo...');
-    await Preferencias.preferences?.clear();
+    await Global.preferences?.clear();
     await FirebaseAuth.instance.signOut();
     Modular.to.navigate('/${Paginas.values[0].name}');
   }

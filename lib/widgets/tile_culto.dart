@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import '/global.dart';
+import '../../utils/global.dart';
 import '/functions/metodos_firebase.dart';
 import '/models/culto.dart';
 import '/models/igreja.dart';
@@ -60,7 +60,7 @@ class TileCulto extends StatelessWidget {
                     width: 8,
                     height: kMinInteractiveDimension,
                   ),
-                  precisaAtencao,
+                  precisaAtencao(context),
                   const SizedBox(width: 4),
                   canticos,
                 ],
@@ -183,7 +183,8 @@ class TileCulto extends StatelessWidget {
                 backgroundColor: Colors.grey,
                 child: CircleAvatar(
                   radius: 12,
-                  backgroundColor: Color.fromARGB(255, 0, 150, index * 30 + 30),
+                  backgroundColor:
+                      Color.fromARGB(255, 255, 190 + index * 10, 0),
                   foregroundImage:
                       MyNetwork.getImageFromUrl(escalados?[index].fotoUrl)
                           ?.image,
@@ -240,11 +241,12 @@ class TileCulto extends StatelessWidget {
   }
 
   /// Icone de atenção
-  get precisaAtencao {
+  Widget precisaAtencao(BuildContext context) {
     return culto.obs != null && culto.obs!.isNotEmpty
-        ? const Tooltip(
+        ? Tooltip(
             message: 'Possui ponto de atenção!',
-            child: Icon(Icons.report, color: Colors.amber, size: 20),
+            child: Icon(Icons.report,
+                color: Theme.of(context).colorScheme.secondary, size: 20),
           )
         : const SizedBox();
   }
@@ -268,10 +270,9 @@ class TileCulto extends StatelessWidget {
   get botaoDisponibilidade {
     bool alterar = false;
     return StatefulBuilder(builder: (context, setState) {
-      bool escalado = culto.usuarioEscalado(Global.integranteLogado?.reference);
-      bool disponivel =
-          culto.usuarioDisponivel(Global.integranteLogado?.reference);
-      bool restrito = culto.usuarioRestrito(Global.integranteLogado?.reference);
+      bool escalado = culto.usuarioEscalado(Global.logadoReference);
+      bool disponivel = culto.usuarioDisponivel(Global.logadoReference);
+      bool restrito = culto.usuarioRestrito(Global.logadoReference);
       return OutlinedButton(
         onPressed: escalado || restrito
             ? () {}
@@ -295,12 +296,12 @@ class TileCulto extends StatelessWidget {
           shape: const RoundedRectangleBorder(
               borderRadius: BorderRadius.horizontal(left: Radius.circular(8))),
           backgroundColor: escalado
-              ? Colors.green
+              ? Colors.green.shade800
               : disponivel
-                  ? Colors.blue
+                  ? Colors.blue.shade800
                   : restrito
-                      ? Colors.red
-                      : Colors.grey,
+                      ? Colors.red.shade800
+                      : Colors.grey.shade800,
           primary: Colors.white,
         ),
         child: Column(

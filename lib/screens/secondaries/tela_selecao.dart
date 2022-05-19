@@ -6,21 +6,19 @@ import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 
 import '/functions/metodos_firebase.dart';
-import '/global.dart';
 import '/models/igreja.dart';
-import '/models/integrante.dart';
-import '/preferencias.dart';
 import '/utils/mensagens.dart';
 import '/utils/utils.dart';
+import '/utils/global.dart';
 
-class TelaSelecao extends StatefulWidget {
-  const TelaSelecao({Key? key}) : super(key: key);
+class TelaContexto extends StatefulWidget {
+  const TelaContexto({Key? key}) : super(key: key);
 
   @override
-  State<TelaSelecao> createState() => _TelaSelecaoState();
+  State<TelaContexto> createState() => _TelaContextoState();
 }
 
-class _TelaSelecaoState extends State<TelaSelecao> {
+class _TelaContextoState extends State<TelaContexto> {
   List<QueryDocumentSnapshot<Igreja>> igrejas = [];
 
   @override
@@ -116,7 +114,8 @@ class _TelaSelecaoState extends State<TelaSelecao> {
         builder: (context, snapshot) {
           // Carregamento
           if (!snapshot.hasData) {
-            return const CircularProgressIndicator(color: Colors.orange);
+            return CircularProgressIndicator(
+                color: Theme.of(context).colorScheme.secondary);
           }
           // Preenchimento
           igrejas = snapshot.data?.docs ?? [];
@@ -133,9 +132,7 @@ class _TelaSelecaoState extends State<TelaSelecao> {
           }
           List<QueryDocumentSnapshot<Igreja>> inscritas = [];
           for (var igreja in igrejas) {
-            if (Global.integranteLogado
-                    ?.data()
-                    ?.igrejas
+            if (Global.logado?.igrejas
                     ?.map((e) => e.toString())
                     .contains(igreja.reference.toString()) ??
                 false) {
@@ -177,7 +174,9 @@ class _TelaSelecaoState extends State<TelaSelecao> {
                     clipBehavior: Clip.antiAlias,
                     shape: RoundedRectangleBorder(
                       side: selecionada
-                          ? const BorderSide(color: Colors.orange, width: 3)
+                          ? BorderSide(
+                              color: Theme.of(context).colorScheme.secondary,
+                              width: 3)
                           : const BorderSide(color: Colors.grey),
                       borderRadius: const BorderRadius.all(Radius.circular(16)),
                     ),
@@ -188,7 +187,7 @@ class _TelaSelecaoState extends State<TelaSelecao> {
                           mensagem: 'Alterando contexto...',
                         );
                         String? id = inscritas[index].reference.id;
-                        Preferencias.igreja = id;
+                        Global.igreja = id;
                         Global.igrejaSelecionada.value =
                             await MeuFirebase.obterSnapshotIgreja(id);
                         Modular.to.pop(); // fecha progresso
@@ -256,20 +255,20 @@ class _TelaSelecaoState extends State<TelaSelecao> {
   /// Opção mostrar todos os cultos
   get opcaoMostrarTudo {
     return CheckboxListTile(
-      value: Preferencias.mostrarTodosOsCultos,
+      value: Global.mostrarTodosOsCultos,
       tristate: false,
       contentPadding:
           const EdgeInsets.only(left: 72, right: 16, top: 8, bottom: 8),
       onChanged: (value) {
         setState(() {
-          Preferencias.mostrarTodosOsCultos = value!;
+          Global.mostrarTodosOsCultos = value!;
         });
-        Global.meusFiltros.value.igrejas = Preferencias.mostrarTodosOsCultos
-            ? Global.integranteLogado!.data()!.igrejas
+        Global.meusFiltros.value.igrejas = Global.mostrarTodosOsCultos
+            ? Global.logado?.igrejas
             : [Global.igrejaSelecionada.value?.reference];
         Global.meusFiltros.notifyListeners();
       },
-      activeColor: Colors.orange,
+      activeColor: Theme.of(context).colorScheme.secondary,
       title: const Text(
         'Apresentar a agenda de todas as igrejas na lista de escalas.',
         textAlign: TextAlign.center,
@@ -286,7 +285,7 @@ class _TelaSelecaoState extends State<TelaSelecao> {
           titulo: 'Atenção!',
           mensagem: 'Nenhuma igreja cadastrada na base de dados');
     }
-    Integrante integrante = Global.integranteLogado!.data()!;
+    //Integrante integrante = Global.logadoSnapshot!.data()!;
     return Mensagem.bottomDialog(
       context: context,
       titulo: 'Igrejas',
@@ -303,21 +302,22 @@ class _TelaSelecaoState extends State<TelaSelecao> {
               children: List.generate(
                 igrejas.length,
                 (index) {
-                  bool inscrito = integrante.igrejas
+                  bool inscrito = Global.logado?.igrejas
                           ?.map((e) => e.toString())
                           .contains(igrejas[index].reference.toString()) ??
                       false;
                   return InkWell(
                     onTap: () async {
-                      integrante.igrejas ??= [];
+                      Global.logado?.igrejas ??= [];
                       innerState(() {
                         inscrito
-                            ? integrante.igrejas?.removeWhere((element) =>
+                            ? Global.logado?.igrejas?.removeWhere((element) =>
                                 element.toString() ==
                                 igrejas[index].reference.toString())
-                            : integrante.igrejas?.add(igrejas[index].reference);
+                            : Global.logado?.igrejas
+                                ?.add(igrejas[index].reference);
                       });
-                      if (!(integrante.igrejas
+                      if (!(Global.logado?.igrejas
                               ?.map((e) => e.toString())
                               .contains(Global
                                   .igrejaSelecionada.value?.reference
@@ -325,8 +325,8 @@ class _TelaSelecaoState extends State<TelaSelecao> {
                           false)) {
                         Global.igrejaSelecionada.value = null;
                       }
-                      await Global.integranteLogado?.reference
-                          .update({'igrejas': integrante.igrejas});
+                      await Global.logadoReference
+                          ?.update({'igrejas': Global.logado?.igrejas});
                       setState(() {});
                     },
                     // Card da Igreja

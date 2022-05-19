@@ -6,21 +6,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 
-import '/global.dart';
+import '../home/tela_home.dart';
 import '/models/integrante.dart';
-import '/screens/home.dart';
-import '/utils/medidas.dart';
+import '/utils/global.dart';
+import '../../resources/medidas.dart';
 import '/utils/mensagens.dart';
 import '/utils/utils.dart';
 
-class LoginPage extends StatefulWidget {
-  const LoginPage({Key? key}) : super(key: key);
+class TelaLogin extends StatefulWidget {
+  const TelaLogin({Key? key}) : super(key: key);
 
   @override
-  State<LoginPage> createState() => _LoginPageState();
+  State<TelaLogin> createState() => _TelaLoginState();
 }
 
-class _LoginPageState extends State<LoginPage> {
+class _TelaLoginState extends State<TelaLogin> {
   /* VARIÁVEIS */
   final _formKey = GlobalKey<FormState>();
   final _formUsuario = TextEditingController();

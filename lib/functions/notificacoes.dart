@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:developer' as dev;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:escala_louvor/preferencias.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -12,6 +11,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:http/http.dart' as http;
 
+import '../utils/global.dart';
 import '/firebase_options.dart';
 import '/utils/mensagens.dart';
 
@@ -162,7 +162,7 @@ class Notificacoes {
         String pagina = message.data['pagina'];
         String conteudo = message.data['conteudo'];
         dev.log('Abrindo app pela mensagem: /$pagina?id=$conteudo');
-        Preferencias.igreja = contexto;
+        Global.igreja = contexto;
         //Global.igrejaSelecionada.value =
         //    await MeuFirebase.obterSnapshotIgreja(contexto);
         Modular.to.navigate('/$pagina?id=$conteudo');
@@ -176,7 +176,7 @@ class Notificacoes {
       String pagina = message.data['pagina'];
       String conteudo = message.data['conteudo'];
       dev.log('Abrindo app pela mensagem: /$pagina?id=$conteudo');
-      Preferencias.igreja = contexto;
+      Global.igreja = contexto;
       //Global.igrejaSelecionada.value =
       //    await MeuFirebase.obterSnapshotIgreja(contexto);
       Modular.to.navigate('/$pagina?id=$conteudo');

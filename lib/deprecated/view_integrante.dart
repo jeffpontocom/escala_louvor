@@ -1,5 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:escala_louvor/global.dart';
+import 'package:escala_louvor/utils/global.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:intl/intl.dart';
@@ -50,17 +50,18 @@ class ViewIntegrante extends StatelessWidget {
                             maxWidth: (constraints.maxWidth - 6) / 5,
                             minHeight: 56),
                         color: Colors.grey,
-                        selectedColor: Colors.orange,
-                        fillColor: Colors.orange.withOpacity(0.15),
+                        selectedColor: Theme.of(context).colorScheme.secondary,
+                        fillColor: Theme.of(context)
+                            .colorScheme
+                            .secondary
+                            .withOpacity(0.15),
                         isSelected: List.generate(
                             Funcao.values.length,
                             (index) =>
                                 integrante.funcoes
                                     ?.contains(Funcao.values[index]) ??
                                 false),
-                        onPressed: (Global.integranteLogado?.data()?.adm ??
-                                    false) &&
-                                editMode
+                        onPressed: (Global.logado?.adm ?? false) && editMode
                             ? (index) {
                                 innerState(
                                   (() {
@@ -313,8 +314,7 @@ class ViewIntegrante extends StatelessWidget {
                 child: Row(
                   children: [
                     // Ativo
-                    !novoCadastro &&
-                            (Global.integranteLogado?.data()?.adm ?? false)
+                    !novoCadastro && (Global.logado?.adm ?? false)
                         ? StatefulBuilder(builder: (_, innerState) {
                             return ChoiceChip(
                                 label: Text(integrante.ativo

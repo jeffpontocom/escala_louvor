@@ -5,11 +5,11 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 
 import '../../functions/metodos_firebase.dart';
-import '../../global.dart';
+import '../../utils/global.dart';
 import '../../models/cantico.dart';
 import '../../models/culto.dart';
 import '../../utils/mensagens.dart';
-import '../home.dart';
+import '../screens/home/tela_home.dart';
 
 class Dialogos {
   static void editarCulto(BuildContext context, Culto culto,

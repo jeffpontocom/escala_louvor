@@ -1,12 +1,12 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+/* import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:escala_louvor/models/integrante.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 
-import '/global.dart';
+import '../../utils/global.dart';
 import '/functions/metodos_firebase.dart';
 import '/models/igreja.dart';
-import '/preferencias.dart';
+import '../../utils/preferencias.dart';
 import '/utils/mensagens.dart';
 import '/utils/utils.dart';
 
@@ -269,3 +269,4 @@ class ViewIgrejas extends StatelessWidget {
     });
   }
 }
+ */

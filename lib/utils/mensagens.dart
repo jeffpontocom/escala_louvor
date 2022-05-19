@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-import 'medidas.dart';
+import '../resources/medidas.dart';
 
 class Mensagem {
   // Variáveis Globais

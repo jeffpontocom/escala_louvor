@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
-class TelaChat extends StatelessWidget {
-  const TelaChat({Key? key}) : super(key: key);
+class PaginaAvisos extends StatelessWidget {
+  const PaginaAvisos({Key? key}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {

@@ -1,8 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:escala_louvor/functions/metodos_firebase.dart';
-import 'package:escala_louvor/global.dart';
+import 'package:escala_louvor/utils/global.dart';
 import 'package:escala_louvor/models/integrante.dart';
-import 'package:escala_louvor/screens/views/dialogos.dart';
 import 'package:escala_louvor/utils/mensagens.dart';
 import 'package:escala_louvor/utils/utils.dart';
 import 'package:flutter/material.dart';
@@ -11,20 +10,21 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
 import 'package:url_launcher/url_launcher.dart';
 
-import '../../models/cantico.dart';
-import '../../models/culto.dart';
+import '../../../models/cantico.dart';
+import '../../../models/culto.dart';
 import '../../rotas.dart';
+import '../../widgets/dialogos.dart';
 
-class TelaCanticos extends StatefulWidget {
+class PaginaCanticos extends StatefulWidget {
   final DocumentSnapshot<Culto>? culto;
-  const TelaCanticos({Key? key, this.culto}) : super(key: key);
+  const PaginaCanticos({Key? key, this.culto}) : super(key: key);
 
   @override
-  State<TelaCanticos> createState() => _TelaCanticosState();
+  State<PaginaCanticos> createState() => _PaginaCanticosState();
 }
 
-class _TelaCanticosState extends State<TelaCanticos> {
-  Integrante? logado = Global.integranteLogado?.data();
+class _PaginaCanticosState extends State<PaginaCanticos> {
+  Integrante? logado = Global.logado;
   bool? somenteHinos;
   List<DocumentReference<Cantico>>? _selecionados;
 
@@ -316,7 +316,7 @@ class _TelaCanticosState extends State<TelaCanticos> {
         ),
         widget.culto != null
             ? Container(
-                color: Colors.orange.withOpacity(0.2),
+                color: Theme.of(context).colorScheme.secondary.withOpacity(0.2),
                 padding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                 child: Row(

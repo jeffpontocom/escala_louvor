@@ -15,17 +15,17 @@ import 'package:http/http.dart' as http;
 import 'package:http/http.dart';
 import 'package:intl/intl.dart';
 
+import '../screens/home/tela_home.dart';
 import '../utils/utils.dart';
 import 'notificacoes.dart';
-import '/global.dart';
+import '../utils/global.dart';
 import '/models/cantico.dart';
 import '/models/culto.dart';
 import '/models/igreja.dart';
 import '/models/instrumento.dart';
 import '/models/integrante.dart';
 import '/utils/mensagens.dart';
-import '/rotas.dart';
-import '/screens/home.dart';
+import '../rotas.dart';
 
 class MeuFirebase {
   /* STREAMS  */
@@ -458,8 +458,8 @@ class MeuFirebase {
 
   static Future<bool> definirDisponibilidadeParaOCulto(
       DocumentReference<Culto> reference) async {
-    if (Global.integranteLogado == null) {
-      dev.log('Valores nulos');
+    if (Global.logadoSnapshot == null) {
+      dev.log('Erro: Usuário não está logado');
       return false;
     }
     var culto = await obterSnapshotCulto(reference.id);
@@ -468,13 +468,12 @@ class MeuFirebase {
             .data()!
             .disponiveis
             ?.map((e) => e.toString())
-            .contains(Global.integranteLogado!.reference.toString()) ??
+            .contains(Global.logadoReference.toString()) ??
         false;
     if (exist) {
       try {
         await culto.reference.update({
-          'disponiveis':
-              FieldValue.arrayRemove([Global.integranteLogado!.reference])
+          'disponiveis': FieldValue.arrayRemove([Global.logadoReference])
         });
         dev.log('Removido com Sucesso');
         return true;
@@ -485,8 +484,7 @@ class MeuFirebase {
     } else {
       try {
         await culto.reference.update({
-          'disponiveis':
-              FieldValue.arrayUnion([Global.integranteLogado!.reference])
+          'disponiveis': FieldValue.arrayUnion([Global.logadoReference])
         });
         dev.log('Adicionado com Sucesso');
         return true;
@@ -499,8 +497,8 @@ class MeuFirebase {
 
   static Future<bool> definirRestricaoParaOCulto(
       DocumentReference<Culto> reference) async {
-    if (Global.integranteLogado == null) {
-      dev.log('Valores nulos');
+    if (Global.logadoSnapshot == null) {
+      dev.log('Erro: Usuário não está logado');
       return false;
     }
     var culto = await obterSnapshotCulto(reference.id);
@@ -509,13 +507,12 @@ class MeuFirebase {
             .data()!
             .restritos
             ?.map((e) => e.toString())
-            .contains(Global.integranteLogado!.reference.toString()) ??
+            .contains(Global.logadoReference.toString()) ??
         false;
     if (exist) {
       try {
         await culto.reference.update({
-          'restritos':
-              FieldValue.arrayRemove([Global.integranteLogado!.reference])
+          'restritos': FieldValue.arrayRemove([Global.logadoReference])
         });
         dev.log('Removido com Sucesso');
         return true;
@@ -526,8 +523,7 @@ class MeuFirebase {
     } else {
       try {
         await culto.reference.update({
-          'restritos':
-              FieldValue.arrayUnion([Global.integranteLogado!.reference])
+          'restritos': FieldValue.arrayUnion([Global.logadoReference])
         });
         dev.log('Adicionado com Sucesso');
         return true;

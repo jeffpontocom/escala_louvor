@@ -2,54 +2,56 @@ import 'dart:developer' as dev;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:escala_louvor/rotas.dart';
-import 'package:escala_louvor/screens/views/tile_culto.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 
+import '../../widgets/tile_culto.dart';
+import '../home/pagina_canticos.dart';
 import '/functions/metodos_firebase.dart';
-import '/global.dart';
+import '../../../utils/global.dart';
 import '/models/cantico.dart';
 import '/models/culto.dart';
 import '/models/instrumento.dart';
 import '/models/integrante.dart';
-import '/screens/pages/home_canticos.dart';
-import '/screens/views/dialogos.dart';
+import '../../widgets/dialogos.dart';
 import '/utils/mensagens.dart';
 import '/utils/utils.dart';
 
-class ViewCulto extends StatefulWidget {
+class TelaCulto extends StatefulWidget {
   final DocumentReference<Culto> culto;
-  const ViewCulto({Key? key, required this.culto}) : super(key: key);
+  const TelaCulto({Key? key, required this.culto}) : super(key: key);
 
   @override
-  State<ViewCulto> createState() => _ViewCultoState();
+  State<TelaCulto> createState() => _TelaCultoState();
 }
 
-class _ViewCultoState extends State<ViewCulto> {
+class _TelaCultoState extends State<TelaCulto> {
   /* VARIÁVEIS */
   late Culto mCulto;
   late DocumentSnapshot<Culto> mSnapshot;
-  late Integrante mLogado;
+  Integrante? mLogado = Global.logado;
 
   bool get _podeSerEscalado {
-    return mLogado.ehDirigente || mLogado.ehCoordenador || mLogado.ehComponente;
+    return (mLogado?.ehDirigente ?? false) ||
+        (mLogado?.ehCoordenador ?? false) ||
+        (mLogado?.ehComponente ?? false);
   }
 
   bool get _ehODirigente {
     if (mCulto.dirigente == null) {
       return false;
     }
-    return (mCulto.dirigente?.id == Global.integranteLogado?.id);
+    return (mCulto.dirigente?.id == Global.logadoSnapshot?.id);
   }
 
   bool get _ehOCoordenador {
     if (mCulto.coordenador == null) {
       return false;
     }
-    return (mCulto.coordenador?.id == Global.integranteLogado?.id);
+    return (mCulto.coordenador?.id == Global.logadoSnapshot?.id);
   }
 
   /* SISTEMA */
@@ -70,7 +72,6 @@ class _ViewCultoState extends State<ViewCulto> {
           // Conteúdo
           mSnapshot = snapshot.data!;
           mCulto = mSnapshot.data()!;
-          mLogado = Global.integranteLogado!.data()!;
           return Column(
             children: [
               // Cabeçalho
@@ -199,12 +200,9 @@ class _ViewCultoState extends State<ViewCulto> {
   Widget get _buttonDisponibilidade {
     bool alterar = false;
     return StatefulBuilder(builder: (context, setState) {
-      bool escalado =
-          mCulto.usuarioEscalado(Global.integranteLogado?.reference);
-      bool disponivel =
-          mCulto.usuarioDisponivel(Global.integranteLogado?.reference);
-      bool restrito =
-          mCulto.usuarioRestrito(Global.integranteLogado?.reference);
+      bool escalado = mCulto.usuarioEscalado(Global.logadoReference);
+      bool disponivel = mCulto.usuarioDisponivel(Global.logadoReference);
+      bool restrito = mCulto.usuarioRestrito(Global.logadoReference);
       return OutlinedButton(
         onPressed: escalado || restrito
             ? () {}
@@ -309,7 +307,7 @@ class _ViewCultoState extends State<ViewCulto> {
             .copyWith(fontWeight: FontWeight.bold),
       ),
       // Botão de edição (somente para dirigentes e coordenadores)
-      trailing: mLogado.adm || _ehODirigente || _ehOCoordenador
+      trailing: (mLogado?.adm ?? false) || _ehODirigente || _ehOCoordenador
           ? mCulto.dataEnsaio == null
               ? IconButton(
                   onPressed: () => _definirHoraDoEnsaio(),
@@ -364,10 +362,10 @@ class _ViewCultoState extends State<ViewCulto> {
               style: TextStyle(color: Theme.of(context).colorScheme.primary),
             ),
       // Botão de edição (somente para dirigente, coordenadores ou liturgos)
-      trailing: mLogado.adm ||
+      trailing: (mLogado?.adm ?? false) ||
               _ehODirigente ||
               _ehOCoordenador ||
-              mLogado.ehLiturgo
+              (mLogado?.ehLiturgo ?? false)
           ? mCulto.liturgiaUrl == null
               ? IconButton(
                   onPressed: () async {
@@ -415,7 +413,8 @@ class _ViewCultoState extends State<ViewCulto> {
           }
           return ListTile(
             dense: true,
-            tileColor: Colors.orange.withOpacity(0.15),
+            tileColor:
+                Theme.of(context).colorScheme.secondary.withOpacity(0.15),
             shape: UnderlineInputBorder(
               borderSide: BorderSide(color: Colors.grey.withOpacity(0.26)),
             ),
@@ -490,7 +489,7 @@ class _ViewCultoState extends State<ViewCulto> {
                 ),
               ),
               // Botão de edição (somente para recrutadores)
-              mLogado.adm || mLogado.ehRecrutador
+              (mLogado?.adm ?? false) || (mLogado?.ehRecrutador ?? false)
                   ? IconButton(
                       onPressed: funcaoEditar,
                       icon: const Icon(Icons.edit_note,
@@ -545,7 +544,7 @@ class _ViewCultoState extends State<ViewCulto> {
                     // Título
                     Text(titulo.toUpperCase()),
                     // Botão de edição
-                    mLogado.adm || mLogado.ehRecrutador
+                    (mLogado?.adm ?? false) || (mLogado?.ehRecrutador ?? false)
                         ? IconButton(
                             onPressed: funcaoEditar,
                             icon: const Icon(Icons.edit_note,
@@ -586,9 +585,9 @@ class _ViewCultoState extends State<ViewCulto> {
                   color: Colors.grey.withOpacity(0.5),
                 ),
                 borderRadius: BorderRadius.circular(12),
-                color: (Global.integranteLogado != null &&
-                        integrante?.id == Global.integranteLogado?.id)
-                    ? Colors.orange.withOpacity(0.25)
+                color: (Global.logadoSnapshot != null &&
+                        integrante?.id == Global.logadoSnapshot?.id)
+                    ? Theme.of(context).colorScheme.secondary.withOpacity(0.25)
                     : null,
               ),
               // Pilha
@@ -671,9 +670,12 @@ class _ViewCultoState extends State<ViewCulto> {
                       border: Border.all(
                           width: 1, color: Colors.grey.withOpacity(0.5)),
                       borderRadius: BorderRadius.circular(12),
-                      color: (Global.integranteLogado != null &&
-                              integrante?.id == Global.integranteLogado?.id)
-                          ? Colors.orange.withOpacity(0.25)
+                      color: (Global.logadoSnapshot != null &&
+                              integrante?.id == Global.logadoSnapshot?.id)
+                          ? Theme.of(context)
+                              .colorScheme
+                              .secondary
+                              .withOpacity(0.25)
                           : null,
                     ),
                     // Pilha
@@ -769,7 +771,7 @@ class _ViewCultoState extends State<ViewCulto> {
                                             context, canticosUrls);
                                       },
                               ), */
-      subtitle: mLogado.adm || _ehODirigente
+      subtitle: (mLogado?.adm ?? false) || _ehODirigente
           ? Padding(
               padding: EdgeInsets.zero,
               child: Text(
@@ -778,7 +780,7 @@ class _ViewCultoState extends State<ViewCulto> {
               ),
             )
           : null,
-      trailing: mLogado.adm || _ehODirigente
+      trailing: (mLogado?.adm ?? false) || _ehODirigente
           ? IconButton(
               onPressed: () => _adicionarCanticos(),
               icon: const Icon(Icons.edit_note),
@@ -870,7 +872,7 @@ class _ViewCultoState extends State<ViewCulto> {
     return ReorderableListView(
       shrinkWrap: true,
       physics: const NeverScrollableScrollPhysics(),
-      buildDefaultDragHandles: _ehODirigente || mLogado.adm,
+      buildDefaultDragHandles: _ehODirigente || (mLogado?.adm ?? false),
       onReorder: (int old, int current) async {
         dev.log('${old.toString()} | ${current.toString()}');
         // dragging from top to bottom
@@ -921,8 +923,8 @@ class _ViewCultoState extends State<ViewCulto> {
             icon: const Icon(Icons.groups),
           ),
           // Enviar notificação aos escalados
-          (mLogado.adm ||
-                      mLogado.ehRecrutador ||
+          ((mLogado?.adm ?? false) ||
+                      (mLogado?.ehRecrutador ?? false) ||
                       _ehODirigente ||
                       _ehOCoordenador) &&
                   mCulto.equipe?.values != null &&
@@ -995,8 +997,8 @@ class _ViewCultoState extends State<ViewCulto> {
                 )
               : const SizedBox(),
           // Editar evento
-          mLogado.adm ||
-                  mLogado.ehRecrutador ||
+          (mLogado?.adm ?? false) ||
+                  (mLogado?.ehRecrutador ?? false) ||
                   _ehODirigente ||
                   _ehOCoordenador
               ? TextButton.icon(
@@ -1336,7 +1338,7 @@ class _ViewCultoState extends State<ViewCulto> {
       context: context,
       titulo: 'Cânticos do culto',
       icon: Icons.music_note,
-      conteudo: TelaCanticos(culto: mSnapshot),
+      conteudo: PaginaCanticos(culto: mSnapshot),
     );
   }
 

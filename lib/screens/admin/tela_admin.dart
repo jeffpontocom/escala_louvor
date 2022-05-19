@@ -1,20 +1,20 @@
 import 'dart:developer' as dev;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:escala_louvor/screens/views/view_integrante.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 
-import '../functions/metodos_firebase.dart';
-import '../models/igreja.dart';
-import '../models/instrumento.dart';
-import '../models/integrante.dart';
-import '../utils/estilos.dart';
-import '../utils/mensagens.dart';
-import '../utils/utils.dart';
+import '/functions/metodos_firebase.dart';
+import '/models/igreja.dart';
+import '/models/instrumento.dart';
+import '/models/integrante.dart';
+import '../../../deprecated/view_integrante.dart';
+import '../../resources/estilos.dart';
+import '/utils/mensagens.dart';
+import '/utils/utils.dart';
 
-class AdminPage extends StatelessWidget {
-  const AdminPage({Key? key}) : super(key: key);
+class TelaAdmin extends StatelessWidget {
+  const TelaAdmin({Key? key}) : super(key: key);
 
   /* WIDGETS */
   Widget tituloSecao(titulo) {
@@ -26,18 +26,6 @@ class AdminPage extends StatelessWidget {
       ),
     );
   }
-
-  /* Widget _iconeComLegenda(IconData iconData, String legenda) {
-    return Wrap(
-      direction: Axis.vertical,
-      crossAxisAlignment: WrapCrossAlignment.center,
-      spacing: 4,
-      children: [
-        Icon(iconData),
-        Text(legenda),
-      ],
-    );
-  } */
 
   /* DIALOGS */
 

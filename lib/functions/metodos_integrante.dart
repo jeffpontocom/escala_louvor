@@ -3,12 +3,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:intl/intl.dart';
 
+import '../widgets/tile_igreja.dart';
 import 'metodos_firebase.dart';
 import '/models/igreja.dart';
 import '/models/instrumento.dart';
 import '/models/integrante.dart';
-import '/screens/views/tile_igreja.dart';
-import '/utils/medidas.dart';
+import '../resources/medidas.dart';
 import '/utils/mensagens.dart';
 import '/utils/utils.dart';
 

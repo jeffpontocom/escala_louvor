@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:intl/intl.dart';
 
-import '/global.dart';
+import '../screens/secondaries/tela_culto.dart';
+import '../utils/global.dart';
 import '/models/culto.dart';
-import '/screens/views/view_culto.dart';
 import '/utils/mensagens.dart';
 
 class TelaEscalas extends StatefulWidget {
@@ -150,7 +150,7 @@ class _TelaEscalasState extends State<TelaEscalas>
                   children: List.generate(
                     _listaCultos.length,
                     (index) {
-                      return ViewCulto(
+                      return TelaCulto(
                           key: LabeledGlobalKey(_listaCultos[index].id),
                           culto: _listaCultos[index].reference);
                     },
@@ -181,16 +181,15 @@ class _TelaEscalasState extends State<TelaEscalas>
             leading: Container(
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(16),
-                color: culto.usuarioEscalado(Global.integranteLogado?.reference)
+                color: culto.usuarioEscalado(Global.logadoReference)
                     ? Colors.green
-                    : (culto.disponiveis?.map((e) => e.toString()).contains(
-                                Global.integranteLogado?.reference
-                                    .toString()) ??
+                    : (culto.disponiveis
+                                ?.map((e) => e.toString())
+                                .contains(Global.logadoReference.toString()) ??
                             false)
                         ? Colors.blue
                         : (culto.restritos?.map((e) => e.toString()).contains(
-                                    Global.integranteLogado?.reference
-                                        .toString()) ??
+                                    Global.logadoReference.toString()) ??
                                 false)
                             ? Colors.red
                             : Colors.grey.withOpacity(0.5),
