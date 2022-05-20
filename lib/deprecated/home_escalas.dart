@@ -1,4 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+/* import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:escala_louvor/functions/metodos_firebase.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
@@ -152,7 +152,8 @@ class _TelaEscalasState extends State<TelaEscalas>
                     (index) {
                       return TelaCulto(
                           key: LabeledGlobalKey(_listaCultos[index].id),
-                          culto: _listaCultos[index].reference);
+                          id: _listaCultos[index].id,
+                          snapCulto: _listaCultos[index]);
                     },
                     growable: false,
                   ).toList(),
@@ -212,3 +213,4 @@ class _TelaEscalasState extends State<TelaEscalas>
     );
   }
 }
+ */

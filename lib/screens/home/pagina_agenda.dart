@@ -112,7 +112,6 @@ class _PaginaAgendaState extends State<PaginaAgenda> {
                         width: _isPortrait
                             ? constraints.maxWidth
                             : constraints.maxWidth * 0.4 - 1,
-                        //constraints.maxHeight,
                         child: _cabecalho,
                       ),
                       // Divisor
@@ -331,7 +330,9 @@ class _PaginaAgendaState extends State<PaginaAgenda> {
                 : const SizedBox(),
             // Tile do culto
             InkWell(
-              onTap: () {},
+              onTap: () => Modular.to.pushNamed(
+                  '${AppRotas.CULTO}?id=${cultos[index].id}',
+                  arguments: cultos[index]),
               child: TileCulto(culto: culto, reference: reference),
             ),
             // Divisor
@@ -343,15 +344,21 @@ class _PaginaAgendaState extends State<PaginaAgenda> {
   }
 
   Widget cabecalhoDoMes(DateTime data) {
+    String mesAno = DateFormat('MMMM y', 'pt_BR').format(data);
+    var capitalize = mesAno.characters.first.toUpperCase();
+    mesAno = capitalize + mesAno.substring(1);
     return Column(
       children: [
         // Mês e ano
         Padding(
           padding: const EdgeInsets.all(16),
           child: Text(
-            DateFormat.yMMMM('pt_BR').format(data),
+            mesAno,
             textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.titleLarge,
+            style: Theme.of(context)
+                .textTheme
+                .titleLarge
+                ?.copyWith(fontWeight: FontWeight.bold),
           ),
         ),
         // Aniversariantes
@@ -365,7 +372,7 @@ class _PaginaAgendaState extends State<PaginaAgenda> {
                   color: Theme.of(context).colorScheme.primary,
                   borderRadius: const BorderRadius.horizontal(
                       right: Radius.circular(32))),
-              child: const Icon(Icons.cake, color: Colors.white, size: 20),
+              child: const Icon(Icons.cake, size: 20),
             ),
             // Lista
             Container(
@@ -376,6 +383,7 @@ class _PaginaAgendaState extends State<PaginaAgenda> {
                   builder: (context, snapshot) {
                     List<QueryDocumentSnapshot<Integrante>> aniversariantes =
                         [];
+                    // Aguardando
                     if (!snapshot.hasData) {
                       return Container(
                         alignment: Alignment.centerLeft,
@@ -390,6 +398,7 @@ class _PaginaAgendaState extends State<PaginaAgenda> {
                         aniversariantes.add(integrante);
                       }
                     }
+                    // Lista vazia
                     if (aniversariantes.isEmpty) {
                       return Container(
                         alignment: Alignment.centerLeft,
@@ -398,11 +407,16 @@ class _PaginaAgendaState extends State<PaginaAgenda> {
                             style: Theme.of(context).textTheme.caption),
                       );
                     }
-                    return ListView(
+                    // Preenchimento
+                    return ListView.separated(
                       shrinkWrap: true,
                       scrollDirection: Axis.horizontal,
                       physics: const BouncingScrollPhysics(),
-                      children: List.generate(aniversariantes.length, (index) {
+                      itemCount: aniversariantes.length,
+                      separatorBuilder: (context, index) {
+                        return const SizedBox(width: 8);
+                      },
+                      itemBuilder: (context, index) {
                         var dn = aniversariantes[index]
                             .data()
                             .dataNascimento
@@ -415,28 +429,25 @@ class _PaginaAgendaState extends State<PaginaAgenda> {
                               .putIfAbsent(dn, () => 'aniversario');
                         }
                         var hero = data.replaceAll('/', 'm');
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 4),
-                          child: RawChip(
-                            label: Text(data),
-                            avatar: Hero(
-                              tag: hero,
-                              child: CircleAvatar(
-                                foregroundImage: MyNetwork.getImageFromUrl(
-                                        aniversariantes[index].data().fotoUrl)
-                                    ?.image,
-                                child: Text(
-                                    MyStrings.getUserInitials(
-                                        aniversariantes[index].data().nome),
-                                    textScaleFactor: 0.6),
-                              ),
+                        return RawChip(
+                          label: Text(data),
+                          avatar: Hero(
+                            tag: hero,
+                            child: CircleAvatar(
+                              foregroundImage: MyNetwork.getImageFromUrl(
+                                      aniversariantes[index].data().fotoUrl)
+                                  ?.image,
+                              child: Text(
+                                  MyStrings.getUserInitials(
+                                      aniversariantes[index].data().nome),
+                                  textScaleFactor: 0.6),
                             ),
-                            onPressed: () => Modular.to.pushNamed(
-                                '${AppRotas.PERFIL}?id=${aniversariantes[index].id}&hero=$hero',
-                                arguments: aniversariantes[index]),
                           ),
+                          onPressed: () => Modular.to.pushNamed(
+                              '${AppRotas.PERFIL}?id=${aniversariantes[index].id}&hero=$hero',
+                              arguments: aniversariantes[index]),
                         );
-                      }, growable: false),
+                      },
                     );
                   },
                 )),

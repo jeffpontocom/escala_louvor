@@ -102,6 +102,17 @@ class MeuFirebase {
         .snapshots();
   }
 
+  /// Stream Culto específico
+  static Stream<DocumentSnapshot<Culto>>? obterStreamCulto(String id) {
+    return FirebaseFirestore.instance
+        .collection(Culto.collection)
+        .doc(id)
+        .withConverter<Culto>(
+            fromFirestore: (snapshot, _) => Culto.fromJson(snapshot.data()!),
+            toFirestore: (pacote, _) => pacote.toJson())
+        .snapshots();
+  }
+
   /* SNAPSHOTS */
 
   /// Lista de Culto
@@ -197,7 +208,7 @@ class MeuFirebase {
         .get();
   }
 
-  /// Integrante específico
+  /// Stream Integrante específico
   static Stream<DocumentSnapshot<Integrante>>? obterStreamIntegrante(
       String id) {
     return FirebaseFirestore.instance
@@ -295,7 +306,7 @@ class MeuFirebase {
       corpo:
           '${culto.ocasiao}: ${DateFormat("EEE, d/MMM 'às' HH:mm", "pt_BR").format(culto.dataCulto.toDate())}\nVerifique a data de ensaio e estude os cânticos selecionados 😉',
       conteudo: cultoId,
-      pagina: Paginas.escalas.name,
+      pagina: Paginas.equipe.name,
     );
   }
 
@@ -311,7 +322,7 @@ class MeuFirebase {
       corpo:
           '${culto.ocasiao}: ${DateFormat("EEE, d/MMM 'às' HH:mm", "pt_BR").format(culto.dataCulto.toDate())}\nClique aqui para abrir o app do Louvor 😉',
       conteudo: cultoId,
-      pagina: Paginas.escalas.name,
+      pagina: Paginas.equipe.name,
     );
   }
 

@@ -10,6 +10,7 @@ import 'package:intl/intl.dart';
 
 import '../../widgets/tile_culto.dart';
 import '../home/pagina_canticos.dart';
+import '../home/tela_home.dart';
 import '/functions/metodos_firebase.dart';
 import '../../../utils/global.dart';
 import '/models/cantico.dart';
@@ -21,8 +22,11 @@ import '/utils/mensagens.dart';
 import '/utils/utils.dart';
 
 class TelaCulto extends StatefulWidget {
-  final DocumentReference<Culto> culto;
-  const TelaCulto({Key? key, required this.culto}) : super(key: key);
+  final String id;
+  final DocumentSnapshot<Culto>? snapCulto;
+
+  const TelaCulto({Key? key, required this.id, this.snapCulto})
+      : super(key: key);
 
   @override
   State<TelaCulto> createState() => _TelaCultoState();
@@ -33,6 +37,7 @@ class _TelaCultoState extends State<TelaCulto> {
   late Culto mCulto;
   late DocumentSnapshot<Culto> mSnapshot;
   Integrante? mLogado = Global.logado;
+  late bool _isPortrait;
 
   bool get _podeSerEscalado {
     return (mLogado?.ehDirigente ?? false) ||
@@ -57,105 +62,109 @@ class _TelaCultoState extends State<TelaCulto> {
   /* SISTEMA */
   @override
   Widget build(BuildContext context) {
-    return StreamBuilder<DocumentSnapshot<Culto>>(
-        stream: widget.culto.snapshots(),
-        builder: ((context, snapshot) {
-          // Progresso
-          if (!snapshot.hasData) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          // Erro
-          if (snapshot.hasError || snapshot.data?.data() == null) {
-            return const Center(
-                child: Text('Falha ao carregar dados do culto.'));
-          }
-          // Conteúdo
-          mSnapshot = snapshot.data!;
-          mCulto = mSnapshot.data()!;
-          return Column(
-            children: [
-              // Cabeçalho
-              TileCulto(
-                culto: mCulto,
-                reference: mSnapshot.reference,
-              ),
-              /* Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: Row(
-                  children: [
-                    // Dados básicos sobre o culto
-                    Expanded(child: _cultoData),
-                    // Botão de disponibilidade (só aparece para quem pode ser escalado)
-                    _podeSerEscalado
-                        ? _buttonDisponibilidade
-                        : const SizedBox(),
-                  ],
-                ),
-              ), */
-              const Divider(height: 1, color: Colors.grey),
-              // Corpo
-              Expanded(
-                child: Material(
-                  child: ListView(
-                    shrinkWrap: true,
-                    children: [
-                      // Dados sobre o ensaio
-                      _secaoEnsaio,
-                      // Dados sobre a liturgia
-                      _secaoLiturgia,
-                      // Observações (só aparece se houver alguma)
-                      mCulto.obs == null || mCulto.obs!.isEmpty
-                          ? const SizedBox()
-                          : _rowObservacoes,
-                      // Informação sobre a composição da equipe
-                      _secaoOqueFalta,
-                      // Escalados (Responsáveis)
-                      Flex(
-                        direction: Axis.horizontal,
-                        crossAxisAlignment: CrossAxisAlignment.start,
+    return OrientationBuilder(builder: (context, orientation) {
+      _isPortrait = orientation == Orientation.portrait;
+      return Scaffold(
+        appBar: AppBar(
+          leading: BackButton(
+            onPressed: () async {
+              if (!await Modular.to.maybePop()) {
+                Modular.to.pushNamed('/${Paginas.values[0].name}');
+              }
+            },
+          ),
+          title: const Text('Culto'),
+          actions: (mLogado?.adm ?? false) ? [] : null,
+          //elevation: _isPortrait ? 0 : 4,
+        ),
+        body: StreamBuilder<DocumentSnapshot<Culto>>(
+            initialData: widget.snapCulto,
+            stream: MeuFirebase.obterStreamCulto(widget.id),
+            builder: ((context, snapshot) {
+              // Progresso
+              if (!snapshot.hasData) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              // Erro
+              if (snapshot.hasError || snapshot.data?.data() == null) {
+                return const Center(
+                    child: Text('Falha ao carregar dados do culto.'));
+              }
+              // Conteúdo
+              mSnapshot = snapshot.data!;
+              mCulto = mSnapshot.data()!;
+              return Column(
+                children: [
+                  // Cabeçalho
+                  TileCulto(
+                    culto: mCulto,
+                    reference: mSnapshot.reference,
+                  ),
+                  const Divider(height: 1, color: Colors.grey),
+                  // Corpo
+                  Expanded(
+                    child: Material(
+                      child: ListView(
+                        shrinkWrap: true,
                         children: [
-                          // Dirigente
-                          Flexible(
-                            child: _secaoResponsavel(
-                              Funcao.dirigente,
-                              mCulto.dirigente,
-                              () => _escalarResponsavel(Funcao.dirigente),
-                            ),
+                          // Dados sobre o ensaio
+                          _secaoEnsaio,
+                          // Dados sobre a liturgia
+                          _secaoLiturgia,
+                          // Observações (só aparece se houver alguma)
+                          mCulto.obs == null || mCulto.obs!.isEmpty
+                              ? const SizedBox()
+                              : _rowObservacoes,
+                          // Informação sobre a composição da equipe
+                          _secaoOqueFalta,
+                          // Escalados (Responsáveis)
+                          Flex(
+                            direction: Axis.horizontal,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // Dirigente
+                              Flexible(
+                                child: _secaoResponsavel(
+                                  Funcao.dirigente,
+                                  mCulto.dirigente,
+                                  () => _escalarResponsavel(Funcao.dirigente),
+                                ),
+                              ),
+                              // Coordenador
+                              Flexible(
+                                child: _secaoResponsavel(
+                                  Funcao.coordenador,
+                                  mCulto.coordenador,
+                                  () => _escalarResponsavel(Funcao.coordenador),
+                                ),
+                              ),
+                            ],
                           ),
-                          // Coordenador
-                          Flexible(
-                            child: _secaoResponsavel(
-                              Funcao.coordenador,
-                              mCulto.coordenador,
-                              () => _escalarResponsavel(Funcao.coordenador),
-                            ),
+                          // Escalados (Equipe)
+                          _secaoEquipe(
+                            'Equipe',
+                            mCulto.equipe ?? {},
+                            () => _escalarIntegrante(mCulto.equipe),
                           ),
+                          const Divider(height: 16),
+                          // Canticos
+                          _secaoCanticos,
+                          _listaDeCanticos,
+                          const Divider(height: 16),
+                          // Botões de ação
+                          _secaoAcoes,
+                          _listaDeAcoes,
+                          const SizedBox(height: 16),
+                          // Fim da tela
                         ],
                       ),
-                      // Escalados (Equipe)
-                      _secaoEquipe(
-                        'Equipe',
-                        mCulto.equipe ?? {},
-                        () => _escalarIntegrante(mCulto.equipe),
-                      ),
-                      const Divider(height: 16),
-                      // Canticos
-                      _secaoCanticos,
-                      _listaDeCanticos,
-                      const Divider(height: 16),
-                      // Botões de ação
-                      _secaoAcoes,
-                      _listaDeAcoes,
-                      const SizedBox(height: 16),
-                      // Fim da tela
-                    ],
+                    ),
                   ),
-                ),
-              ),
-            ],
-          );
-        }));
+                ],
+              );
+            })),
+      );
+    });
   }
 
   /* WIDGETS */
@@ -211,7 +220,7 @@ class _TelaCultoState extends State<TelaCulto> {
                   alterar = true;
                 });
                 await MeuFirebase.definirDisponibilidadeParaOCulto(
-                    widget.culto);
+                    mSnapshot.reference);
                 setState(() {
                   alterar = false;
                 });
@@ -222,7 +231,8 @@ class _TelaCultoState extends State<TelaCulto> {
                 setState(() {
                   alterar = true;
                 });
-                await MeuFirebase.definirRestricaoParaOCulto(widget.culto);
+                await MeuFirebase.definirRestricaoParaOCulto(
+                    mSnapshot.reference);
                 setState(() {
                   alterar = false;
                 });
@@ -314,7 +324,8 @@ class _TelaCultoState extends State<TelaCulto> {
                   icon: const Icon(Icons.more_time),
                 )
               : IconButton(
-                  onPressed: () => widget.culto.update({'dataEnsaio': null}),
+                  onPressed: () =>
+                      mSnapshot.reference.update({'dataEnsaio': null}),
                   icon: const Icon(Icons.clear),
                 )
           : null,
@@ -337,7 +348,7 @@ class _TelaCultoState extends State<TelaCulto> {
         if (hora == null) return;
         var dataHora = Timestamp.fromDate(
             DateTime(data.year, data.month, data.day, hora.hour, hora.minute));
-        MeuFirebase.definirDataHoraDoEnsaio(widget.culto, dataHora);
+        MeuFirebase.definirDataHoraDoEnsaio(mSnapshot.reference, dataHora);
       });
     });
   }
@@ -372,7 +383,7 @@ class _TelaCultoState extends State<TelaCulto> {
                     String? url = await MeuFirebase.carregarArquivoPdf(context,
                         pasta: 'liturgias');
                     if (url != null && url.isNotEmpty) {
-                      widget.culto.update({'liturgiaUrl': url}).then(
+                      mSnapshot.reference.update({'liturgiaUrl': url}).then(
                           (value) => null, onError: (_) {
                         Mensagem.simples(
                             context: context,
@@ -383,7 +394,8 @@ class _TelaCultoState extends State<TelaCulto> {
                   icon: const Icon(Icons.upload_file),
                 )
               : IconButton(
-                  onPressed: () => widget.culto.update({'liturgiaUrl': null}),
+                  onPressed: () =>
+                      mSnapshot.reference.update({'liturgiaUrl': null}),
                   icon: const Icon(Icons.clear),
                 )
           : null,
@@ -895,7 +907,7 @@ class _TelaCultoState extends State<TelaCulto> {
           lista[current] = startItem;
           mCulto.canticos![current] = startCantico;
         }
-        widget.culto.update({'canticos': mCulto.canticos});
+        mSnapshot.reference.update({'canticos': mCulto.canticos});
       },
       children: lista,
     );
@@ -946,7 +958,7 @@ class _TelaCultoState extends State<TelaCulto> {
                             token: token,
                             igreja: Global.igrejaSelecionada.value?.id ?? '',
                             culto: mCulto,
-                            cultoId: widget.culto.id);
+                            cultoId: mSnapshot.id);
                         dev.log('Dirigente avisado!');
                       }
                       avisados.add(mCulto.dirigente!.id);
@@ -961,7 +973,7 @@ class _TelaCultoState extends State<TelaCulto> {
                             token: token,
                             igreja: Global.igrejaSelecionada.value?.id ?? '',
                             culto: mCulto,
-                            cultoId: widget.culto.id);
+                            cultoId: mSnapshot.id);
                         dev.log('Coordenador avisado!');
                       }
                       avisados.add(mCulto.coordenador!.id);
@@ -978,7 +990,7 @@ class _TelaCultoState extends State<TelaCulto> {
                                 igreja:
                                     Global.igrejaSelecionada.value?.id ?? '',
                                 culto: mCulto,
-                                cultoId: widget.culto.id);
+                                cultoId: mSnapshot.id);
                             dev.log('Integrante ${integrante.id} avisado!');
                           }
                         }
@@ -1005,7 +1017,7 @@ class _TelaCultoState extends State<TelaCulto> {
                   label: const Text('Editar dados do evento'),
                   icon: const Icon(Icons.edit_calendar),
                   onPressed: () => Dialogos.editarCulto(context, mCulto,
-                      reference: widget.culto),
+                      reference: mSnapshot.reference),
                 )
               : const SizedBox(),
         ],
@@ -1216,13 +1228,13 @@ class _TelaCultoState extends State<TelaCulto> {
                 : (value) async {
                     setState(() => loading = true);
                     if (value) {
-                      await widget.culto.update({
+                      await mSnapshot.reference.update({
                         'equipe.${instrumentoRef.reference.id}':
                             FieldValue.arrayUnion(
                                 [integrantesDoInstrumento[index].reference])
                       });
                     } else {
-                      await widget.culto.update({
+                      await mSnapshot.reference.update({
                         'equipe.${instrumentoRef.reference.id}':
                             FieldValue.arrayRemove(
                                 [integrantesDoInstrumento[index].reference])
@@ -1308,13 +1320,15 @@ class _TelaCultoState extends State<TelaCulto> {
                                                 .primary,
                                             onSelected: (value) async {
                                               if (value) {
-                                                await widget.culto.update({
+                                                await mSnapshot.reference
+                                                    .update({
                                                   funcao.name:
                                                       integrante.reference
                                                 });
                                               } else {
-                                                await widget.culto.update(
-                                                    {funcao.name: null});
+                                                await mSnapshot.reference
+                                                    .update(
+                                                        {funcao.name: null});
                                               }
                                               Modular.to
                                                   .pop(); // fecha o dialog
@@ -1456,7 +1470,7 @@ class _TelaCultoState extends State<TelaCulto> {
                                           Global.igrejaSelecionada.value?.id ??
                                               '',
                                       culto: mCulto,
-                                      cultoId: widget.culto.id);
+                                      cultoId: mSnapshot.id);
                                   dev.log('Integrante $id avisado!');
                                 }
                               }

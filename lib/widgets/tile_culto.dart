@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import '../../utils/global.dart';
+import '../resources/animations/shimmer.dart';
 import '/functions/metodos_firebase.dart';
 import '/models/culto.dart';
 import '/models/igreja.dart';
@@ -142,7 +143,17 @@ class TileCulto extends StatelessWidget {
       future: MeuFirebase.obterSnapshotIgreja(culto.igreja.id),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
-          return const SizedBox();
+          var cor = Theme.of(context).chipTheme.backgroundColor ?? Colors.grey;
+          return SizedBox(
+            height: 22,
+            child: Shimmer.fromColors(
+              baseColor: cor.withOpacity(0.5),
+              highlightColor: cor.withOpacity(0.25),
+              child: const RawChip(
+                label: SizedBox(width: 48),
+              ),
+            ),
+          );
         }
         Igreja? igreja = snapshot.data!.data();
         return Chip(
@@ -151,6 +162,7 @@ class TileCulto extends StatelessWidget {
             foregroundImage: MyNetwork.getImageFromUrl(igreja?.fotoUrl)?.image,
           ),
           label: Text(igreja?.sigla ?? ''),
+          labelPadding: const EdgeInsets.only(left: 4, right: 8),
           materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
           visualDensity: VisualDensity.compact,
         );
@@ -164,7 +176,29 @@ class TileCulto extends StatelessWidget {
       future: equipeEscalada(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
-          return const SizedBox();
+          return SizedBox(
+            height: 24,
+            child: Stack(
+              children: List.generate(culto.equipe?.length ?? 0, (index) {
+                int c = (Theme.of(context).brightness == Brightness.dark
+                        ? 90
+                        : 190) +
+                    index * 5;
+                return Padding(
+                  padding: EdgeInsets.only(left: index * 18),
+                  child: CircleAvatar(
+                    radius: 12,
+                    backgroundColor: Theme.of(context).cardColor,
+                    child: Shimmer.fromColors(
+                      baseColor: Color.fromRGBO(c, c, c, 1),
+                      highlightColor: Color.fromRGBO(c, c, c, 0.5),
+                      child: const CircleAvatar(radius: 10),
+                    ),
+                  ),
+                );
+              }).reversed.toList(),
+            ),
+          );
         }
         if (snapshot.data?.isEmpty ?? true) {
           return const Text(
@@ -176,15 +210,17 @@ class TileCulto extends StatelessWidget {
         var escalados = snapshot.data;
         return Stack(
           children: List.generate(escalados?.length ?? 0, (index) {
+            int c =
+                (Theme.of(context).brightness == Brightness.dark ? 90 : 190) +
+                    index * 5;
             return Padding(
               padding: EdgeInsets.only(left: index * 18),
               child: CircleAvatar(
-                radius: 13,
-                backgroundColor: Colors.grey,
+                radius: 12,
+                backgroundColor: Theme.of(context).cardColor,
                 child: CircleAvatar(
-                  radius: 12,
-                  backgroundColor:
-                      Color.fromARGB(255, 255, 190 + index * 10, 0),
+                  radius: 10,
+                  backgroundColor: Color.fromRGBO(c, c, c, 1),
                   foregroundImage:
                       MyNetwork.getImageFromUrl(escalados?[index].fotoUrl)
                           ?.image,

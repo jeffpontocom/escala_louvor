@@ -1,5 +1,6 @@
 // ignore_for_file: constant_identifier_names
 
+import 'package:escala_louvor/screens/home/pagina_igreja.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 
@@ -10,11 +11,11 @@ import 'screens/home/pagina_avisos.dart';
 import 'screens/home/pagina_canticos.dart';
 import 'screens/home/tela_home.dart';
 import 'screens/secondaries/tela_cantico.dart';
+import 'screens/secondaries/tela_culto.dart';
 import 'screens/secondaries/tela_pdf_view.dart';
 import 'screens/secondaries/tela_selecao.dart';
 import 'screens/user/tela_login.dart';
 import 'screens/user/tela_perfil.dart';
-import 'deprecated/home_escalas.dart';
 
 class AppRotas extends Module {
   static const String HOME = '/';
@@ -24,6 +25,7 @@ class AppRotas extends Module {
   static const String ADMIN = '/admin';
   static const String ARQUIVOS = '/arquivos';
   static const String CANTICO = '/cantico';
+  static const String CULTO = '/culto';
 
   @override
   final List<Bind> binds = [];
@@ -33,16 +35,16 @@ class AppRotas extends Module {
     ChildRoute(
       HOME,
       child: (_, args) => const App(),
-      guards: [NotAuthGuard()],
+      guards: [AuthGuard()],
       children: [
-        ChildRoute(
-          '/${Paginas.escalas.name}',
-          child: (context, args) => TelaEscalas(id: args.queryParams['id']),
-          transition: TransitionType.upToDown,
-        ),
         ChildRoute(
           '/${Paginas.agenda.name}',
           child: (context, args) => const PaginaAgenda(),
+          transition: TransitionType.upToDown,
+        ),
+        ChildRoute(
+          '/${Paginas.canticos.name}',
+          child: (context, args) => const PaginaCanticos(),
           transition: TransitionType.upToDown,
         ),
         ChildRoute(
@@ -51,8 +53,8 @@ class AppRotas extends Module {
           transition: TransitionType.upToDown,
         ),
         ChildRoute(
-          '/${Paginas.canticos.name}',
-          child: (context, args) => const PaginaCanticos(),
+          '/${Paginas.equipe.name}',
+          child: (context, args) => const PaginaEquipe(),
           transition: TransitionType.upToDown,
         ),
       ],
@@ -60,7 +62,7 @@ class AppRotas extends Module {
     ChildRoute(
       LOGIN,
       child: (_, __) => const TelaLogin(),
-      guards: [AuthGuard()],
+      guards: [LoginGuard()],
     ),
     ChildRoute(
       CONTEXTO,
@@ -73,29 +75,39 @@ class AppRotas extends Module {
         hero: args.queryParams['hero'],
         snapIntegrante: args.data,
       ),
-      guards: [NotAuthGuard(), HasQueryGuard()],
+      guards: [AuthGuard(), QueryGuard()],
+    ),
+    ChildRoute(
+      CULTO,
+      child: (_, args) => TelaCulto(
+        id: args.queryParams['id'] ?? '',
+        snapCulto: args.data,
+      ),
+      guards: [AuthGuard(), QueryGuard()],
     ),
     ChildRoute(
       ADMIN,
       child: (_, __) => const TelaAdmin(),
-      guards: [NotAuthGuard()],
+      guards: [AuthGuard()],
     ),
     ChildRoute(
       ARQUIVOS,
       child: (_, args) => TelaPdfView(arquivos: args.data),
       transition: TransitionType.downToUp,
+      guards: [AuthGuard()],
     ),
     ChildRoute(
       CANTICO,
       child: (_, args) => TelaLetrasView(canticos: args.data),
       transition: TransitionType.downToUp,
+      guards: [AuthGuard()],
     ),
     WildcardRoute(child: (_, __) => const App()),
   ];
 }
 
-class NotAuthGuard extends RouteGuard {
-  NotAuthGuard() : super(redirectTo: AppRotas.LOGIN);
+class AuthGuard extends RouteGuard {
+  AuthGuard() : super(redirectTo: AppRotas.LOGIN);
 
   @override
   // ignore: avoid_renaming_method_parameters
@@ -104,8 +116,9 @@ class NotAuthGuard extends RouteGuard {
   }
 }
 
-class AuthGuard extends RouteGuard {
-  AuthGuard() : super(redirectTo: '/${Paginas.values[0].name}');
+class LoginGuard extends RouteGuard {
+  //LoginGuard() : super(redirectTo: '/${Paginas.values[0].name}');
+  LoginGuard() : super(redirectTo: Modular.initialRoute);
 
   @override
   // ignore: avoid_renaming_method_parameters
@@ -114,8 +127,9 @@ class AuthGuard extends RouteGuard {
   }
 }
 
-class HasQueryGuard extends RouteGuard {
-  HasQueryGuard() : super(redirectTo: '/${Paginas.values[0].name}');
+class QueryGuard extends RouteGuard {
+  //QueryGuard() : super(redirectTo: '/${Paginas.values[0].name}');
+  QueryGuard() : super(redirectTo: Modular.initialRoute);
 
   @override
   // ignore: avoid_renaming_method_parameters
