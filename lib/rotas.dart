@@ -79,7 +79,7 @@ class AppRotas extends Module {
     ),
     ChildRoute(
       CULTO,
-      child: (_, args) => TelaCulto(
+      child: (_, args) => TelaDetalhesEscala(
         id: args.queryParams['id'] ?? '',
         snapCulto: args.data,
       ),

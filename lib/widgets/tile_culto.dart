@@ -72,7 +72,7 @@ class TileCulto extends StatelessWidget {
       ),
       //const SizedBox(width: 16),
       // Coluna 2: Botão
-      Container(child: botaoDisponibilidade),
+      Container(child: _podeSerEscalado ? botaoDisponibilidade : null),
     ]);
   }
 
@@ -281,8 +281,11 @@ class TileCulto extends StatelessWidget {
     return culto.obs != null && culto.obs!.isNotEmpty
         ? Tooltip(
             message: 'Possui ponto de atenção!',
-            child: Icon(Icons.report,
-                color: Theme.of(context).colorScheme.secondary, size: 20),
+            child: Icon(
+              Icons.report,
+              size: 16,
+              color: Theme.of(context).colorScheme.secondary,
+            ),
           )
         : const SizedBox();
   }
@@ -291,8 +294,9 @@ class TileCulto extends StatelessWidget {
   get canticos {
     return Row(
       mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Icon(Icons.library_music, size: 20),
+        const Icon(Icons.library_music, size: 16, color: Colors.grey),
         const SizedBox(width: 4),
         Text(
           culto.canticos?.length.toString() ?? '0',
@@ -377,4 +381,10 @@ class TileCulto extends StatelessWidget {
       );
     });
   }
+
+  /// Usuário pode ser escalado
+  bool get _podeSerEscalado =>
+      (Global.logado?.ehDirigente ?? false) ||
+      (Global.logado?.ehCoordenador ?? false) ||
+      (Global.logado?.ehComponente ?? false);
 }

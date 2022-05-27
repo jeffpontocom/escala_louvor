@@ -22,25 +22,26 @@ class PaginaAgenda extends StatefulWidget {
 }
 
 class _PaginaAgendaState extends State<PaginaAgenda> {
-  //Integrante get logado => Global.logadoSnapshot!.data()!;
-  bool get _podeSerEscalado =>
-      (Global.logado?.ehDirigente ?? false) ||
-      (Global.logado?.ehCoordenador ?? false) ||
-      (Global.logado?.ehComponente ?? false);
+  /* VARIÁVEIS */
 
-  ///
-  List<QueryDocumentSnapshot<Culto>> cultos = [];
-  final agora = DateTime.now();
-  var formato = CalendarFormat.month;
-  late DateTime sDiaSelecionado;
-  late DateTime sDiaEmFoco;
+  /// Modo da interface
   bool _isPortrait = true;
 
-  /// Notificador para calendário
+  /// Lista de cultos
+  List<QueryDocumentSnapshot<Culto>> cultos = [];
+
+  // Variáveis para calendário
+  final DateTime agora = DateTime.now();
+  late DateTime sDiaSelecionado;
+  late DateTime sDiaEmFoco;
+
+  /// Notificador de eventos para calendário
   final ValueNotifier<Map<DateTime, String>> meusEventos = ValueNotifier({});
 
   /// Notificador para lista de eventos
   late ValueNotifier<DateTime?> mesCorrente = ValueNotifier(null);
+
+  /* MÉTODOS */
 
   /// Define o mês corrente
   void _setMesCorrente(DateTime dia) {
@@ -52,6 +53,8 @@ class _PaginaAgendaState extends State<PaginaAgenda> {
       (dia1.year == dia2.year) &&
       (dia1.month == dia2.month) &&
       (dia1.day == dia2.day);
+
+  /* SISTEMA */
 
   @override
   void initState() {
@@ -104,7 +107,7 @@ class _PaginaAgendaState extends State<PaginaAgenda> {
                   _isPortrait = orientation == Orientation.portrait;
                   return LayoutBuilder(builder: (context, constraints) {
                     return Wrap(children: [
-                      // Lado Esquerdo == Topo
+                      // Topo (retrato) | Esquerda (paisagem)
                       SizedBox(
                         height: _isPortrait
                             ? kMinInteractiveDimension + 1
@@ -114,7 +117,7 @@ class _PaginaAgendaState extends State<PaginaAgenda> {
                             : constraints.maxWidth * 0.4 - 1,
                         child: _cabecalho,
                       ),
-                      // Divisor
+                      // Divisor (apenas em modo paisagem)
                       _isPortrait
                           ? const SizedBox()
                           : Container(
@@ -122,7 +125,7 @@ class _PaginaAgendaState extends State<PaginaAgenda> {
                               width: 1,
                               color: Colors.grey,
                             ),
-                      // Lado direito == Base
+                      // Base (retrato) | Direita (paisagem)
                       SizedBox(
                         height: _isPortrait
                             ? constraints.maxHeight -
@@ -131,7 +134,6 @@ class _PaginaAgendaState extends State<PaginaAgenda> {
                         width: _isPortrait
                             ? constraints.maxWidth
                             : constraints.maxWidth * 0.6,
-                        //constraints.maxWidth - constraints.maxHeight - 1,
                         child: _dados,
                       ),
                     ]);
@@ -144,8 +146,9 @@ class _PaginaAgendaState extends State<PaginaAgenda> {
   get _cabecalho {
     return Column(children: [
       // Ações
-      Padding(
+      Container(
         padding: const EdgeInsets.symmetric(horizontal: 16),
+        color: Colors.grey.withOpacity(0.1),
         child: Row(
           children: [
             // Botão Novo Culto
@@ -194,7 +197,7 @@ class _PaginaAgendaState extends State<PaginaAgenda> {
         ),
       ),
       const Divider(height: 1),
-      // Calendário
+      // Calendário (apresenta apenas no modo paisagem)
       _isPortrait
           ? const SizedBox()
           : Expanded(

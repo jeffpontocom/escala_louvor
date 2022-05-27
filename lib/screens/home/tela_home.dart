@@ -36,9 +36,9 @@ Icon paginaIcone(int index) {
     case Paginas.agenda:
       return const Icon(Icons.today);
     case Paginas.canticos:
-      return const Icon(Icons.campaign);
-    case Paginas.avisos:
       return const Icon(Icons.music_note);
+    case Paginas.avisos:
+      return const Icon(Icons.campaign);
     case Paginas.equipe:
       return const Icon(Icons.groups);
   }
@@ -164,7 +164,7 @@ class _HomeState extends State<Home> {
     );
   }
 
-  /// Bottom Navigation
+  /// Bottom Navigation (para modo retrato)
   get bottomNavigation {
     return ValueListenableBuilder<int>(
       valueListenable: _pagina,
@@ -192,6 +192,7 @@ class _HomeState extends State<Home> {
     );
   }
 
+  /// Rail Navigation (para modo paisagem)
   get railNavigation {
     return ValueListenableBuilder<int>(
       valueListenable: _pagina,
@@ -216,6 +217,7 @@ class _HomeState extends State<Home> {
     );
   }
 
+  /// FAB - Floating Action Button
   get floatButton {
     return FloatingActionButton(
       backgroundColor: Theme.of(context).colorScheme.primary,

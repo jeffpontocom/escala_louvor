@@ -24,6 +24,11 @@ class PaginaCanticos extends StatefulWidget {
 }
 
 class _PaginaCanticosState extends State<PaginaCanticos> {
+  /* VARIÁVEIS */
+
+  /// Modo da interface
+  bool _isPortrait = true;
+
   Integrante? logado = Global.logado;
   bool? somenteHinos;
   List<DocumentReference<Cantico>>? _selecionados;

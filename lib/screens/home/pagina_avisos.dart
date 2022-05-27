@@ -22,12 +22,8 @@ class PaginaAvisos extends StatelessWidget {
                 ),
               ),
               // Informação
-              const Text(
-                'Chats para os cultos/eventos em que você está escalado.\n',
-                textAlign: TextAlign.center,
-              ),
               Text(
-                'Em breve!',
+                'Nenhum aviso recente!',
                 textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.titleLarge,
               ),

@@ -306,7 +306,7 @@ class MeuFirebase {
       corpo:
           '${culto.ocasiao}: ${DateFormat("EEE, d/MMM 'às' HH:mm", "pt_BR").format(culto.dataCulto.toDate())}\nVerifique a data de ensaio e estude os cânticos selecionados 😉',
       conteudo: cultoId,
-      pagina: Paginas.equipe.name,
+      pagina: AppRotas.CULTO,
     );
   }
 
@@ -322,7 +322,7 @@ class MeuFirebase {
       corpo:
           '${culto.ocasiao}: ${DateFormat("EEE, d/MMM 'às' HH:mm", "pt_BR").format(culto.dataCulto.toDate())}\nClique aqui para abrir o app do Louvor 😉',
       conteudo: cultoId,
-      pagina: Paginas.equipe.name,
+      pagina: AppRotas.CULTO,
     );
   }
 

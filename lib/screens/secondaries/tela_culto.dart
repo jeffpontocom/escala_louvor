@@ -21,18 +21,18 @@ import '../../widgets/dialogos.dart';
 import '/utils/mensagens.dart';
 import '/utils/utils.dart';
 
-class TelaCulto extends StatefulWidget {
+class TelaDetalhesEscala extends StatefulWidget {
   final String id;
   final DocumentSnapshot<Culto>? snapCulto;
 
-  const TelaCulto({Key? key, required this.id, this.snapCulto})
+  const TelaDetalhesEscala({Key? key, required this.id, this.snapCulto})
       : super(key: key);
 
   @override
-  State<TelaCulto> createState() => _TelaCultoState();
+  State<TelaDetalhesEscala> createState() => _TelaDetalhesEscalaState();
 }
 
-class _TelaCultoState extends State<TelaCulto> {
+class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
   /* VARIÁVEIS */
   late Culto mCulto;
   late DocumentSnapshot<Culto> mSnapshot;
@@ -73,7 +73,7 @@ class _TelaCultoState extends State<TelaCulto> {
               }
             },
           ),
-          title: const Text('Culto'),
+          title: const Text('Detalhes da escala'),
           actions: (mLogado?.adm ?? false) ? [] : null,
           //elevation: _isPortrait ? 0 : 4,
         ),
