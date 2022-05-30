@@ -145,6 +145,7 @@ class App extends StatelessWidget {
                 valueListenable: Global.igrejaSelecionada,
                 child: const TelaContexto(),
                 builder: (context, igreja, child) {
+                  dev.log('Igreja: ${igreja?.id}');
                   if (igreja == null) {
                     return child!;
                   }

@@ -36,6 +36,14 @@ class Global {
       preferences?.getBool('mostrar_todos_cultos') ?? false;
   static set mostrarTodosOsCultos(bool value) {
     preferences?.setBool('mostrar_todos_cultos', value);
+    notificarAlteracaoEmIgrejas();
+  }
+
+  static void notificarAlteracaoEmIgrejas() {
+    meusFiltros.value.igrejas = mostrarTodosOsCultos
+        ? logado?.igrejas
+        : [igrejaSelecionada.value?.reference];
+    meusFiltros.notifyListeners();
   }
 
   /* MÉTODOS  */

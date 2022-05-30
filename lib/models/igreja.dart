@@ -20,14 +20,14 @@ class Igreja {
     this.ativo = true,
   });
 
-  Igreja.fromJson(Map<String, Object?> json)
+  Igreja.fromJson(Map<String, Object?>? json)
       : this(
-          sigla: (json['sigla'] ?? '[NOVA]') as String,
-          nome: (json['nome'] ?? '[Nova Igreja]') as String,
-          fotoUrl: (json['fotoUrl']) as String?,
-          endereco: (json['endereco']) as String?,
-          responsavel: _getResponsavel(json['responsavel']),
-          ativo: (json['ativo'] ?? true) as bool,
+          sigla: (json?['sigla'] ?? '[NOVA]') as String,
+          nome: (json?['nome'] ?? '[Nova Igreja]') as String,
+          fotoUrl: (json?['fotoUrl']) as String?,
+          endereco: (json?['endereco']) as String?,
+          responsavel: _getResponsavel(json?['responsavel']),
+          ativo: (json?['ativo'] ?? true) as bool,
         );
 
   Map<String, Object?> toJson() {

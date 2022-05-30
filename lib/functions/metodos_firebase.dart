@@ -221,6 +221,17 @@ class MeuFirebase {
         .snapshots();
   }
 
+  /// Stream Igreja específica
+  static Stream<DocumentSnapshot<Igreja>>? obterStreamIgreja(String id) {
+    return FirebaseFirestore.instance
+        .collection(Igreja.collection)
+        .doc(id)
+        .withConverter<Igreja>(
+            fromFirestore: (snapshot, _) => Igreja.fromJson(snapshot.data()!),
+            toFirestore: (pacote, _) => pacote.toJson())
+        .snapshots();
+  }
+
   /// Igreja específica
   static Future<DocumentSnapshot<Igreja>?> obterSnapshotIgreja(
       String? id) async {

@@ -187,11 +187,12 @@ class _TelaContextoState extends State<TelaContexto> {
                           mensagem: 'Alterando contexto...',
                         );
                         String? id = inscritas[index].reference.id;
-                        Global.igreja = id;
-                        Global.igrejaSelecionada.value =
-                            await MeuFirebase.obterSnapshotIgreja(id);
+                        var igreja = await MeuFirebase.obterSnapshotIgreja(id);
                         Modular.to.pop(); // fecha progresso
                         Modular.to.maybePop(true); // fecha dialog
+                        Global.igreja = id;
+                        Global.igrejaSelecionada.value = igreja;
+                        Global.notificarAlteracaoEmIgrejas();
                       },
                       child: Container(
                         padding: const EdgeInsets.all(16),
@@ -263,10 +264,6 @@ class _TelaContextoState extends State<TelaContexto> {
         setState(() {
           Global.mostrarTodosOsCultos = value!;
         });
-        Global.meusFiltros.value.igrejas = Global.mostrarTodosOsCultos
-            ? Global.logado?.igrejas
-            : [Global.igrejaSelecionada.value?.reference];
-        Global.meusFiltros.notifyListeners();
       },
       activeColor: Theme.of(context).colorScheme.secondary,
       title: const Text(
