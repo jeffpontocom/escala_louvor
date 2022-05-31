@@ -105,13 +105,6 @@ flutter:
     - family: Offside
       fonts:
         - asset: assets/fonts/Offside-Regular.ttf
-    - family: OpenSans
-      fonts:
-        - asset: assets/fonts/OpenSans-Regular.ttf
-        - asset: assets/fonts/OpenSans-Bold.ttf
-          weight: 700
-        - asset: assets/fonts/OpenSans-Light.ttf
-          weight: 300
     - family: OpenSansSemiCondensed
       fonts:
         - asset: assets/fonts/OpenSans_SemiCondensed-Regular.ttf
