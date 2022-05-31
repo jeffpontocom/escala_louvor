@@ -20,13 +20,13 @@ String paginaNome(int index) {
   var pagina = Paginas.values[index];
   switch (pagina) {
     case Paginas.agenda:
-      return 'Agenda';
+      return 'Agenda de cultos';
     case Paginas.canticos:
-      return 'Cânticos';
+      return 'Repertório musical';
     case Paginas.avisos:
-      return 'Avisos';
+      return 'Avisos importantes';
     case Paginas.equipe:
-      return 'Equipe';
+      return 'Nossa equipe';
   }
 }
 
@@ -117,11 +117,16 @@ class _HomeState extends State<Home> {
   get appBar {
     return AppBar(
       // Ícone da aplicação
-      leading: Padding(
+      /* leading: Padding(
           padding: const EdgeInsets.all(12),
-          child: Image.asset('assets/icons/ic_launcher.png')),
+          child: Image.asset('assets/icons/ic_launcher.png')), */
       // Título da aplicação
-      title: Text(Global.nomeDoApp),
+      title: ValueListenableBuilder<int>(
+          valueListenable: _pagina,
+          builder: (context, pagina, _) {
+            return Text(paginaNome(pagina));
+          }),
+      centerTitle: false,
       elevation: _isPortrait ? null : 0,
       // Ações
       actions: [
@@ -181,6 +186,7 @@ class _HomeState extends State<Home> {
             currentIndex: pagina,
             selectedItemColor: Colors.blue,
             unselectedItemColor: Colors.grey.withOpacity(0.5),
+            showSelectedLabels: false,
             type: BottomNavigationBarType.shifting,
             landscapeLayout: BottomNavigationBarLandscapeLayout.centered,
             onTap: (index) {

@@ -15,7 +15,6 @@ import 'package:http/http.dart' as http;
 import 'package:http/http.dart';
 import 'package:intl/intl.dart';
 
-import '../screens/home/tela_home.dart';
 import '../utils/utils.dart';
 import 'notificacoes.dart';
 import '../utils/global.dart';

@@ -5,7 +5,7 @@ class Temas {
   static ThemeData _base(Brightness brightness) {
     return ThemeData(
       brightness: brightness,
-      fontFamily: 'Ubuntu',
+      fontFamily: 'OpenSansSemiCondensed',
       primarySwatch: Colors.blue,
       materialTapTargetSize: kIsWeb ? MaterialTapTargetSize.padded : null,
       dividerTheme: const DividerThemeData(space: 4),

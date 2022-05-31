@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 
 import '../../functions/metodos_firebase.dart';
 import '../../models/igreja.dart';
-import '../../models/integrante.dart';
 import '../../utils/utils.dart';
 
 class PaginaEquipe extends StatefulWidget {
@@ -54,7 +53,7 @@ class _PaginaEquipeState extends State<PaginaEquipe> {
                 // Cabeçalho
                 Material(
                   elevation: _isPortrait ? 4 : 0,
-                  color: Theme.of(context).primaryColor,
+                  color: Theme.of(context).colorScheme.background,
                   child: Container(
                     height: _isPortrait
                         ? constraints.maxHeight * 0.35
@@ -111,7 +110,6 @@ class _PaginaEquipeState extends State<PaginaEquipe> {
           _igreja.sigla,
           textAlign: TextAlign.center,
           style: const TextStyle(
-            color: Colors.white,
             fontFamily: 'Offside',
             fontSize: 22,
             fontWeight: FontWeight.bold,
@@ -122,16 +120,16 @@ class _PaginaEquipeState extends State<PaginaEquipe> {
         Text(
           _igreja.nome,
           textAlign: TextAlign.center,
-          style: TextStyle(color: Colors.white.withOpacity(0.5)),
+          style: const TextStyle(color: Colors.grey, fontSize: 16),
         ),
         const SizedBox(height: 16),
         // Mapa
         _igreja.endereco == null || _igreja.endereco!.isEmpty
             ? const Text('Sem endereço cadastrado')
             : ActionChip(
-                avatar: const Icon(Icons.map),
-                label: const Text('Mapa'),
-                backgroundColor: Theme.of(context).colorScheme.primary,
+                avatar: const Icon(Icons.place, size: 20),
+                label: const Text('Localização'),
+                elevation: 0,
                 onPressed: () {
                   MyActions.openGoogleMaps(street: _igreja.endereco ?? '');
                 }),
@@ -159,13 +157,9 @@ class _PaginaEquipeState extends State<PaginaEquipe> {
     return ListView(
       shrinkWrap: true,
       children: [
-        //_tileFuncoes,
+        // Filtros de função
         const Divider(height: 12),
-        //_tileInstrumentos,
-        const Divider(height: 12),
-        //_tileIgrejas,
-        const Divider(height: 12),
-        //_tileObservacoes,
+        // Integrantes,
       ],
     );
   }

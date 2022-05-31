@@ -99,7 +99,7 @@ class TileCulto extends StatelessWidget {
   get ocasiao {
     return Text(
       culto.ocasiao ?? '',
-      style: const TextStyle(fontWeight: FontWeight.bold),
+      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
     );
   }
 
@@ -110,11 +110,11 @@ class TileCulto extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Icon(Icons.today, size: 20),
+        const Icon(Icons.today, size: 18),
         const SizedBox(width: 4),
         Text(
           diaMes,
-          style: const TextStyle(fontSize: 15),
+          style: const TextStyle(fontSize: 18),
         ),
       ],
     );
@@ -127,11 +127,11 @@ class TileCulto extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        const Icon(Icons.access_time, size: 20),
+        const Icon(Icons.access_time, size: 18),
         const SizedBox(width: 4),
         Text(
           hora,
-          style: const TextStyle(fontSize: 15),
+          style: const TextStyle(fontSize: 18),
         ),
       ],
     );
@@ -331,7 +331,8 @@ class TileCulto extends StatelessWidget {
                 await MeuFirebase.definirRestricaoParaOCulto(reference);
               },
         style: OutlinedButton.styleFrom(
-          maximumSize: const Size.fromWidth(92),
+          //maximumSize: const Size.fromWidth(92),
+          fixedSize: const Size(92, 92),
           padding: const EdgeInsets.all(12),
           shape: const RoundedRectangleBorder(
               borderRadius: BorderRadius.horizontal(left: Radius.circular(8))),
@@ -350,8 +351,8 @@ class TileCulto extends StatelessWidget {
             alterar
                 ? const Center(
                     child: SizedBox.square(
-                      dimension: 36,
-                      child: CircularProgressIndicator(),
+                      dimension: 32,
+                      child: CircularProgressIndicator(strokeWidth: 2),
                     ),
                   )
                 : Image.asset(
@@ -362,16 +363,16 @@ class TileCulto extends StatelessWidget {
                             : restrito
                                 ? 'assets/icons/ic_restrito.png'
                                 : 'assets/icons/ic_indeciso.png',
-                    height: 36,
+                    height: 32,
                   ),
             const SizedBox(height: 4),
             Text(
               escalado
-                  ? 'Estou escalado'
+                  ? 'Estou ESCALADO'
                   : disponivel
-                      ? 'Estou disponível'
+                      ? 'Estou DISPONÍVEL'
                       : restrito
-                          ? 'Estou restrito'
+                          ? 'Estou RESTRITO'
                           : 'Ainda não decidi',
               textAlign: TextAlign.center,
               softWrap: true,
