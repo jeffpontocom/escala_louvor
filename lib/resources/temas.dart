@@ -5,7 +5,7 @@ class Temas {
   static ThemeData _base(Brightness brightness) {
     return ThemeData(
       brightness: brightness,
-      fontFamily: 'OpenSansSemiCondensed',
+      fontFamily: 'Ubuntu',
       primarySwatch: Colors.blue,
       materialTapTargetSize: kIsWeb ? MaterialTapTargetSize.padded : null,
       dividerTheme: const DividerThemeData(space: 4),
@@ -41,6 +41,9 @@ class Temas {
           shape:
               RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
         ),
+      ),
+      chipTheme: const ChipThemeData(
+        labelPadding: EdgeInsets.only(left: 4, right: 8),
       ),
       // Inputs
       inputDecorationTheme: InputDecorationTheme(

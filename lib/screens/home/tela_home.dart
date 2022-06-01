@@ -11,8 +11,8 @@ import '/utils/utils.dart';
 
 enum Paginas {
   agenda,
-  canticos,
   avisos,
+  canticos,
   equipe,
 }
 
@@ -21,10 +21,10 @@ String paginaNome(int index) {
   switch (pagina) {
     case Paginas.agenda:
       return 'Agenda de cultos';
-    case Paginas.canticos:
-      return 'Repertório musical';
     case Paginas.avisos:
       return 'Avisos importantes';
+    case Paginas.canticos:
+      return 'Repertório musical';
     case Paginas.equipe:
       return 'Nossa equipe';
   }
@@ -35,10 +35,10 @@ Icon paginaIcone(int index) {
   switch (pagina) {
     case Paginas.agenda:
       return const Icon(Icons.today);
-    case Paginas.canticos:
-      return const Icon(Icons.music_note);
     case Paginas.avisos:
       return const Icon(Icons.campaign);
+    case Paginas.canticos:
+      return const Icon(Icons.music_note);
     case Paginas.equipe:
       return const Icon(Icons.groups);
   }

@@ -1,5 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:escala_louvor/models/integrante.dart';
 import 'package:escala_louvor/utils/global.dart';
+import 'package:escala_louvor/widgets/tile_integrante.dart';
 import 'package:flutter/material.dart';
 
 import '../../functions/metodos_firebase.dart';
@@ -17,6 +19,7 @@ class _PaginaEquipeState extends State<PaginaEquipe> {
   /* VARIÁVEIS */
   late bool _isPortrait;
   late Igreja _igreja;
+  ValueNotifier<Funcao?> filtroFuncao = ValueNotifier(null);
 
   @override
   Widget build(BuildContext context) {
@@ -52,7 +55,7 @@ class _PaginaEquipeState extends State<PaginaEquipe> {
               children: [
                 // Cabeçalho
                 Material(
-                  elevation: _isPortrait ? 4 : 0,
+                  //elevation: _isPortrait ? 4 : 0,
                   color: Theme.of(context).colorScheme.background,
                   child: Container(
                     height: _isPortrait
@@ -144,8 +147,6 @@ class _PaginaEquipeState extends State<PaginaEquipe> {
       child: CircleAvatar(
         maxRadius: 128,
         minRadius: 12,
-        backgroundColor:
-            Theme.of(context).colorScheme.onPrimary.withOpacity(0.5),
         foregroundImage: MyNetwork.getImageProvider(_igreja.fotoUrl),
         child: const Icon(Icons.church),
       ),
@@ -154,13 +155,93 @@ class _PaginaEquipeState extends State<PaginaEquipe> {
 
   /// Dados
   get _dados {
-    return ListView(
-      shrinkWrap: true,
-      children: [
-        // Filtros de função
-        const Divider(height: 12),
-        // Integrantes,
-      ],
-    );
+    return ValueListenableBuilder<Funcao?>(
+        valueListenable: filtroFuncao,
+        builder: (context, funcao, _) {
+          String filtro =
+              funcao == null ? 'Equipe completa' : funcaoGetString(funcao);
+          return StreamBuilder<QuerySnapshot<Integrante>>(
+            stream: MeuFirebase.obterListaIntegrantes(
+                    ativo: true, funcao: filtroFuncao.value?.index)
+                .asStream(),
+            builder: (context, snapshot) {
+              int total = snapshot.data?.size ?? 0;
+              return Column(
+                children: [
+                  // Progress indicator
+                  snapshot.connectionState == ConnectionState.waiting
+                      ? const LinearProgressIndicator()
+                      : const SizedBox(),
+
+                  // Filtros de função
+                  Row(
+                    children: [
+                      const SizedBox(width: 16),
+                      // Filtro
+                      const Icon(Icons.filter_alt),
+                      const SizedBox(width: 4),
+                      DropdownButton<Funcao?>(
+                          value: funcao,
+                          underline: const SizedBox(),
+                          items: [
+                            const DropdownMenuItem(
+                              value: null,
+                              child: Text('Todos'),
+                            ),
+                            DropdownMenuItem(
+                              value: Funcao.dirigente,
+                              child: Text(funcaoGetString(Funcao.dirigente)),
+                            ),
+                            DropdownMenuItem(
+                              value: Funcao.coordenador,
+                              child: Text(funcaoGetString(Funcao.coordenador)),
+                            ),
+                            DropdownMenuItem(
+                              value: Funcao.recrutador,
+                              child: Text(funcaoGetString(Funcao.recrutador)),
+                            ),
+                            DropdownMenuItem(
+                              value: Funcao.liturgo,
+                              child: Text(funcaoGetString(Funcao.liturgo)),
+                            ),
+                            DropdownMenuItem(
+                              value: Funcao.membro,
+                              child: Text(funcaoGetString(Funcao.membro)),
+                            ),
+                          ],
+                          onChanged: (value) {
+                            filtroFuncao.value = value;
+                          }),
+                      //
+                      const Expanded(child: SizedBox()),
+                      Text(
+                        snapshot.connectionState == ConnectionState.waiting
+                            ? 'Carregando lista...'
+                            : '$total MEMBROS ATIVOS',
+                        style:
+                            const TextStyle(color: Colors.grey, fontSize: 13),
+                      ),
+                      const SizedBox(width: 16),
+                    ],
+                  ),
+                  const Divider(height: 1),
+                  // Integrantes,
+                  Expanded(
+                    child: snapshot.hasData
+                        ? ListView.builder(
+                            shrinkWrap: true,
+                            itemCount: total,
+                            itemBuilder: (context, index) {
+                              var snap = snapshot.data!.docs[index];
+                              return TileIntegrante(snapshot: snap);
+                            },
+                          )
+                        : const Center(child: CircularProgressIndicator()),
+                  ),
+                ],
+              );
+            },
+          );
+        });
   }
 }

@@ -164,7 +164,7 @@ class MeuFirebase {
 
   /// Lista de Integrantes
   static Future<QuerySnapshot<Integrante>> obterListaIntegrantes(
-      {required bool ativo, int? funcao, DocumentReference? igreja}) async {
+      {required bool ativo, int? funcao}) async {
     return FirebaseFirestore.instance
         .collection(Integrante.collection)
         .where('ativo', isEqualTo: ativo)

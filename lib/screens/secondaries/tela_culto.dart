@@ -99,6 +99,7 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
                   TileCulto(
                     culto: mCulto,
                     reference: mSnapshot.reference,
+                    theme: Theme.of(context),
                   ),
                   const Divider(height: 1, color: Colors.grey),
                   // Corpo
@@ -366,7 +367,7 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
       title: mCulto.liturgiaUrl == null
           ? Text(
               'Nenhum arquivo carregado',
-              style: Theme.of(context).textTheme.caption,
+              style: Theme.of(context).textTheme.bodySmall,
             )
           : Text(
               'Abrir documento',
@@ -1166,6 +1167,8 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
       if (integrantesDoInstrumento.isEmpty) {
         return const [Text('Ninguém disponivel!')];
       }
+      dev.log(
+          'integrantesDoInstrumento ${instrumentoRef.data().nome} : ${integrantesDoInstrumento.length}');
       // Lista de integrantes disponíveis
       return List.generate(integrantesDoInstrumento.length, (index) {
         bool loading = false;
@@ -1174,6 +1177,7 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
               integrantesDoInstrumento[index].reference.toString();
           var nomeSplit =
               integrantesDoInstrumento[index].data().nome.split(' ');
+          dev.log(nomeSplit.toSet().toString());
           var nomeCurto = '${nomeSplit.first} ${nomeSplit.last[0]}.';
           // Verifica se integrante está recrutado para o instrumento
           bool selected = mCulto.equipe?[instrumentoRef.reference.id]

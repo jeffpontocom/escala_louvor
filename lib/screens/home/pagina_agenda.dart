@@ -1,18 +1,19 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:escala_louvor/rotas.dart';
+import 'package:escala_louvor/widgets/avatar_integrante.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 
-import '../../widgets/tile_culto.dart';
+import '/rotas.dart';
 import '/functions/metodos_firebase.dart';
-import '../../../utils/global.dart';
 import '/models/culto.dart';
 import '/models/integrante.dart';
-import '../../widgets/dialogos.dart';
+import '/utils/global.dart';
 import '/utils/mensagens.dart';
 import '/utils/utils.dart';
+import '/widgets/dialogos.dart';
+import '/widgets/tile_culto.dart';
 
 class PaginaAgenda extends StatefulWidget {
   const PaginaAgenda({Key? key}) : super(key: key);
@@ -148,14 +149,13 @@ class _PaginaAgendaState extends State<PaginaAgenda> {
       // Ações
       Container(
         padding: const EdgeInsets.symmetric(horizontal: 16),
-        color: Colors.grey.withOpacity(0.1),
         child: Row(
           children: [
             // Botão Novo Culto
             ((Global.logado?.adm ?? false) ||
                     (Global.logado?.ehRecrutador ?? false))
                 ? ActionChip(
-                    avatar: const Icon(Icons.add),
+                    avatar: const Icon(Icons.add, size: 20),
                     label: const Text('Novo'),
                     backgroundColor: Theme.of(context).colorScheme.primary,
                     onPressed: () {
@@ -178,21 +178,34 @@ class _PaginaAgendaState extends State<PaginaAgenda> {
                 : const SizedBox(),
             const Expanded(child: SizedBox(height: kMinInteractiveDimension)),
             // Botão Filtro
-            ActionChip(
-                avatar: const Icon(Icons.filter_alt),
-                label: Text(Global.meusFiltros.value.dataMaxima == null
-                    ? 'Próximos'
-                    : 'Passados'),
-                onPressed: () {
-                  if (Global.meusFiltros.value.dataMaxima == null) {
-                    Global.meusFiltros.value.dataMaxima = DateTime.now();
-                    Global.meusFiltros.value.dataMinima = null;
-                  } else {
-                    Global.meusFiltros.value.dataMaxima = null;
-                    Global.meusFiltros.value.dataMinima = DateTime.now();
+            const Icon(Icons.filter_alt),
+            const SizedBox(width: 4),
+            DropdownButton<int>(
+                value: Global.meusFiltros.value.dataMaxima == null ? 0 : -1,
+                underline: const SizedBox(),
+                items: const [
+                  DropdownMenuItem(
+                    value: 0,
+                    child: Text('Próximos'),
+                  ),
+                  DropdownMenuItem(
+                    value: -1,
+                    child: Text('Histórico'),
+                  ),
+                ],
+                onChanged: (value) {
+                  switch (value) {
+                    case 0:
+                      Global.meusFiltros.value.dataMaxima = null;
+                      Global.meusFiltros.value.dataMinima = DateTime.now();
+                      break;
+                    case -1:
+                      Global.meusFiltros.value.dataMaxima = DateTime.now();
+                      Global.meusFiltros.value.dataMinima = null;
+                      break;
                   }
                   Global.meusFiltros.notifyListeners();
-                })
+                }),
           ],
         ),
       ),
@@ -336,7 +349,11 @@ class _PaginaAgendaState extends State<PaginaAgenda> {
               onTap: () => Modular.to.pushNamed(
                   '${AppRotas.CULTO}?id=${cultos[index].id}',
                   arguments: cultos[index]),
-              child: TileCulto(culto: culto, reference: reference),
+              child: TileCulto(
+                culto: culto,
+                reference: reference,
+                theme: Theme.of(context),
+              ),
             ),
             // Divisor
             const Divider(height: 1),
@@ -346,118 +363,105 @@ class _PaginaAgendaState extends State<PaginaAgenda> {
     );
   }
 
+  // CABEÇALHO DO MÊS
   Widget cabecalhoDoMes(DateTime data) {
     String mesAno = DateFormat('MMMM y', 'pt_BR').format(data);
     var capitalize = mesAno.characters.first.toUpperCase();
     mesAno = capitalize + mesAno.substring(1);
-    return Column(
-      children: [
-        // Mês e ano
-        Padding(
-          padding: const EdgeInsets.all(16),
-          child: Text(
-            mesAno,
-            textAlign: TextAlign.center,
-            style: Theme.of(context)
-                .textTheme
-                .titleLarge
-                ?.copyWith(fontWeight: FontWeight.bold),
-          ),
+    return Column(children: [
+      // Mês e ano
+      Padding(
+        padding: const EdgeInsets.all(16),
+        child: Text(
+          mesAno,
+          textAlign: TextAlign.center,
+          style: Theme.of(context)
+              .textTheme
+              .headlineSmall
+              ?.copyWith(fontWeight: FontWeight.bold),
         ),
-        // Aniversariantes
-        Row(
-          children: [
-            // Leading Icone
-            Container(
-              width: 56,
-              height: 32,
-              decoration: BoxDecoration(
-                  color: Theme.of(context).colorScheme.primary,
-                  borderRadius: const BorderRadius.horizontal(
-                      right: Radius.circular(32))),
-              child: const Icon(Icons.cake, size: 20),
-            ),
-            // Lista
-            Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8),
-                height: kToolbarHeight,
-                child: FutureBuilder<QuerySnapshot<Integrante>>(
-                  future: MeuFirebase.obterListaIntegrantes(ativo: true),
-                  builder: (context, snapshot) {
-                    List<QueryDocumentSnapshot<Integrante>> aniversariantes =
-                        [];
-                    // Aguardando
-                    if (!snapshot.hasData) {
-                      return Container(
-                        alignment: Alignment.centerLeft,
-                        height: kMinInteractiveDimension,
-                        child: Text('Analisando a equipe...',
-                            style: Theme.of(context).textTheme.caption),
-                      );
+      ),
+      // Aniversariantes
+      Row(children: [
+        // Leading Icone
+        Container(
+          width: 56,
+          height: 32,
+          decoration: BoxDecoration(
+              color: Colors.grey.withOpacity(0.38),
+              borderRadius:
+                  const BorderRadius.horizontal(right: Radius.circular(32))),
+          child: const Icon(Icons.cake, size: 20),
+        ),
+        // Lista
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          height: kToolbarHeight,
+          child: FutureBuilder<QuerySnapshot<Integrante>>(
+              future: MeuFirebase.obterListaIntegrantes(ativo: true),
+              builder: (context, snapshot) {
+                List<QueryDocumentSnapshot<Integrante>> aniversariantes = [];
+                // Aguardando
+                if (!snapshot.hasData) {
+                  return Container(
+                    alignment: Alignment.centerLeft,
+                    height: kMinInteractiveDimension,
+                    child: Text('Analisando a equipe...',
+                        style: Theme.of(context).textTheme.bodySmall),
+                  );
+                }
+                for (var integrante in snapshot.data!.docs) {
+                  if (integrante.data().dataNascimento?.toDate().month ==
+                      data.month) {
+                    aniversariantes.add(integrante);
+                  }
+                }
+                // Lista vazia
+                if (aniversariantes.isEmpty) {
+                  return Container(
+                    alignment: Alignment.centerLeft,
+                    height: kMinInteractiveDimension,
+                    child: Text('Nenhum aniversariante esse mês!',
+                        style: Theme.of(context).textTheme.bodySmall),
+                  );
+                }
+                // Preenchimento
+                return ListView.separated(
+                  shrinkWrap: true,
+                  scrollDirection: Axis.horizontal,
+                  physics: const BouncingScrollPhysics(),
+                  itemCount: aniversariantes.length,
+                  separatorBuilder: (context, index) {
+                    return const SizedBox(width: 8);
+                  },
+                  itemBuilder: (context, index) {
+                    var dn =
+                        aniversariantes[index].data().dataNascimento?.toDate();
+                    var data = '';
+                    if (dn != null) {
+                      dn = DateTime(DateTime.now().year, dn.month, dn.day);
+                      data = DateFormat.Md('pt_BR').format(dn);
+                      meusEventos.value.putIfAbsent(dn, () => 'aniversario');
                     }
-                    for (var integrante in snapshot.data!.docs) {
-                      if (integrante.data().dataNascimento?.toDate().month ==
-                          data.month) {
-                        aniversariantes.add(integrante);
-                      }
-                    }
-                    // Lista vazia
-                    if (aniversariantes.isEmpty) {
-                      return Container(
-                        alignment: Alignment.centerLeft,
-                        height: kMinInteractiveDimension,
-                        child: Text('Nenhum aniversariante esse mês!',
-                            style: Theme.of(context).textTheme.caption),
-                      );
-                    }
-                    // Preenchimento
-                    return ListView.separated(
-                      shrinkWrap: true,
-                      scrollDirection: Axis.horizontal,
-                      physics: const BouncingScrollPhysics(),
-                      itemCount: aniversariantes.length,
-                      separatorBuilder: (context, index) {
-                        return const SizedBox(width: 8);
-                      },
-                      itemBuilder: (context, index) {
-                        var dn = aniversariantes[index]
-                            .data()
-                            .dataNascimento
-                            ?.toDate();
-                        var data = '';
-                        if (dn != null) {
-                          dn = DateTime(DateTime.now().year, dn.month, dn.day);
-                          data = DateFormat.Md('pt_BR').format(dn);
-                          meusEventos.value
-                              .putIfAbsent(dn, () => 'aniversario');
-                        }
-                        var hero = data.replaceAll('/', 'm');
-                        return RawChip(
-                          label: Text(data),
-                          avatar: Hero(
-                            tag: hero,
-                            child: CircleAvatar(
-                              foregroundImage: MyNetwork.getImageFromUrl(
-                                      aniversariantes[index].data().fotoUrl)
-                                  ?.image,
-                              child: Text(
-                                  MyStrings.getUserInitials(
-                                      aniversariantes[index].data().nome),
-                                  textScaleFactor: 0.6),
-                            ),
-                          ),
-                          onPressed: () => Modular.to.pushNamed(
-                              '${AppRotas.PERFIL}?id=${aniversariantes[index].id}&hero=$hero',
-                              arguments: aniversariantes[index]),
-                        );
-                      },
+                    var hero = data.replaceAll('/', 'm');
+                    return RawChip(
+                      label: Text(data),
+                      backgroundColor: Theme.of(context).colorScheme.secondary,
+                      avatar: Hero(
+                        tag: hero,
+                        child: AvatarIntegrante(
+                            integrante: aniversariantes[index].data()),
+                      ),
+                      onPressed: () => Modular.to.pushNamed(
+                          '${AppRotas.PERFIL}?id=${aniversariantes[index].id}&hero=$hero',
+                          arguments: aniversariantes[index]),
                     );
                   },
-                )),
-          ],
-        )
-      ],
-    );
+                );
+              }),
+        ),
+      ]),
+    ]);
   }
 }
 

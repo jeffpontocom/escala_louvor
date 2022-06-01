@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:escala_louvor/widgets/avatar_integrante.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -13,7 +14,13 @@ import '/utils/utils.dart';
 class TileCulto extends StatelessWidget {
   final Culto culto;
   final DocumentReference<Culto> reference;
-  const TileCulto({Key? key, required this.culto, required this.reference})
+  final ThemeData theme;
+
+  const TileCulto(
+      {Key? key,
+      required this.culto,
+      required this.reference,
+      required this.theme})
       : super(key: key);
 
   @override
@@ -35,19 +42,20 @@ class TileCulto extends StatelessWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        diaDaSemana,
                         ocasiao,
+                        const SizedBox(height: 4),
+                        diaDaSemana,
                       ],
                     ),
                   ),
                   igreja,
                 ],
               ),
-              const SizedBox(height: 4),
+              const SizedBox(height: 2),
               // Linha 2: Data e Horário
               Row(
                 children: [
-                  const SizedBox(width: 28),
+                  const SizedBox(width: 26),
                   diaDoMes,
                   const SizedBox(width: 8),
                   horario,
@@ -61,7 +69,7 @@ class TileCulto extends StatelessWidget {
                     width: 8,
                     height: kMinInteractiveDimension,
                   ),
-                  precisaAtencao(context),
+                  precisaAtencao,
                   const SizedBox(width: 4),
                   canticos,
                 ],
@@ -91,7 +99,7 @@ class TileCulto extends StatelessWidget {
     var diaSemana = DateFormat(DateFormat.WEEKDAY, 'pt_BR').format(data);
     return Text(
       diaSemana,
-      style: const TextStyle(color: Colors.grey, fontSize: 12),
+      style: theme.textTheme.bodySmall,
     );
   }
 
@@ -99,7 +107,7 @@ class TileCulto extends StatelessWidget {
   get ocasiao {
     return Text(
       culto.ocasiao ?? '',
-      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+      style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
     );
   }
 
@@ -114,7 +122,7 @@ class TileCulto extends StatelessWidget {
         const SizedBox(width: 4),
         Text(
           diaMes,
-          style: const TextStyle(fontSize: 18),
+          style: theme.textTheme.headline6,
         ),
       ],
     );
@@ -131,7 +139,7 @@ class TileCulto extends StatelessWidget {
         const SizedBox(width: 4),
         Text(
           hora,
-          style: const TextStyle(fontSize: 18),
+          style: theme.textTheme.headline6,
         ),
       ],
     );
@@ -142,6 +150,7 @@ class TileCulto extends StatelessWidget {
     return FutureBuilder<DocumentSnapshot<Igreja>?>(
       future: MeuFirebase.obterSnapshotIgreja(culto.igreja.id),
       builder: (context, snapshot) {
+        // Shimmer de carregamento
         if (!snapshot.hasData) {
           var cor = Theme.of(context).chipTheme.backgroundColor ?? Colors.grey;
           return SizedBox(
@@ -149,20 +158,20 @@ class TileCulto extends StatelessWidget {
             child: Shimmer.fromColors(
               baseColor: cor.withOpacity(0.5),
               highlightColor: cor.withOpacity(0.25),
-              child: const RawChip(
-                label: SizedBox(width: 48),
-              ),
+              child: const RawChip(label: SizedBox(width: 48)),
             ),
           );
         }
         Igreja? igreja = snapshot.data!.data();
+        // Chip carregado
         return Chip(
           avatar: CircleAvatar(
             radius: 10,
+            backgroundColor: theme.colorScheme.background,
             foregroundImage: MyNetwork.getImageFromUrl(igreja?.fotoUrl)?.image,
           ),
-          label: Text(igreja?.sigla ?? ''),
-          labelPadding: const EdgeInsets.only(left: 4, right: 8),
+          label: Text(igreja?.sigla ?? '',
+              style: Theme.of(context).textTheme.caption),
           materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
           visualDensity: VisualDensity.compact,
         );
@@ -201,36 +210,21 @@ class TileCulto extends StatelessWidget {
           );
         }
         if (snapshot.data?.isEmpty ?? true) {
-          return const Text(
+          return Text(
             'Ninguém escalado ainda!',
-            textScaleFactor: 0.8,
-            style: TextStyle(color: Colors.grey),
+            style: theme.textTheme.bodySmall,
           );
         }
         var escalados = snapshot.data;
         return Stack(
           children: List.generate(escalados?.length ?? 0, (index) {
-            int c =
-                (Theme.of(context).brightness == Brightness.dark ? 90 : 190) +
-                    index * 5;
             return Padding(
               padding: EdgeInsets.only(left: index * 18),
               child: CircleAvatar(
-                radius: 12,
-                backgroundColor: Theme.of(context).cardColor,
-                child: CircleAvatar(
-                  radius: 10,
-                  backgroundColor: Color.fromRGBO(c, c, c, 1),
-                  foregroundImage:
-                      MyNetwork.getImageFromUrl(escalados?[index].fotoUrl)
-                          ?.image,
-                  child: Text(
-                    MyStrings.getUserInitials(escalados?[index].nome ?? ''),
-                    textScaleFactor: 0.75,
-                    style: const TextStyle(color: Colors.black),
-                  ),
-                ),
-              ),
+                  radius: 12,
+                  backgroundColor: Theme.of(context).cardColor,
+                  child: AvatarIntegrante(
+                      integrante: escalados![index], radius: 10)),
             );
           }).reversed.toList(),
         );
@@ -277,14 +271,14 @@ class TileCulto extends StatelessWidget {
   }
 
   /// Icone de atenção
-  Widget precisaAtencao(BuildContext context) {
+  Widget get precisaAtencao {
     return culto.obs != null && culto.obs!.isNotEmpty
         ? Tooltip(
             message: 'Possui ponto de atenção!',
             child: Icon(
               Icons.report,
               size: 16,
-              color: Theme.of(context).colorScheme.secondary,
+              color: theme.colorScheme.secondary,
             ),
           )
         : const SizedBox();
@@ -296,7 +290,11 @@ class TileCulto extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Icon(Icons.library_music, size: 16, color: Colors.grey),
+        Icon(
+          Icons.library_music,
+          size: 16,
+          color: theme.colorScheme.primary,
+        ),
         const SizedBox(width: 4),
         Text(
           culto.canticos?.length.toString() ?? '0',
@@ -313,6 +311,8 @@ class TileCulto extends StatelessWidget {
       bool escalado = culto.usuarioEscalado(Global.logadoReference);
       bool disponivel = culto.usuarioDisponivel(Global.logadoReference);
       bool restrito = culto.usuarioRestrito(Global.logadoReference);
+      var colorVar =
+          Theme.of(context).brightness == Brightness.dark ? 900 : 600;
       return OutlinedButton(
         onPressed: escalado || restrito
             ? () {}
@@ -331,18 +331,17 @@ class TileCulto extends StatelessWidget {
                 await MeuFirebase.definirRestricaoParaOCulto(reference);
               },
         style: OutlinedButton.styleFrom(
-          //maximumSize: const Size.fromWidth(92),
           fixedSize: const Size(92, 92),
           padding: const EdgeInsets.all(12),
           shape: const RoundedRectangleBorder(
               borderRadius: BorderRadius.horizontal(left: Radius.circular(8))),
           backgroundColor: escalado
-              ? Colors.green.shade800
+              ? Colors.green[colorVar]
               : disponivel
-                  ? Colors.blue.shade800
+                  ? Colors.blue[colorVar]
                   : restrito
-                      ? Colors.red.shade800
-                      : Colors.grey.shade800,
+                      ? Colors.red[colorVar]
+                      : Colors.grey[colorVar],
           primary: Colors.white,
         ),
         child: Column(
@@ -375,7 +374,10 @@ class TileCulto extends StatelessWidget {
                           ? 'Estou RESTRITO'
                           : 'Ainda não decidi',
               textAlign: TextAlign.center,
+              textScaleFactor: 0.9,
+              maxLines: 2,
               softWrap: true,
+              overflow: TextOverflow.ellipsis,
             ),
           ],
         ),

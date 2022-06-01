@@ -77,7 +77,7 @@ class _TelaLetrasViewState extends State<TelaLetrasView> {
                                   ?.copyWith(fontWeight: FontWeight.bold)),
                           // Autor
                           Text(cantico.autor ?? '',
-                              style: Theme.of(context).textTheme.caption),
+                              style: Theme.of(context).textTheme.bodySmall),
                           // Letra
                           const SizedBox(height: 24),
                           SelectableText(

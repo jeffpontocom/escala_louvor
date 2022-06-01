@@ -98,7 +98,7 @@ class MyActions {
 class MyNetwork {
   static Image? getImageFromUrl(String? url, {double? progressoSize}) {
     if (url == null) return null;
-
+    // Apresentar imagem
     return Image.network(
       url,
       key: Key(url),

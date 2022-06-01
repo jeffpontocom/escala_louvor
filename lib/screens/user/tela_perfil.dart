@@ -274,9 +274,10 @@ class _TelaPerfilState extends State<TelaPerfil> {
           } else {
             List<Instrumento> instrumentosDoIntegrante = [];
             for (var instrumento in instrumentos) {
-              if (_integrante.instrumentos!
-                  .map((e) => e.toString())
-                  .contains(instrumento.reference.toString())) {
+              if (_integrante.instrumentos
+                      ?.map((e) => e.toString())
+                      .contains(instrumento.reference.toString()) ??
+                  false) {
                 instrumentosDoIntegrante.add(instrumento.data());
               }
             }
@@ -343,9 +344,10 @@ class _TelaPerfilState extends State<TelaPerfil> {
           } else {
             List<Igreja> igrejasDoIntegrante = [];
             for (var igreja in igrejas) {
-              if (_integrante.igrejas!
-                  .map((e) => e.toString())
-                  .contains(igreja.reference.toString())) {
+              if (_integrante.igrejas
+                      ?.map((e) => e.toString())
+                      .contains(igreja.reference.toString()) ??
+                  false) {
                 igrejasDoIntegrante.add(igreja.data());
               }
             }

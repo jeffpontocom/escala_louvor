@@ -1,4 +1,5 @@
 import 'dart:developer' as dev;
+import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -127,4 +128,8 @@ class FiltroAgenda {
       dataMinima == null ? null : Timestamp.fromDate(dataMinima!);
   Timestamp? get timeStampMax =>
       dataMaxima == null ? null : Timestamp.fromDate(dataMaxima!);
+}
+
+class Cache {
+  static Map<String, Uint8List> arquivos = {};
 }
