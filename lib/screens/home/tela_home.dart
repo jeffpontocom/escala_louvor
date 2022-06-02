@@ -5,16 +5,16 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
+import 'package:stylish_bottom_bar/stylish_bottom_bar.dart';
 
 import '/rotas.dart';
 import '/utils/global.dart';
-import '/utils/utils.dart';
 
 enum Paginas {
   agenda,
   avisos,
-  canticos,
   equipe,
+  canticos,
 }
 
 String paginaNome(int index) {
@@ -27,7 +27,7 @@ String paginaNome(int index) {
     case Paginas.canticos:
       return 'Repertório musical';
     case Paginas.equipe:
-      return 'Nossa equipe';
+      return 'Equipe de louvor';
   }
 }
 
@@ -86,17 +86,19 @@ class _HomeState extends State<Home> {
         _isPortrait = orientation == Orientation.portrait;
         return _isPortrait
             ? Scaffold(
+                extendBody: true,
                 appBar: appBar,
                 body: corpo,
                 bottomNavigationBar: bottomNavigation,
                 // Float button com borda ao redor
-                floatingActionButton: CircleAvatar(
+                /* floatingActionButton: CircleAvatar(
                   backgroundColor: Theme.of(context).cardColor,
                   radius: 31,
                   child: floatButton,
-                ),
+                ), */
+                floatingActionButton: floatButton,
                 floatingActionButtonLocation:
-                    FloatingActionButtonLocation.endDocked,
+                    FloatingActionButtonLocation.centerDocked,
               )
             : Scaffold(
                 body: Row(
@@ -173,26 +175,23 @@ class _HomeState extends State<Home> {
     return ValueListenableBuilder<int>(
       valueListenable: _pagina,
       builder: (context, pagina, _) {
-        return BottomNavigationBar(
-            items: List.generate(Paginas.values.length + 1, (index) {
-              if (index == Paginas.values.length) {
-                return const BottomNavigationBarItem(
-                    icon: SizedBox(), label: '');
-              }
-              return BottomNavigationBarItem(
-                  icon: paginaIcone(index), label: paginaNome(index));
-            }),
-            currentIndex: pagina,
-            selectedItemColor: Colors.blue,
-            unselectedItemColor: Colors.grey.withOpacity(0.5),
-            showSelectedLabels: false,
-            type: BottomNavigationBarType.shifting,
-            landscapeLayout: BottomNavigationBarLandscapeLayout.centered,
-            onTap: (index) {
-              if (index == 4) return;
-              _pagina.value = index;
-              Modular.to.navigate('/${Paginas.values[index].name}');
-            });
+        return StylishBottomBar(
+          currentIndex: pagina,
+          iconStyle: IconStyle.animated,
+          hasNotch: true,
+          fabLocation: StylishBarFabLocation.center,
+          backgroundColor: Theme.of(context).colorScheme.background,
+          items: List.generate(Paginas.values.length, (index) {
+            return AnimatedBarItems(
+                icon: paginaIcone(index),
+                selectedColor: Theme.of(context).colorScheme.primary,
+                title: Text(paginaNome(index).split(' ').first));
+          }),
+          onTap: (index) {
+            _pagina.value = index ?? 0;
+            Modular.to.navigate('/${Paginas.values[index ?? 0].name}');
+          },
+        );
       },
     );
   }
@@ -203,20 +202,20 @@ class _HomeState extends State<Home> {
       valueListenable: _pagina,
       builder: (context, pagina, _) {
         return NavigationRail(
+          selectedIndex: pagina,
           elevation: 4,
           extended: kIsWeb ? true : false,
           groupAlignment: 0,
           minExtendedWidth: 176,
-          trailing: floatButton,
-          selectedIndex: pagina,
-          onDestinationSelected: (index) {
-            _pagina.value = index;
-            Modular.to.navigate('/${Paginas.values[index].name}');
-          },
+          leading: floatButton,
           destinations: List.generate(Paginas.values.length, (index) {
             return NavigationRailDestination(
                 icon: paginaIcone(index), label: Text(paginaNome(index)));
           }),
+          onDestinationSelected: (index) {
+            _pagina.value = index;
+            Modular.to.navigate('/${Paginas.values[index].name}');
+          },
         );
       },
     );

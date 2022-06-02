@@ -352,6 +352,7 @@ class _PaginaAgendaState extends State<PaginaAgenda> {
                 culto: culto,
                 reference: reference,
                 theme: Theme.of(context),
+                showResumo: true,
               ),
             ),
             // Divisor

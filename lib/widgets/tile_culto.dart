@@ -1,28 +1,27 @@
-import 'dart:math';
-
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:escala_louvor/widgets/avatar.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-import '../../utils/global.dart';
-import '../resources/animations/shimmer.dart';
 import '/functions/metodos_firebase.dart';
 import '/models/culto.dart';
 import '/models/igreja.dart';
 import '/models/integrante.dart';
-import '/utils/utils.dart';
+import '/resources/animations/shimmer.dart';
+import '/utils/global.dart';
+import '/widgets/avatar.dart';
 
 class TileCulto extends StatelessWidget {
   final Culto culto;
   final DocumentReference<Culto> reference;
   final ThemeData theme;
+  final bool showResumo;
 
   const TileCulto(
       {Key? key,
       required this.culto,
       required this.reference,
-      required this.theme})
+      required this.theme,
+      this.showResumo = false})
       : super(key: key);
 
   @override
@@ -63,19 +62,27 @@ class TileCulto extends StatelessWidget {
                   horario,
                 ],
               ),
-              // Linhas 3: Escalados e Cânticos
+              // Linha 3: Escalados e Cânticos
               Row(
                 children: [
                   Expanded(child: equipe),
                   const SizedBox(
                     width: 8,
-                    height: kMinInteractiveDimension,
+                    height: 36,
                   ),
                   precisaAtencao,
                   const SizedBox(width: 4),
                   canticos,
                 ],
               ),
+              // Linha 4: Resumo
+              showResumo
+                  ? Row(
+                      children: [
+                        dataEnsaio,
+                      ],
+                    )
+                  : const SizedBox(),
             ],
           ),
         ),
@@ -165,7 +172,6 @@ class TileCulto extends StatelessWidget {
           );
         }
         Igreja? igreja = snapshot.data!.data();
-        // Chip carregado
         return Chip(
           avatar: CachedAvatar(
             icone: Icons.church,
@@ -237,6 +243,137 @@ class TileCulto extends StatelessWidget {
     );
   }
 
+  /// Icone de atenção
+  Widget get precisaAtencao {
+    return culto.obs != null && culto.obs!.isNotEmpty
+        ? Tooltip(
+            message: 'Possui ponto de atenção!',
+            child: Icon(
+              Icons.report_problem_rounded,
+              size: 16,
+              color: theme.colorScheme.secondary,
+            ),
+          )
+        : const SizedBox();
+  }
+
+  /// Quantidade de cânticos
+  get canticos {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        const Icon(Icons.queue_music, size: 16, color: Colors.grey),
+        const SizedBox(width: 2),
+        Text(
+          culto.canticos?.length.toString() ?? '0',
+          style: const TextStyle(color: Colors.grey),
+        ),
+      ],
+    );
+  }
+
+  /// Data do ensaios
+  get dataEnsaio {
+    if (culto.dataEnsaio == null) return const SizedBox();
+    DateTime data = culto.dataEnsaio!.toDate();
+    var dataFormatada = DateFormat('EEE, HH:mm', 'pt_BR').format(data);
+    return Text(
+      '• Ensaio: $dataFormatada',
+      style: theme.textTheme.bodySmall,
+    );
+  }
+
+  /// Botão de disponibilidade
+  get botaoDisponibilidade {
+    bool alterar = false;
+    return StatefulBuilder(builder: (context, setState) {
+      bool escalado = culto.usuarioEscalado(Global.logadoReference);
+      bool disponivel = culto.usuarioDisponivel(Global.logadoReference);
+      bool restrito = culto.usuarioRestrito(Global.logadoReference);
+      var colorVar =
+          Theme.of(context).brightness == Brightness.dark ? 800 : 600;
+      return OutlinedButton(
+        onPressed: escalado || restrito
+            ? () {}
+            : () async {
+                setState(() {
+                  alterar = true;
+                });
+                await MeuFirebase.definirDisponibilidadeParaOCulto(reference);
+              },
+        onLongPress: escalado || disponivel
+            ? () {}
+            : () async {
+                setState(() {
+                  alterar = true;
+                });
+                await MeuFirebase.definirRestricaoParaOCulto(reference);
+              },
+        style: OutlinedButton.styleFrom(
+          fixedSize: const Size(92, 92),
+          padding: const EdgeInsets.all(12),
+          side: const BorderSide(style: BorderStyle.none),
+          shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.horizontal(left: Radius.circular(8))),
+          backgroundColor: escalado
+              ? Colors.green[colorVar]
+              : disponivel
+                  ? Colors.blue[colorVar]
+                  : restrito
+                      ? Colors.red[colorVar]
+                      : Colors.grey[colorVar],
+          primary: Colors.white,
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            alterar
+                ? const Center(
+                    child: SizedBox.square(
+                      dimension: 32,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    ),
+                  )
+                : Image.asset(
+                    escalado
+                        ? 'assets/icons/ic_escalado.png'
+                        : disponivel
+                            ? 'assets/icons/ic_disponivel.png'
+                            : restrito
+                                ? 'assets/icons/ic_restrito.png'
+                                : 'assets/icons/ic_indeciso.png',
+                    height: 32,
+                    color: Colors.white,
+                    colorBlendMode: BlendMode.srcATop,
+                  ),
+            const SizedBox(height: 4),
+            Text(
+              escalado
+                  ? 'Estou ESCALADO'
+                  : disponivel
+                      ? 'Estou DISPONÍVEL'
+                      : restrito
+                          ? 'Estou RESTRITO'
+                          : 'Ainda não decidi',
+              textAlign: TextAlign.center,
+              style: theme.textTheme.bodyMedium?.copyWith(color: Colors.white),
+              maxLines: 2,
+              softWrap: true,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
+        ),
+      );
+    });
+  }
+
+  /// Usuário pode ser escalado
+  bool get _podeSerEscalado =>
+      (Global.logado?.ehDirigente ?? false) ||
+      (Global.logado?.ehCoordenador ?? false) ||
+      (Global.logado?.ehComponente ?? false);
+
+  /// Equipe escalada
   Future<List<Integrante>> equipeEscalada() async {
     List<Integrante> escalados = [];
     // Dirigente
@@ -274,125 +411,4 @@ class TileCulto extends StatelessWidget {
     }
     return escalados;
   }
-
-  /// Icone de atenção
-  Widget get precisaAtencao {
-    return culto.obs != null && culto.obs!.isNotEmpty
-        ? Tooltip(
-            message: 'Possui ponto de atenção!',
-            child: Icon(
-              Icons.report,
-              size: 16,
-              color: theme.colorScheme.secondary,
-            ),
-          )
-        : const SizedBox();
-  }
-
-  /// Quantidade de cânticos
-  get canticos {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Icon(
-          Icons.library_music,
-          size: 16,
-          color: theme.colorScheme.primary,
-        ),
-        const SizedBox(width: 4),
-        Text(
-          culto.canticos?.length.toString() ?? '0',
-          style: const TextStyle(color: Colors.grey),
-        ),
-      ],
-    );
-  }
-
-  /// Botão de disponibilidade
-  get botaoDisponibilidade {
-    bool alterar = false;
-    return StatefulBuilder(builder: (context, setState) {
-      bool escalado = culto.usuarioEscalado(Global.logadoReference);
-      bool disponivel = culto.usuarioDisponivel(Global.logadoReference);
-      bool restrito = culto.usuarioRestrito(Global.logadoReference);
-      var colorVar =
-          Theme.of(context).brightness == Brightness.dark ? 900 : 600;
-      return OutlinedButton(
-        onPressed: escalado || restrito
-            ? () {}
-            : () async {
-                setState(() {
-                  alterar = true;
-                });
-                await MeuFirebase.definirDisponibilidadeParaOCulto(reference);
-              },
-        onLongPress: escalado || disponivel
-            ? () {}
-            : () async {
-                setState(() {
-                  alterar = true;
-                });
-                await MeuFirebase.definirRestricaoParaOCulto(reference);
-              },
-        style: OutlinedButton.styleFrom(
-          fixedSize: const Size(92, 92),
-          padding: const EdgeInsets.all(12),
-          shape: const RoundedRectangleBorder(
-              borderRadius: BorderRadius.horizontal(left: Radius.circular(8))),
-          backgroundColor: escalado
-              ? Colors.green[colorVar]
-              : disponivel
-                  ? Colors.blue[colorVar]
-                  : restrito
-                      ? Colors.red[colorVar]
-                      : Colors.grey[colorVar],
-          primary: Colors.white,
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            alterar
-                ? const Center(
-                    child: SizedBox.square(
-                      dimension: 32,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    ),
-                  )
-                : Image.asset(
-                    escalado
-                        ? 'assets/icons/ic_escalado.png'
-                        : disponivel
-                            ? 'assets/icons/ic_disponivel.png'
-                            : restrito
-                                ? 'assets/icons/ic_restrito.png'
-                                : 'assets/icons/ic_indeciso.png',
-                    height: 32,
-                  ),
-            const SizedBox(height: 4),
-            Text(
-              escalado
-                  ? 'Estou ESCALADO'
-                  : disponivel
-                      ? 'Estou DISPONÍVEL'
-                      : restrito
-                          ? 'Estou RESTRITO'
-                          : 'Ainda não decidi',
-              textAlign: TextAlign.center,
-              textScaleFactor: 0.9,
-              maxLines: 2,
-              softWrap: true,
-              overflow: TextOverflow.ellipsis,
-            ),
-          ],
-        ),
-      );
-    });
-  }
-
-  /// Usuário pode ser escalado
-  bool get _podeSerEscalado =>
-      (Global.logado?.ehDirigente ?? false) ||
-      (Global.logado?.ehCoordenador ?? false) ||
-      (Global.logado?.ehComponente ?? false);
 }

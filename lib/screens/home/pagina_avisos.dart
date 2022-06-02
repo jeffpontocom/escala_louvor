@@ -9,7 +9,7 @@ class PaginaAvisos extends StatelessWidget {
       return Padding(
           padding: const EdgeInsets.all(24),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               // Logotipo
@@ -25,7 +25,7 @@ class PaginaAvisos extends StatelessWidget {
               Text(
                 'Nenhum aviso recente!',
                 textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.titleLarge,
+                style: Theme.of(context).textTheme.titleMedium,
               ),
             ],
           ));

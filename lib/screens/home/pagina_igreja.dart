@@ -24,67 +24,66 @@ class _PaginaEquipeState extends State<PaginaEquipe> {
 
   @override
   Widget build(BuildContext context) {
-    return OrientationBuilder(builder: (context, orientation) {
-      _isPortrait = orientation == Orientation.portrait;
-      return StreamBuilder<DocumentSnapshot<Igreja>>(
-          initialData: Global.igrejaSelecionada.value,
-          stream: MeuFirebase.obterStreamIgreja(Global.igreja ?? ''),
-          builder: (context, snapshot) {
-            // Tela em carregamento
-            if (!snapshot.hasData) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            // Tela de falha
-            if (!snapshot.data!.exists || snapshot.data!.data() == null) {
-              return const Center(
-                  child: Text('Falha ao obter dados da igreja.'));
-            }
-            // Tela carregada
-            _igreja = snapshot.data!.data()!;
-            return _corpo;
-          });
-    });
+    return StreamBuilder<DocumentSnapshot<Igreja>>(
+        initialData: Global.igrejaSelecionada.value,
+        stream: MeuFirebase.obterStreamIgreja(Global.igreja ?? ''),
+        builder: (context, snapshot) {
+          // Tela em carregamento
+          if (!snapshot.hasData) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          // Tela de falha
+          if (!snapshot.data!.exists || snapshot.data!.data() == null) {
+            return const Center(child: Text('Falha ao obter dados da igreja.'));
+          }
+          // Tela carregada
+          _igreja = snapshot.data!.data()!;
+          return _corpo;
+        });
   }
 
   /// Corpo
   get _corpo {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return Stack(
-          children: [
-            Wrap(
-              children: [
-                // Cabeçalho
-                Material(
-                  //elevation: _isPortrait ? 4 : 0,
-                  color: Theme.of(context).colorScheme.background,
-                  child: Container(
+    return OrientationBuilder(builder: (context, orientation) {
+      _isPortrait = orientation == Orientation.portrait;
+      return LayoutBuilder(
+        builder: (context, constraints) {
+          return Stack(
+            children: [
+              Wrap(
+                children: [
+                  // Cabeçalho
+                  Material(
+                    //elevation: _isPortrait ? 4 : 0,
+                    color: Theme.of(context).colorScheme.background,
+                    child: Container(
+                      height: _isPortrait
+                          ? constraints.maxHeight * 0.35
+                          : constraints.maxHeight,
+                      width: _isPortrait
+                          ? constraints.maxWidth
+                          : constraints.maxWidth * 0.35,
+                      padding: const EdgeInsets.all(16),
+                      child: _cabecalho,
+                    ),
+                  ),
+                  // Conteúdo
+                  SizedBox(
                     height: _isPortrait
-                        ? constraints.maxHeight * 0.35
+                        ? constraints.maxHeight * 0.65
                         : constraints.maxHeight,
                     width: _isPortrait
                         ? constraints.maxWidth
-                        : constraints.maxWidth * 0.35,
-                    padding: const EdgeInsets.all(16),
-                    child: _cabecalho,
+                        : constraints.maxWidth * 0.65,
+                    child: _dados,
                   ),
-                ),
-                // Conteúdo
-                SizedBox(
-                  height: _isPortrait
-                      ? constraints.maxHeight * 0.65
-                      : constraints.maxHeight,
-                  width: _isPortrait
-                      ? constraints.maxWidth
-                      : constraints.maxWidth * 0.65,
-                  child: _dados,
-                ),
-              ],
-            ),
-          ],
-        );
-      },
-    );
+                ],
+              ),
+            ],
+          );
+        },
+      );
+    });
   }
 
   /// Cabeçalho
