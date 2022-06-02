@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:escala_louvor/widgets/avatar.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -192,16 +193,10 @@ class _TelaPerfilState extends State<TelaPerfil> {
   get _foto {
     return Hero(
       tag: widget.hero ?? 'fotoPerfil',
-      child: CircleAvatar(
+      child: CachedAvatar(
+        nome: _integrante.nome,
+        url: _integrante.fotoUrl,
         maxRadius: 128,
-        minRadius: 12,
-        backgroundColor:
-            Theme.of(context).colorScheme.onPrimary.withOpacity(0.5),
-        foregroundImage: MyNetwork.getImageProvider(_integrante.fotoUrl),
-        child: Text(
-          MyStrings.getUserInitials(_integrante.nome),
-          style: Theme.of(context).textTheme.headlineLarge,
-        ),
       ),
     );
   }
@@ -233,7 +228,10 @@ class _TelaPerfilState extends State<TelaPerfil> {
           message: funcaoGetString(_integrante.funcoes![index]),
           child: CircleAvatar(
             backgroundColor: Theme.of(context).colorScheme.secondary,
-            child: Icon(funcaoGetIcon(_integrante.funcoes![index])),
+            child: Icon(
+              funcaoGetIcon(_integrante.funcoes![index]),
+              color: Colors.black,
+            ),
           ),
         ),
       ),
@@ -292,10 +290,11 @@ class _TelaPerfilState extends State<TelaPerfil> {
                   return Tooltip(
                     message: instrumentosDoIntegrante[index].nome,
                     child: CircleAvatar(
-                      backgroundColor: Colors.cyan,
+                      backgroundColor: Theme.of(context).colorScheme.primary,
                       child: Image.asset(
-                          instrumentosDoIntegrante[index].iconAsset,
-                          height: 24),
+                        instrumentosDoIntegrante[index].iconAsset,
+                        height: 22,
+                      ),
                     ),
                   );
                 }),

@@ -1,5 +1,7 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:escala_louvor/utils/global.dart';
+import 'package:escala_louvor/widgets/avatar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:intl/intl.dart';
@@ -109,19 +111,12 @@ class ViewIntegrante extends StatelessWidget {
                             // Foto
                             Hero(
                               tag: hero,
-                              child: CircleAvatar(
-                                radius: 56,
-                                backgroundColor: Colors.grey.withOpacity(0.5),
-                                foregroundImage: MyNetwork.getImageFromUrl(
-                                        integrante.fotoUrl)
-                                    ?.image,
-                                child: Text(
-                                  MyStrings.getUserInitials(integrante.nome),
-                                  style:
-                                      Theme.of(context).textTheme.headlineLarge,
-                                ),
-                              ),
+                              child: CachedAvatar(
+                                  nome: integrante.nome,
+                                  url: integrante.fotoUrl,
+                                  maxRadius: 56),
                             ),
+                            // Botão para substituir foto
                             editMode
                                 ? CircleAvatar(
                                     radius: 16,
@@ -533,9 +528,12 @@ class ViewIntegrante extends StatelessWidget {
                                 SizedBox(
                                   height: 56,
                                   width: 64,
-                                  child: MyNetwork.getImageFromUrl(
-                                          igrejas[index].data().fotoUrl) ??
-                                      const Icon(Icons.church),
+                                  child: igrejas[index].data().fotoUrl != null
+                                      ? CachedNetworkImage(
+                                          fit: BoxFit.cover,
+                                          imageUrl:
+                                              igrejas[index].data().fotoUrl!)
+                                      : const Icon(Icons.church),
                                 ),
                                 // Sigla
                                 Padding(

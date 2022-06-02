@@ -1,5 +1,6 @@
 //import 'dart:developer' as dev;
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -208,9 +209,12 @@ class _TelaContextoState extends State<TelaContexto> {
                                 decoration: const BoxDecoration(
                                     borderRadius: BorderRadius.vertical(
                                         top: Radius.circular(12))),
-                                child: MyNetwork.getImageFromUrl(
-                                        inscritas[index].data().fotoUrl) ??
-                                    const Icon(Icons.church),
+                                child: inscritas[index].data().fotoUrl == null
+                                    ? const Icon(Icons.church)
+                                    : CachedNetworkImage(
+                                        fit: BoxFit.cover,
+                                        imageUrl:
+                                            inscritas[index].data().fotoUrl!),
                               ),
                             ),
                             const SizedBox(height: 8),
@@ -346,9 +350,12 @@ class _TelaContextoState extends State<TelaContexto> {
                                 SizedBox(
                                   height: 56,
                                   width: 64,
-                                  child: MyNetwork.getImageFromUrl(
-                                          igrejas[index].data().fotoUrl) ??
-                                      const Icon(Icons.church),
+                                  child: igrejas[index].data().fotoUrl != null
+                                      ? CachedNetworkImage(
+                                          fit: BoxFit.cover,
+                                          imageUrl:
+                                              igrejas[index].data().fotoUrl!)
+                                      : const Icon(Icons.church),
                                 ),
                                 // Sigla
                                 Padding(

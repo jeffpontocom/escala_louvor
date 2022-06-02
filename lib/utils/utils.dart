@@ -95,38 +95,6 @@ class MyActions {
   }
 }
 
-class MyNetwork {
-  static Image? getImageFromUrl(String? url, {double? progressoSize}) {
-    if (url == null) return null;
-    // Apresentar imagem
-    return Image.network(
-      url,
-      key: Key(url),
-      fit: BoxFit.cover,
-      loadingBuilder: (context, child, loading) {
-        if (loading == null) return child;
-        return Center(
-          child: SizedBox(
-              width: progressoSize,
-              height: progressoSize,
-              child: CircularProgressIndicator(
-                  color: Colors.grey.withOpacity(0.5))),
-        );
-      },
-      frameBuilder: (context, child, frame, isSync) {
-        return child;
-      },
-      errorBuilder: (context, error, stackTrace) =>
-          const Center(child: Icon(Icons.error, color: Colors.red)),
-    );
-  }
-
-  static ImageProvider? getImageProvider(String? url) {
-    if (url == null || url.isEmpty) return null;
-    return NetworkImage(url);
-  }
-}
-
 /// Classe para mascaras de texto
 class MyInputs {
   /// Para Telefones (formato (##) _####-####)

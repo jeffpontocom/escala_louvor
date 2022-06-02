@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:escala_louvor/widgets/avatar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:intl/intl.dart';
@@ -70,27 +71,23 @@ class MetodosIntegrante {
     // Foto
     var widgetFoto =
         StatefulBuilder(builder: (innerContext, StateSetter innerState) {
-      return Stack(
-        alignment: AlignmentDirectional.bottomEnd,
-        children: [
-          CircleAvatar(
-            radius: 56,
-            backgroundColor: Colors.grey.withOpacity(0.5),
-            foregroundImage:
-                MyNetwork.getImageFromUrl(integrante.fotoUrl)?.image,
-            child: Text(
-              MyStrings.getUserInitials(integrante.nome),
-              style: Theme.of(context).textTheme.headlineLarge,
-            ),
-          ),
-          CircleAvatar(
+      return Stack(alignment: AlignmentDirectional.bottomEnd, children: [
+        // Foto do integrante
+        CachedAvatar(
+          nome: integrante.nome,
+          url: integrante.fotoUrl,
+          maxRadius: 56,
+        ),
+        // Botão para substituir foto
+        CircleAvatar(
+          radius: 18,
+          backgroundColor: Theme.of(context).colorScheme.background,
+          child: CircleAvatar(
             radius: 16,
-            backgroundColor:
-                integrante.fotoUrl == null || integrante.fotoUrl!.isEmpty
-                    ? null
-                    : Colors.red,
+            backgroundColor: integrante.fotoUrl != null ? Colors.red : null,
             child: integrante.fotoUrl == null || integrante.fotoUrl!.isEmpty
                 ? IconButton(
+                    icon: const Icon(Icons.add_a_photo),
                     iconSize: 16,
                     onPressed: () async {
                       var url = await MeuFirebase.carregarFoto(context);
@@ -100,18 +97,20 @@ class MetodosIntegrante {
                         });
                       }
                     },
-                    icon: const Icon(Icons.add_a_photo))
+                  )
                 : IconButton(
+                    icon: const Icon(Icons.no_photography),
                     iconSize: 16,
+                    color: Colors.white,
                     onPressed: () async {
                       innerState(() {
                         integrante.fotoUrl = null;
                       });
                     },
-                    icon: const Icon(Icons.no_photography)),
+                  ),
           ),
-        ],
-      );
+        ),
+      ]);
     });
 
     // Data de Nascimento

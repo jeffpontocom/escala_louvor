@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
 import '../../models/igreja.dart';
@@ -23,8 +24,10 @@ class TileIgrejaSmall extends StatelessWidget {
           SizedBox(
             height: 56,
             width: 64,
-            child: MyNetwork.getImageFromUrl(igreja.fotoUrl) ??
-                const Icon(Icons.church),
+            child: igreja.fotoUrl != null
+                ? CachedNetworkImage(
+                    fit: BoxFit.cover, imageUrl: igreja.fotoUrl!)
+                : const Icon(Icons.church),
           ),
           // Sigla
           Padding(

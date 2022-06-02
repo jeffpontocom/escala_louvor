@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:escala_louvor/widgets/avatar_integrante.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:intl/intl.dart';
@@ -11,7 +10,7 @@ import '/models/culto.dart';
 import '/models/integrante.dart';
 import '/utils/global.dart';
 import '/utils/mensagens.dart';
-import '/utils/utils.dart';
+import '../../widgets/avatar.dart';
 import '/widgets/dialogos.dart';
 import '/widgets/tile_culto.dart';
 
@@ -435,8 +434,8 @@ class _PaginaAgendaState extends State<PaginaAgenda> {
                     return const SizedBox(width: 8);
                   },
                   itemBuilder: (context, index) {
-                    var dn =
-                        aniversariantes[index].data().dataNascimento?.toDate();
+                    var integrante = aniversariantes[index].data();
+                    var dn = integrante.dataNascimento?.toDate();
                     var data = '';
                     if (dn != null) {
                       dn = DateTime(DateTime.now().year, dn.month, dn.day);
@@ -449,8 +448,10 @@ class _PaginaAgendaState extends State<PaginaAgenda> {
                       backgroundColor: Theme.of(context).colorScheme.secondary,
                       avatar: Hero(
                         tag: hero,
-                        child: AvatarIntegrante(
-                            integrante: aniversariantes[index].data()),
+                        child: CachedAvatar(
+                          nome: integrante.nome,
+                          url: integrante.fotoUrl,
+                        ),
                       ),
                       onPressed: () => Modular.to.pushNamed(
                           '${AppRotas.PERFIL}?id=${aniversariantes[index].id}&hero=$hero',

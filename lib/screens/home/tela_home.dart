@@ -1,5 +1,6 @@
 import 'dart:developer' as dev;
 
+import 'package:escala_louvor/widgets/avatar.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -88,6 +89,7 @@ class _HomeState extends State<Home> {
                 appBar: appBar,
                 body: corpo,
                 bottomNavigationBar: bottomNavigation,
+                // Float button com borda ao redor
                 floatingActionButton: CircleAvatar(
                   backgroundColor: Theme.of(context).cardColor,
                   radius: 31,
@@ -141,12 +143,9 @@ class _HomeState extends State<Home> {
         IconButton(
           icon: Hero(
             tag: 'logado',
-            child: CircleAvatar(
-              backgroundColor: Colors.transparent,
-              foregroundImage: MyNetwork.getImageFromUrl(Global.logado?.fotoUrl,
-                      progressoSize: 12)
-                  ?.image,
-              child: const Icon(Icons.account_circle, color: Colors.white),
+            child: CachedAvatar(
+              icone: Icons.account_circle,
+              url: Global.logado?.fotoUrl,
             ),
           ),
           onPressed: () => Modular.to.pushNamed(
@@ -226,14 +225,16 @@ class _HomeState extends State<Home> {
   /// FAB - Floating Action Button
   get floatButton {
     return FloatingActionButton(
-      backgroundColor: Theme.of(context).colorScheme.primary,
+      //backgroundColor: Theme.of(context).colorScheme.primary,
       child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
         const Icon(Icons.church),
-        Text(Global.igrejaSelecionada.value?.data()?.sigla ?? '',
-            style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontFamily: 'Offside',
-                letterSpacing: 0)),
+        Text(
+          Global.igrejaSelecionada.value?.data()?.sigla ?? '',
+          style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontFamily: 'Offside',
+              letterSpacing: 0),
+        ),
       ]),
       onPressed: () {
         Modular.to.pushNamed(AppRotas.CONTEXTO);

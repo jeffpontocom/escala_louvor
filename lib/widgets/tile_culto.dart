@@ -1,5 +1,7 @@
+import 'dart:math';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:escala_louvor/widgets/avatar_integrante.dart';
+import 'package:escala_louvor/widgets/avatar.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -165,10 +167,10 @@ class TileCulto extends StatelessWidget {
         Igreja? igreja = snapshot.data!.data();
         // Chip carregado
         return Chip(
-          avatar: CircleAvatar(
-            radius: 10,
-            backgroundColor: theme.colorScheme.background,
-            foregroundImage: MyNetwork.getImageFromUrl(igreja?.fotoUrl)?.image,
+          avatar: CachedAvatar(
+            icone: Icons.church,
+            url: igreja?.fotoUrl,
+            maxRadius: 10,
           ),
           label: Text(igreja?.sigla ?? '',
               style: Theme.of(context).textTheme.caption),
@@ -221,10 +223,13 @@ class TileCulto extends StatelessWidget {
             return Padding(
               padding: EdgeInsets.only(left: index * 18),
               child: CircleAvatar(
-                  radius: 12,
-                  backgroundColor: Theme.of(context).cardColor,
-                  child: AvatarIntegrante(
-                      integrante: escalados![index], radius: 10)),
+                radius: 12,
+                backgroundColor: Theme.of(context).cardColor,
+                child: CachedAvatar(
+                    nome: escalados?[index].nome ?? '',
+                    url: escalados?[index].fotoUrl,
+                    maxRadius: 10),
+              ),
             );
           }).reversed.toList(),
         );

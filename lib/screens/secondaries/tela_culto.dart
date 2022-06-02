@@ -2,6 +2,7 @@ import 'dart:developer' as dev;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:escala_louvor/rotas.dart';
+import 'package:escala_louvor/widgets/avatar.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
@@ -608,15 +609,10 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
                 // Foto do integrante
                 Hero(
                   tag: hero,
-                  child: CircleAvatar(
-                    radius: 24,
-                    backgroundColor: Colors.grey.withOpacity(0.5),
-                    foregroundImage: MyNetwork.getImageFromUrl(
-                            integrante?.data()?.fotoUrl,
-                            progressoSize: 16)
-                        ?.image,
-                    child: Text(MyStrings.getUserInitials(
-                        integrante?.data()?.nome ?? '')),
+                  child: CachedAvatar(
+                    nome: integrante?.data()?.nome,
+                    url: integrante?.data()?.fotoUrl,
+                    maxRadius: 24,
                   ),
                 ),
                 const SizedBox(height: 8),
@@ -700,14 +696,10 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
                           // Foto do integrante
                           Hero(
                             tag: hero,
-                            child: CircleAvatar(
-                              backgroundColor: Colors.grey.withOpacity(0.5),
-                              foregroundImage: MyNetwork.getImageFromUrl(
-                                      integrante?.data()?.fotoUrl,
-                                      progressoSize: 16)
-                                  ?.image,
-                              child: Text(MyStrings.getUserInitials(
-                                  integrante?.data()?.nome ?? '')),
+                            child: CachedAvatar(
+                              nome: integrante?.data()?.nome,
+                              url: integrante?.data()?.fotoUrl,
+                              maxRadius: 24,
                             ),
                           ),
                           const SizedBox(width: 8),

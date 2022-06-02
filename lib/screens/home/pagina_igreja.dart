@@ -1,6 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:escala_louvor/models/integrante.dart';
 import 'package:escala_louvor/utils/global.dart';
+import 'package:escala_louvor/widgets/avatar.dart';
 import 'package:escala_louvor/widgets/tile_integrante.dart';
 import 'package:flutter/material.dart';
 
@@ -144,11 +145,10 @@ class _PaginaEquipeState extends State<PaginaEquipe> {
   get _foto {
     return Hero(
       tag: 'fotoIgreja',
-      child: CircleAvatar(
+      child: CachedAvatar(
+        icone: Icons.church,
+        url: _igreja.fotoUrl,
         maxRadius: 128,
-        minRadius: 12,
-        foregroundImage: MyNetwork.getImageProvider(_igreja.fotoUrl),
-        child: const Icon(Icons.church),
       ),
     );
   }

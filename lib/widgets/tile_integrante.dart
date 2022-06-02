@@ -2,7 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:escala_louvor/functions/metodos_firebase.dart';
 import 'package:escala_louvor/models/integrante.dart';
 import 'package:escala_louvor/utils/utils.dart';
-import 'package:escala_louvor/widgets/avatar_integrante.dart';
+import 'package:escala_louvor/widgets/avatar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 
@@ -18,7 +18,13 @@ class TileIntegrante extends StatelessWidget {
     var integrante = snapshot.data()!;
     return ListTile(
       isThreeLine: true,
-      leading: AvatarIntegrante(integrante: integrante),
+      leading: Hero(
+        tag: snapshot.id,
+        child: CachedAvatar(
+          nome: integrante.nome,
+          url: integrante.fotoUrl,
+        ),
+      ),
       title: Text(
         integrante.nome,
         style: const TextStyle(fontWeight: FontWeight.bold),
@@ -28,14 +34,15 @@ class TileIntegrante extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Funções
-          Wrap(
+          /* Wrap(
             children: List.generate(integrante.funcoes?.length ?? 0, (index) {
               var separator =
                   integrante.funcoes!.length - 1 == index ? '' : ' • ';
               return Text(
                   funcaoGetString(integrante.funcoes![index]) + separator);
             }),
-          ),
+          ), */
+          Text(integrante.email),
           const SizedBox(height: 4),
           // Instrumentos
           Wrap(

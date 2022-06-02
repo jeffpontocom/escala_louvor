@@ -1,6 +1,7 @@
 import 'dart:developer' as dev;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:escala_louvor/widgets/avatar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 
@@ -97,11 +98,9 @@ class TelaAdmin extends StatelessWidget {
                               DocumentReference reference =
                                   snapshot.data!.docs[index].reference;
                               return ListTile(
-                                leading: CircleAvatar(
-                                  foregroundImage:
-                                      MyNetwork.getImageFromUrl(igreja.fotoUrl)
-                                          ?.image,
-                                  child: const Icon(Icons.church),
+                                leading: CachedAvatar(
+                                  icone: Icons.church,
+                                  url: igreja.fotoUrl,
                                 ),
                                 title: Text(igreja.sigla),
                                 subtitle: Text(igreja.nome),
@@ -150,13 +149,13 @@ class TelaAdmin extends StatelessWidget {
                 return Stack(
                   alignment: AlignmentDirectional.bottomEnd,
                   children: [
-                    CircleAvatar(
-                      radius: 56,
-                      backgroundColor: Colors.grey.withOpacity(0.5),
-                      foregroundImage:
-                          MyNetwork.getImageFromUrl(igreja?.fotoUrl)?.image,
-                      child: const Icon(Icons.church),
+                    // Foto da igreja ou icone
+                    CachedAvatar(
+                      icone: Icons.church,
+                      url: igreja?.fotoUrl,
+                      maxRadius: 56,
                     ),
+                    // Botão para substituir foto
                     CircleAvatar(
                       radius: 16,
                       child: IconButton(
@@ -466,7 +465,7 @@ class TelaAdmin extends StatelessWidget {
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Icone
+              // Icone do instrumento
               StatefulBuilder(builder: (innerContext, StateSetter innerState) {
                 return CircleAvatar(
                   radius: 48,
@@ -680,12 +679,9 @@ class TelaAdmin extends StatelessWidget {
                               DocumentReference reference =
                                   snapshot.data!.docs[index].reference;
                               return ListTile(
-                                leading: CircleAvatar(
-                                  foregroundImage: MyNetwork.getImageFromUrl(
-                                          integrante.fotoUrl)
-                                      ?.image,
-                                  child: Text(MyStrings.getUserInitials(
-                                      integrante.nome)),
+                                leading: CachedAvatar(
+                                  nome: integrante.nome,
+                                  url: integrante.fotoUrl,
                                 ),
                                 title: Text(integrante.nome),
                                 subtitle: Text(integrante.email),
