@@ -22,7 +22,7 @@ class Global {
   static DocumentSnapshot<Integrante>? logadoSnapshot;
   static SharedPreferences? preferences;
 
-  /// Preferência: Igreja em contexto (String)
+  /// ID da Igreja em contexto
   static String? get igreja => preferences?.getString('igreja_atual');
   static set igreja(String? id) {
     if (id != null && id.isNotEmpty) {
@@ -32,7 +32,7 @@ class Global {
     }
   }
 
-  /// Preferência: Mostrar todos os eventos (bool)
+  /// Mostrar todos os cultos
   static bool get mostrarTodosOsCultos =>
       preferences?.getBool('mostrar_todos_cultos') ?? false;
   static set mostrarTodosOsCultos(bool value) {
@@ -40,6 +40,7 @@ class Global {
     notificarAlteracaoEmIgrejas();
   }
 
+  /// Notificar alteração em igrejas selecionadas
   static void notificarAlteracaoEmIgrejas() {
     meusFiltros.value.igrejas = mostrarTodosOsCultos
         ? logado?.igrejas

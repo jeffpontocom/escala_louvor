@@ -90,13 +90,10 @@ class _HomeState extends State<Home> {
                 appBar: appBar,
                 body: corpo,
                 bottomNavigationBar: bottomNavigation,
-                // Float button com borda ao redor
-                /* floatingActionButton: CircleAvatar(
-                  backgroundColor: Theme.of(context).cardColor,
-                  radius: 31,
+                floatingActionButton: Visibility(
+                  visible: MediaQuery.of(context).viewInsets.bottom == 0.0,
                   child: floatButton,
-                ), */
-                floatingActionButton: floatButton,
+                ),
                 floatingActionButtonLocation:
                     FloatingActionButtonLocation.centerDocked,
               )
@@ -224,7 +221,7 @@ class _HomeState extends State<Home> {
   /// FAB - Floating Action Button
   get floatButton {
     return FloatingActionButton(
-      //backgroundColor: Theme.of(context).colorScheme.primary,
+      heroTag: 'none',
       child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
         const Icon(Icons.church),
         Text(

@@ -1,5 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:intl/intl.dart';
 
 import '/functions/metodos_firebase.dart';
@@ -26,71 +27,220 @@ class TileCulto extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(children: [
-      // Coluna 1: Dados Básicos
-      Expanded(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          child: Column(
-            children: [
-              // Linha 1: Ocasião e Igreja
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  iconDayNight,
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Column(
+    return Slidable(
+      endActionPane: ActionPane(
+        motion: const DrawerMotion(),
+        children: slidableButtons,
+      ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return Row(children: [
+            // Coluna 1: Dados Básicos
+            Expanded(
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                child: Column(
+                  children: [
+                    // Linha 1: Ocasião e Igreja
+                    Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        ocasiao,
-                        const SizedBox(height: 4),
-                        diaDaSemana,
+                        iconDayNight,
+                        const SizedBox(width: 8),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            ocasiao,
+                            const SizedBox(height: 4),
+                            diaDaSemana,
+                          ],
+                        ),
+                        const Expanded(child: SizedBox()),
+                        showResumo
+                            ? chipStatusDisponibilidade
+                            : const SizedBox(),
+                        igreja,
                       ],
                     ),
-                  ),
-                  igreja,
-                ],
-              ),
-              const SizedBox(height: 2),
-              // Linha 2: Data e Horário
-              Row(
-                children: [
-                  const SizedBox(width: 26),
-                  diaDoMes,
-                  const SizedBox(width: 8),
-                  horario,
-                ],
-              ),
-              // Linha 3: Escalados e Cânticos
-              Row(
-                children: [
-                  Expanded(child: equipe),
-                  const SizedBox(
-                    width: 8,
-                    height: 36,
-                  ),
-                  precisaAtencao,
-                  const SizedBox(width: 4),
-                  canticos,
-                ],
-              ),
-              // Linha 4: Resumo
-              showResumo
-                  ? Row(
+                    const SizedBox(height: 2),
+                    // Linha 2: Data e Horário
+                    Row(
                       children: [
-                        dataEnsaio,
+                        const SizedBox(width: 26),
+                        diaDoMes,
+                        const SizedBox(width: 8),
+                        horario,
+                        const Expanded(child: SizedBox()),
                       ],
-                    )
-                  : const SizedBox(),
-            ],
+                    ),
+                    // Linha 3: Escalados e Cânticos
+                    Row(
+                      children: [
+                        Expanded(child: equipe),
+                        const SizedBox(
+                          width: 8,
+                          height: 36,
+                        ),
+                        precisaAtencao,
+                        const SizedBox(width: 4),
+                        canticos,
+                      ],
+                    ),
+                    // Linha 4: Resumo
+                    showResumo
+                        ? Row(
+                            children: [
+                              dataEnsaio,
+                            ],
+                          )
+                        : const SizedBox(),
+                  ],
+                ),
+              ),
+            ),
+            // Coluna 2: Botão
+            Container(
+                child: _podeSerEscalado && !showResumo
+                    ? botaoDisponibilidade
+                    : null),
+          ]);
+        },
+      ),
+    );
+  }
+
+  get chipStatusDisponibilidade {
+    var child;
+    var style = theme.textTheme.caption;
+    if (_estouEscalado) {
+      child = Image.asset(
+        'assets/icons/ic_escalado.png',
+        height: 20,
+        color: Colors.green,
+        colorBlendMode: BlendMode.srcATop,
+      );
+    } else if (_estouDisponivel) {
+      child = Image.asset(
+        'assets/icons/ic_disponivel.png',
+        height: 20,
+        color: Colors.blue,
+        colorBlendMode: BlendMode.srcATop,
+      );
+    } else if (_estouRestrito) {
+      child = Image.asset(
+        'assets/icons/ic_restrito.png',
+        height: 20,
+        color: Colors.red,
+        colorBlendMode: BlendMode.srcATop,
+      );
+    } else {
+      child = Image.asset(
+        'assets/icons/ic_indeciso.png',
+        height: 20,
+        color: Colors.grey,
+        colorBlendMode: BlendMode.srcATop,
+      );
+    }
+    return Padding(
+      padding: const EdgeInsets.all(4),
+      child: child,
+    );
+  }
+
+  void doNothing(BuildContext context) {}
+
+  get slidableButtons {
+    if (_estouEscalado) {
+      return [
+        CustomSlidableAction(
+          flex: 1,
+          backgroundColor: Colors.green,
+          foregroundColor: Colors.white,
+          onPressed: doNothing,
+          child: sliderChild(
+            asset: 'assets/icons/ic_escalado.png',
+            label: 'Estou\nEscalado',
           ),
         ),
+      ];
+    }
+    if (_estouDisponivel) {
+      return [
+        CustomSlidableAction(
+          flex: 1,
+          backgroundColor: Colors.grey,
+          foregroundColor: Colors.white,
+          onPressed: (context) async {
+            await MeuFirebase.definirDisponibilidadeParaOCulto(reference);
+          },
+          child: sliderChild(
+            asset: 'assets/icons/ic_disponivel.png',
+            label: 'Remover\nDisponibilidade',
+          ),
+        ),
+      ];
+    }
+    if (_estouRestrito) {
+      return [
+        CustomSlidableAction(
+          flex: 1,
+          backgroundColor: Colors.grey,
+          foregroundColor: Colors.white,
+          onPressed: (context) async {
+            await MeuFirebase.definirRestricaoParaOCulto(reference);
+          },
+          child: sliderChild(
+            asset: 'assets/icons/ic_restrito.png',
+            label: 'Remover\nRestrição',
+          ),
+        ),
+      ];
+    }
+    return [
+      CustomSlidableAction(
+        flex: 1,
+        backgroundColor: Colors.blue,
+        foregroundColor: Colors.white,
+        onPressed: (context) async {
+          await MeuFirebase.definirDisponibilidadeParaOCulto(reference);
+        },
+        child: sliderChild(
+          asset: 'assets/icons/ic_disponivel.png',
+          label: 'Estou\nDisponível',
+        ),
       ),
-      //const SizedBox(width: 16),
-      // Coluna 2: Botão
-      Container(child: _podeSerEscalado ? botaoDisponibilidade : null),
-    ]);
+      CustomSlidableAction(
+        flex: 1,
+        backgroundColor: Colors.red,
+        foregroundColor: Colors.white,
+        onPressed: (context) async {
+          await MeuFirebase.definirRestricaoParaOCulto(reference);
+        },
+        child: sliderChild(
+          asset: 'assets/icons/ic_restrito.png',
+          label: 'Estou\nRestrito',
+        ),
+      ),
+    ];
+  }
+
+  Widget sliderChild({required String asset, required String label}) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Flexible(child: Image.asset(asset, height: 36)),
+        const SizedBox(height: 8),
+        Flexible(
+            child: Text(
+          label,
+          textAlign: TextAlign.center,
+          maxLines: 2,
+          softWrap: true,
+          overflow: TextOverflow.ellipsis,
+        )),
+      ],
+    );
   }
 
   /// Icone manhã/noite
@@ -232,9 +382,11 @@ class TileCulto extends StatelessWidget {
                 radius: 12,
                 backgroundColor: Theme.of(context).cardColor,
                 child: CachedAvatar(
-                    nome: escalados?[index].nome ?? '',
-                    url: escalados?[index].fotoUrl,
-                    maxRadius: 10),
+                  nome: escalados?[index].nome ?? '',
+                  url: escalados?[index].fotoUrl,
+                  maxRadius: 10,
+                  backgroundColor: Colors.grey.withOpacity(0.38),
+                ),
               ),
             );
           }).reversed.toList(),
@@ -372,6 +524,12 @@ class TileCulto extends StatelessWidget {
       (Global.logado?.ehDirigente ?? false) ||
       (Global.logado?.ehCoordenador ?? false) ||
       (Global.logado?.ehComponente ?? false);
+
+  bool get _estouEscalado => culto.usuarioEscalado(Global.logadoReference);
+
+  bool get _estouDisponivel => culto.usuarioDisponivel(Global.logadoReference);
+
+  bool get _estouRestrito => culto.usuarioRestrito(Global.logadoReference);
 
   /// Equipe escalada
   Future<List<Integrante>> equipeEscalada() async {

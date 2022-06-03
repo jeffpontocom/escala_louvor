@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:escala_louvor/widgets/tela_mensagem.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:intl/intl.dart';
@@ -10,9 +11,15 @@ import '/models/culto.dart';
 import '/models/integrante.dart';
 import '/utils/global.dart';
 import '/utils/mensagens.dart';
-import '../../widgets/avatar.dart';
+import '/widgets/avatar.dart';
 import '/widgets/dialogos.dart';
 import '/widgets/tile_culto.dart';
+
+enum FiltroData {
+  historico,
+  proximos,
+  mesAtual,
+}
 
 class PaginaAgenda extends StatefulWidget {
   const PaginaAgenda({Key? key}) : super(key: key);
@@ -24,11 +31,9 @@ class PaginaAgenda extends StatefulWidget {
 class _PaginaAgendaState extends State<PaginaAgenda> {
   /* VARIÁVEIS */
 
-  /// Modo da interface
-  bool _isPortrait = true;
-
   /// Lista de cultos
   List<QueryDocumentSnapshot<Culto>> cultos = [];
+  FiltroData filtroData = FiltroData.proximos;
 
   // Variáveis para calendário
   final DateTime agora = DateTime.now();
@@ -66,16 +71,23 @@ class _PaginaAgendaState extends State<PaginaAgenda> {
 
   @override
   Widget build(BuildContext context) {
+    // Inicia com um listener para os filtros
+    // Datas minima e máxima, e Igreja
     return ValueListenableBuilder<FiltroAgenda>(
         valueListenable: Global.meusFiltros,
         builder: (context, filtros, _) {
+          // Limpa a lista para forçar a interface a apresentar a tela de progresso
           cultos.clear();
+
+          // Stream para montar a lista de cultos dinâmica,
+          // ou seja, observa cada mudança nos registros
           return StreamBuilder<QuerySnapshot<Culto>>(
               stream: MeuFirebase.escutarCultos(
                   dataMinima: filtros.timeStampMin,
                   dataMaxima: filtros.timeStampMax,
                   igrejas: filtros.igrejas),
               builder: (context, snapshot) {
+                // TELA DE PROGRESSO
                 if (!snapshot.hasData ||
                     (snapshot.connectionState == ConnectionState.waiting &&
                         cultos.isEmpty)) {
@@ -83,250 +95,277 @@ class _PaginaAgendaState extends State<PaginaAgenda> {
                     children: const [
                       LinearProgressIndicator(),
                       Expanded(
-                        child: Center(
-                          child: Text('Carregando a lista...',
-                              textAlign: TextAlign.center),
+                        child: TelaMensagem(
+                          'Carregando a lista...',
+                          asset: 'assets/images/church.png',
                         ),
                       )
                     ],
                   );
                 }
+                // TELA DE FALHA
                 if (snapshot.hasError) {
-                  return const Center(
-                    child: Text('Falha ao tentar obter dados',
-                        textAlign: TextAlign.center),
+                  return const TelaMensagem(
+                    'Falha ao tentar obter dados',
+                    isError: true,
                   );
                 }
+
+                // Preenche a lista de cultos
                 cultos = snapshot.data!.docs.toList();
+                // Limpa e preenche novamente a lista de eventos do calendário
                 meusEventos.value.clear();
                 for (var culto in cultos) {
                   var dataCulto = culto.data().dataCulto.toDate();
                   meusEventos.value.putIfAbsent(dataCulto, () => 'culto');
                 }
-                return OrientationBuilder(builder: (context, orientation) {
-                  _isPortrait = orientation == Orientation.portrait;
-                  return LayoutBuilder(builder: (context, constraints) {
-                    return Wrap(children: [
-                      // Topo (retrato) | Esquerda (paisagem)
-                      SizedBox(
-                        height: _isPortrait
-                            ? kMinInteractiveDimension + 1
-                            : constraints.maxHeight,
-                        width: _isPortrait
-                            ? constraints.maxWidth
-                            : constraints.maxWidth * 0.4 - 1,
-                        child: _cabecalho,
-                      ),
-                      // Divisor (apenas em modo paisagem)
-                      _isPortrait
-                          ? const SizedBox()
-                          : Container(
-                              height: constraints.maxHeight,
-                              width: 1,
-                              color: Colors.grey,
-                            ),
-                      // Base (retrato) | Direita (paisagem)
-                      SizedBox(
-                        height: _isPortrait
-                            ? constraints.maxHeight -
-                                (kMinInteractiveDimension + 1)
-                            : constraints.maxHeight,
-                        width: _isPortrait
-                            ? constraints.maxWidth
-                            : constraints.maxWidth * 0.6,
-                        child: _dados,
-                      ),
-                    ]);
-                  });
-                });
+
+                // TELA PRINCIPAL
+                return _layout;
               });
         });
   }
 
-  get _cabecalho {
-    return Column(children: [
-      // Ações
-      Container(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        child: Row(
-          children: [
-            // Botão Novo Culto
-            ((Global.logado?.adm ?? false) ||
-                    (Global.logado?.ehRecrutador ?? false))
-                ? ActionChip(
-                    avatar: const Icon(Icons.add, size: 20),
-                    label: const Text('Novo'),
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                    onPressed: () {
-                      // Tratamento de erros
-                      if (Global.igrejaSelecionada.value == null) {
-                        Mensagem.simples(
-                            context: context,
-                            mensagem:
-                                'Isso não deveria ter acontecido. Sem igreja selecionada.');
-                        return;
-                      }
-                      var dataInicial = DateTime(sDiaSelecionado.year,
-                          sDiaSelecionado.month, sDiaSelecionado.day, 9, 30);
-                      var culto = Culto(
-                        dataCulto: Timestamp.fromDate(dataInicial),
-                        igreja: Global.igrejaSelecionada.value!.reference,
-                      );
-                      Dialogos.editarCulto(context, culto);
-                    })
-                : const SizedBox(),
-            const Expanded(child: SizedBox(height: kMinInteractiveDimension)),
-            // Botão Filtro
-            const Icon(Icons.filter_alt),
-            const SizedBox(width: 4),
-            DropdownButton<int>(
-                value: Global.meusFiltros.value.dataMaxima == null ? 0 : -1,
-                underline: const SizedBox(),
+  /// LAYOUT DA TELA
+  get _layout {
+    return OrientationBuilder(builder: (context, orientation) {
+      // MODO RETRATO
+      if (orientation == Orientation.portrait) {
+        return Column(children: [
+          _rowAcoes,
+          const Divider(height: 1),
+          Expanded(child: _conteudo),
+        ]);
+      }
+      // MODO PAISAGEM
+      return LayoutBuilder(builder: (context, constraints) {
+        return Wrap(children: [
+          SizedBox(
+            height: constraints.maxHeight,
+            width: constraints.maxWidth * 0.4 - 1,
+            child: Column(
+              children: [
+                _rowAcoes,
+                const Divider(height: 1),
+                Expanded(child: _calendario),
+              ],
+            ),
+          ),
+          Container(
+              height: constraints.maxHeight, width: 1, color: Colors.grey),
+          SizedBox(
+              height: constraints.maxHeight,
+              width: constraints.maxWidth * 0.6,
+              child: _conteudo),
+        ]);
+      });
+    });
+  }
+
+  /// WIDGET AÇÕES
+  get _rowAcoes {
+    return Container(
+      color: Theme.of(context).colorScheme.background,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        children: [
+          // BOTÃO DE FILTROS
+          const Icon(Icons.filter_alt),
+          const SizedBox(width: 4),
+          DropdownButtonHideUnderline(
+            child: DropdownButton<FiltroData>(
+                value: filtroData,
                 items: const [
                   DropdownMenuItem(
-                    value: 0,
+                    value: FiltroData.proximos,
                     child: Text('Próximos'),
                   ),
                   DropdownMenuItem(
-                    value: -1,
+                    value: FiltroData.mesAtual,
+                    child: Text('Mês atual'),
+                  ),
+                  DropdownMenuItem(
+                    value: FiltroData.historico,
                     child: Text('Histórico'),
                   ),
                 ],
                 onChanged: (value) {
-                  switch (value) {
-                    case 0:
+                  filtroData = value ?? FiltroData.proximos;
+                  var agora = DateTime.now();
+                  switch (filtroData) {
+                    case FiltroData.proximos:
+                      Global.meusFiltros.value.dataMinima =
+                          agora.subtract(const Duration(hours: 4));
                       Global.meusFiltros.value.dataMaxima = null;
-                      Global.meusFiltros.value.dataMinima = DateTime.now();
                       break;
-                    case -1:
-                      Global.meusFiltros.value.dataMaxima = DateTime.now();
+                    case FiltroData.mesAtual:
+                      var ano = agora.year;
+                      var mes = agora.month;
+                      Global.meusFiltros.value.dataMinima =
+                          DateTime(ano, mes, 1);
+                      Global.meusFiltros.value.dataMaxima =
+                          DateTime(ano, mes + 1, -1);
+                      break;
+                    case FiltroData.historico:
                       Global.meusFiltros.value.dataMinima = null;
+                      Global.meusFiltros.value.dataMaxima =
+                          agora.add(const Duration(hours: 4));
                       break;
                   }
                   Global.meusFiltros.notifyListeners();
                 }),
-          ],
-        ),
+          ),
+
+          // Espaço em branco com altura padrão de interação
+          const Expanded(child: SizedBox(height: kMinInteractiveDimension)),
+
+          // BOTÃO NOVO CULTO
+          // Apenas para Recrutadores ou administrador do sistema
+          ((Global.logado?.adm ?? false) ||
+                  (Global.logado?.ehRecrutador ?? false))
+              ? ActionChip(
+                  avatar: const Icon(Icons.add, size: 20),
+                  label: const Text('Novo'),
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  onPressed: () {
+                    // Tratamento de erros
+                    if (Global.igrejaSelecionada.value == null) {
+                      Mensagem.simples(
+                          context: context,
+                          mensagem:
+                              'Isso não deveria ter acontecido. Sem igreja selecionada.');
+                      return;
+                    }
+                    var dataInicial = DateTime(sDiaSelecionado.year,
+                        sDiaSelecionado.month, sDiaSelecionado.day, 9, 30);
+                    var culto = Culto(
+                      dataCulto: Timestamp.fromDate(dataInicial),
+                      igreja: Global.igrejaSelecionada.value!.reference,
+                    );
+                    Dialogos.editarCulto(context, culto);
+                  })
+              : const SizedBox(),
+        ],
       ),
-      const Divider(height: 1),
-      // Calendário (apresenta apenas no modo paisagem)
-      _isPortrait
-          ? const SizedBox()
-          : Expanded(
-              child: ValueListenableBuilder<Map<DateTime, String>>(
-                  valueListenable: meusEventos,
-                  builder: (context, eventos, _) {
-                    return StatefulBuilder(builder: (context, setState) {
-                      return TableCalendar(
-                        focusedDay: sDiaEmFoco,
-                        firstDay: DateTime(agora.year, agora.month),
-                        lastDay: DateTime(agora.year, agora.month + 6, 0),
-                        locale: 'pt_BR',
-                        shouldFillViewport: true,
-                        headerStyle:
-                            const HeaderStyle(headerPadding: EdgeInsets.zero),
-                        onPageChanged: (diaEmFoco) {
-                          setState(() {
-                            sDiaEmFoco = diaEmFoco;
-                            _setMesCorrente(diaEmFoco);
-                          });
-                        },
-                        onDaySelected: (diaSelecionado, diaEmFoco) {
-                          setState(() {
-                            sDiaEmFoco = diaEmFoco;
-                            sDiaSelecionado = diaSelecionado;
-                            _setMesCorrente(diaSelecionado);
-                          });
-                        },
-                        selectedDayPredicate: (dia) {
-                          return _ehMesmoDia(dia, sDiaSelecionado);
-                        },
-                        holidayPredicate: (dia) {
-                          var datas = eventos.entries.where(
-                              (element) => element.value == 'aniversario');
-                          for (var data in datas) {
-                            if (_ehMesmoDia(dia, data.key)) {
-                              return true;
-                            }
-                          }
-                          return false;
-                        },
-                        eventLoader: (data) {
-                          List cultos = [];
-                          eventos.entries
-                              .where((element) => element.value == 'culto')
-                              .forEach((element) {
-                            if (_ehMesmoDia(data, element.key)) {
-                              cultos.add(element.value);
-                            }
-                          });
-                          return cultos;
-                        },
-                        availableCalendarFormats: const {
-                          CalendarFormat.month: 'Mês'
-                        },
-                        calendarStyle: CalendarStyle(
-                          weekendTextStyle: TextStyle(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onBackground
-                                  .withOpacity(0.7)),
-                          outsideTextStyle:
-                              TextStyle(color: Colors.grey.withOpacity(0.5)),
-                          todayDecoration: BoxDecoration(
-                              color: null,
-                              border: Border.fromBorderSide(BorderSide(
-                                  color: Theme.of(context).colorScheme.primary,
-                                  width: 1.4)),
-                              shape: BoxShape.circle),
-                          todayTextStyle: TextStyle(
-                              color: Theme.of(context).colorScheme.primary),
-                          selectedDecoration: BoxDecoration(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .primary
-                                  .withOpacity(0.75),
-                              border: Border.fromBorderSide(
-                                BorderSide(
-                                    color:
-                                        Theme.of(context).colorScheme.primary,
-                                    width: 1.4),
-                              ),
-                              shape: BoxShape.circle),
-                          holidayDecoration: BoxDecoration(
-                              border: Border.fromBorderSide(BorderSide(
-                                  color:
-                                      Theme.of(context).colorScheme.secondary,
-                                  width: 1.4)),
-                              shape: BoxShape.circle),
-                          holidayTextStyle: TextStyle(
-                              color: Theme.of(context).colorScheme.secondary),
-                          markerDecoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(12),
-                              color: Theme.of(context).colorScheme.primary),
-                        ),
-                      );
-                    });
-                  }),
-            ),
-    ]);
+    );
   }
 
-  // LISTA DE CULTOS
-  get _dados {
-    return cultos.isEmpty
-        ? const Center(
-            child: Text('Nenhum culto previsto.', textAlign: TextAlign.center),
-          )
-        : listaCultos;
+  /// WIDGET CALENDÁRIO
+  get _calendario {
+    return ValueListenableBuilder<Map<DateTime, String>>(
+        valueListenable: meusEventos,
+        builder: (context, eventos, _) {
+          return StatefulBuilder(builder: (context, setState) {
+            return TableCalendar(
+              focusedDay: sDiaEmFoco,
+              firstDay: DateTime(agora.year, agora.month),
+              lastDay: DateTime(agora.year, agora.month + 6, 0),
+              locale: 'pt_BR',
+              shouldFillViewport: true,
+              headerStyle: const HeaderStyle(headerPadding: EdgeInsets.zero),
+              onPageChanged: (diaEmFoco) {
+                setState(() {
+                  sDiaEmFoco = diaEmFoco;
+                  _setMesCorrente(diaEmFoco);
+                });
+              },
+              onDaySelected: (diaSelecionado, diaEmFoco) {
+                setState(() {
+                  sDiaEmFoco = diaEmFoco;
+                  sDiaSelecionado = diaSelecionado;
+                  _setMesCorrente(diaSelecionado);
+                });
+              },
+              selectedDayPredicate: (dia) {
+                return _ehMesmoDia(dia, sDiaSelecionado);
+              },
+              holidayPredicate: (dia) {
+                var datas = eventos.entries
+                    .where((element) => element.value == 'aniversario');
+                for (var data in datas) {
+                  if (_ehMesmoDia(dia, data.key)) {
+                    return true;
+                  }
+                }
+                return false;
+              },
+              eventLoader: (data) {
+                List cultos = [];
+                eventos.entries
+                    .where((element) => element.value == 'culto')
+                    .forEach((element) {
+                  if (_ehMesmoDia(data, element.key)) {
+                    cultos.add(element.value);
+                  }
+                });
+                return cultos;
+              },
+              availableCalendarFormats: const {CalendarFormat.month: 'Mês'},
+              calendarStyle: CalendarStyle(
+                weekendTextStyle: TextStyle(
+                    color: Theme.of(context)
+                        .colorScheme
+                        .onBackground
+                        .withOpacity(0.7)),
+                outsideTextStyle:
+                    TextStyle(color: Colors.grey.withOpacity(0.5)),
+                todayDecoration: BoxDecoration(
+                    color: null,
+                    border: Border.fromBorderSide(BorderSide(
+                        color: Theme.of(context).colorScheme.primary,
+                        width: 1.4)),
+                    shape: BoxShape.circle),
+                todayTextStyle:
+                    TextStyle(color: Theme.of(context).colorScheme.primary),
+                selectedDecoration: BoxDecoration(
+                    color:
+                        Theme.of(context).colorScheme.primary.withOpacity(0.75),
+                    border: Border.fromBorderSide(
+                      BorderSide(
+                          color: Theme.of(context).colorScheme.primary,
+                          width: 1.4),
+                    ),
+                    shape: BoxShape.circle),
+                holidayDecoration: BoxDecoration(
+                    border: Border.fromBorderSide(BorderSide(
+                        color: Theme.of(context).colorScheme.secondary,
+                        width: 1.4)),
+                    shape: BoxShape.circle),
+                holidayTextStyle:
+                    TextStyle(color: Theme.of(context).colorScheme.secondary),
+                markerDecoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    color: Theme.of(context).colorScheme.primary),
+              ),
+            );
+          });
+        });
   }
 
-  /// View Lista de Cultos
-  get listaCultos {
+  /// CONTEÚDO PRINCIPAL
+  get _conteudo {
+    return cultos.isNotEmpty
+        ? _listaCultos
+        : const TelaMensagem(
+            'Nenhum culto previsto!',
+            asset: 'assets/images/church.png',
+          );
+  }
+
+  /// LISTA DE CULTOS
+  get _listaCultos {
     bool mostrarCabecalho = true;
-    return ListView(
+    return ListView.separated(
       shrinkWrap: true,
-      children: List.generate(cultos.length, (index) {
+      separatorBuilder: (context, index) {
+        return Divider(
+          height: 8,
+          thickness: 8,
+          color: Theme.of(context).highlightColor,
+        );
+      },
+      itemCount: cultos.length,
+      itemBuilder: (context, index) {
         var culto = cultos[index].data();
         var reference = cultos[index].reference;
         mostrarCabecalho = index - 1 < 0
@@ -343,6 +382,14 @@ class _PaginaAgendaState extends State<PaginaAgenda> {
             mostrarCabecalho
                 ? cabecalhoDoMes(culto.dataCulto.toDate())
                 : const SizedBox(),
+            // Divisor
+            mostrarCabecalho
+                ? Divider(
+                    height: 8,
+                    thickness: 8,
+                    color: Theme.of(context).highlightColor,
+                  )
+                : const SizedBox(),
             // Tile do culto
             InkWell(
               onTap: () => Modular.to.pushNamed(
@@ -355,11 +402,9 @@ class _PaginaAgendaState extends State<PaginaAgenda> {
                 showResumo: true,
               ),
             ),
-            // Divisor
-            const Divider(height: 1),
           ],
         );
-      }),
+      },
     );
   }
 

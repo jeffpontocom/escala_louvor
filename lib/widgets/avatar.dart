@@ -8,8 +8,14 @@ class CachedAvatar extends StatelessWidget {
   final String? nome;
   final String? url;
   final double? maxRadius;
+  final Color? backgroundColor;
   const CachedAvatar(
-      {Key? key, this.nome, this.url, this.maxRadius, this.icone})
+      {Key? key,
+      this.nome,
+      this.url,
+      this.maxRadius,
+      this.icone,
+      this.backgroundColor})
       : assert(nome != null || icone != null),
         super(key: key);
 
@@ -17,6 +23,7 @@ class CachedAvatar extends StatelessWidget {
   Widget build(BuildContext context) {
     return CircleAvatar(
       maxRadius: maxRadius,
+      backgroundColor: backgroundColor,
       foregroundImage: url == null ? null : CachedNetworkImageProvider(url!),
       child: Container(
         padding: const EdgeInsets.all(4),

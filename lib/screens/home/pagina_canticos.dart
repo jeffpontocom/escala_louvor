@@ -3,6 +3,7 @@ import 'package:escala_louvor/functions/metodos_firebase.dart';
 import 'package:escala_louvor/utils/global.dart';
 import 'package:escala_louvor/utils/mensagens.dart';
 import 'package:escala_louvor/utils/utils.dart';
+import 'package:escala_louvor/widgets/tela_mensagem.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -14,6 +15,12 @@ import '../../../models/culto.dart';
 import '../../rotas.dart';
 import '../../widgets/dialogos.dart';
 
+enum FiltroRepertorio {
+  todos,
+  cantos,
+  hinos,
+}
+
 class PaginaCanticos extends StatefulWidget {
   final DocumentSnapshot<Culto>? culto;
   const PaginaCanticos({Key? key, this.culto}) : super(key: key);
@@ -24,14 +31,21 @@ class PaginaCanticos extends StatefulWidget {
 
 class _PaginaCanticosState extends State<PaginaCanticos> {
   /* VARIÁVEIS */
-  late bool _isPortrait;
-  bool? somenteHinos;
+
+  /// Lista de cânticos selecionados
   List<DocumentReference<Cantico>>? _selecionados;
-  final ValueNotifier<String> sFiltro = ValueNotifier('');
+
+  /// Filtro de Repertório
+  ValueNotifier<FiltroRepertorio> filtroRepertorio =
+      ValueNotifier(FiltroRepertorio.todos);
+
+  /// Controlador do campo de busca
   TextEditingController searchInputController = TextEditingController();
 
-  //Integrante? logado = Global.logado;
+  /// Notificador do campo de busca
+  final ValueNotifier<String> buscaFiltro = ValueNotifier('');
 
+/* SISTEMA  */
   @override
   void initState() {
     _selecionados = widget.culto?.data()?.canticos;
@@ -40,215 +54,233 @@ class _PaginaCanticosState extends State<PaginaCanticos> {
 
   @override
   Widget build(BuildContext context) {
+    return _layout;
+  }
+
+  /// LAYOUT DA TELA
+  get _layout {
     return OrientationBuilder(builder: (context, orientation) {
-      _isPortrait = orientation == Orientation.portrait;
+      // MODO RETRATO
+      if (orientation == Orientation.portrait) {
+        return Column(children: [
+          _rowAcoes,
+          _rowBusca,
+          const Divider(height: 1),
+          Expanded(child: _listaCanticos),
+          const Divider(height: 1),
+          _rowSelecao
+        ]);
+      }
+      // MODO PAISAGEM
       return LayoutBuilder(builder: (context, constraints) {
         return Wrap(children: [
-          // Topo (retrato) | Esquerda (paisagem)
           SizedBox(
-            height: _isPortrait ? 150 : constraints.maxHeight,
-            width: _isPortrait
-                ? constraints.maxWidth
-                : constraints.maxWidth * 0.4 - 1,
-            child: _cabecalho,
+            height: constraints.maxHeight,
+            width: constraints.maxWidth * 0.4 - 1,
+            child: Column(
+              children: [
+                _rowAcoes,
+                _rowBusca,
+                const Divider(height: 1),
+                Expanded(child: _rowSelecao),
+              ],
+            ),
           ),
-          // Divisor (apenas em modo paisagem)
-          _isPortrait
-              ? const SizedBox()
-              : Container(
-                  height: constraints.maxHeight,
-                  width: 1,
-                  color: Colors.grey,
-                ),
-          // Base (retrato) | Direita (paisagem)
+          Container(
+              height: constraints.maxHeight, width: 1, color: Colors.grey),
           SizedBox(
-            height: _isPortrait
-                ? constraints.maxHeight - 151 - 56
-                : constraints.maxHeight,
-            width:
-                _isPortrait ? constraints.maxWidth : constraints.maxWidth * 0.6,
-            child: _dados,
-          ),
+              height: constraints.maxHeight,
+              width: constraints.maxWidth * 0.6,
+              child: _listaCanticos),
         ]);
       });
     });
   }
 
-  /// Cabeçalho: filtros
-  get _cabecalho {
-    return Column(children: [
-      Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 0),
-        color: Colors.grey.withOpacity(0.15),
-        child: Row(
-          children: [
-            // Filtros
-            const Text('Apresentando:'),
-            const SizedBox(width: 8),
-            RawChip(
-              label: Text(somenteHinos == null
-                  ? 'Toda a lista'
-                  : somenteHinos == true
-                      ? 'Somente hinos'
-                      : 'Somente cânticos'),
-              onPressed: () {
-                setState(() {
-                  switch (somenteHinos) {
-                    case null:
-                      somenteHinos = true;
-                      break;
-                    case true:
-                      somenteHinos = false;
-                      break;
-                    default:
-                      somenteHinos = null;
-                      break;
-                  }
-                });
-              },
-            ),
-            const Expanded(child: SizedBox()),
-            // Botão adicionar
-            Global.logado!.adm ||
-                    Global.logado!.ehDirigente ||
-                    Global.logado!.ehCoordenador
-                ? ActionChip(
-                    avatar: const Icon(Icons.add),
-                    label: const Text('Novo'),
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                    onPressed: () {
-                      var cantico = Cantico(nome: '');
-                      Dialogos.editarCantico(context, cantico);
-                    })
-                : const SizedBox(),
-          ],
-        ),
-      ),
-      const Divider(height: 1),
-      const SizedBox(height: 8),
-      // Campo de Busca
-      Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        child: TextField(
-          controller: searchInputController,
-          decoration: InputDecoration(
-            prefixIcon: const Icon(Icons.search),
-            suffixIcon: IconButton(
-                icon: const Icon(Icons.clear),
-                onPressed: () {
-                  searchInputController.clear();
-                  sFiltro.value = '';
-                }),
-            hintText: 'Buscar...',
+  /// WIDGET DE AÇÕES
+  get _rowAcoes {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      color: Theme.of(context).colorScheme.background,
+      child: Row(
+        children: [
+          // BOTÃO DE FILTROS
+          const Icon(Icons.filter_alt),
+          const SizedBox(width: 4),
+          StatefulBuilder(
+            builder: (context, innerState) {
+              return DropdownButtonHideUnderline(
+                child: DropdownButton<FiltroRepertorio>(
+                    value: filtroRepertorio.value,
+                    items: const [
+                      DropdownMenuItem(
+                        value: FiltroRepertorio.todos,
+                        child: Text('Lista completa'),
+                      ),
+                      DropdownMenuItem(
+                        value: FiltroRepertorio.cantos,
+                        child: Text('Somente cânticos'),
+                      ),
+                      DropdownMenuItem(
+                        value: FiltroRepertorio.hinos,
+                        child: Text('Somente hinos'),
+                      ),
+                    ],
+                    onChanged: (value) {
+                      innerState(() {
+                        filtroRepertorio.value =
+                            value ?? FiltroRepertorio.todos;
+                      });
+                    }),
+              );
+            },
           ),
-          onChanged: (value) {
-            sFiltro.value = value;
-          },
-        ),
+
+          // Espaço em branco com altura padrão de interação
+          const Expanded(child: SizedBox(height: kMinInteractiveDimension)),
+
+          // BOTÃO NOVO CÂNTICOS
+          // Apenas para Dirigentes, Coordenadores ou administrador do sistema
+          Global.logado!.adm ||
+                  Global.logado!.ehDirigente ||
+                  Global.logado!.ehCoordenador
+              ? ActionChip(
+                  avatar: const Icon(Icons.add, size: 20),
+                  label: const Text('Novo'),
+                  backgroundColor: Theme.of(context).colorScheme.primary,
+                  onPressed: () {
+                    var cantico = Cantico(nome: '');
+                    Dialogos.editarCantico(context, cantico);
+                  })
+              : const SizedBox(),
+        ],
       ),
-      widget.culto != null
-          ? Container(
-              color: Theme.of(context).colorScheme.secondary.withOpacity(0.2),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-              child: Row(
-                children: [
-                  // Seleção
-                  Expanded(child: _selecionadosToString),
-                  // Botão adicionar/atualizar canticos do evento
-                  ElevatedButton(
-                    child: const Text('CONCLUIR'),
-                    onPressed: () async {
-                      Mensagem.aguardar(context: context);
-                      await widget.culto?.reference
-                          .update({'canticos': _selecionados});
-                      Modular.to.pop(); // fechar progresso
-                      Modular.to.pop(); // fecha dialog
-                    },
-                  )
-                ],
-              ))
-          : const SizedBox(),
-    ]);
+    );
   }
 
-  /// Dados: Lista de cânticos
-  get _dados {
-    return StreamBuilder<QuerySnapshot<Cantico>>(
-        stream: MeuFirebase.escutarCanticos(somenteHinos),
-        builder: (_, canticos) {
-          if (!canticos.hasData) {
-            return const Center(child: CircularProgressIndicator());
+  /// WIDGET DE BUSCA
+  get _rowBusca {
+    return Container(
+      color: Theme.of(context).colorScheme.background,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: TextField(
+        controller: searchInputController,
+        decoration: InputDecoration(
+          isDense: true,
+          prefixIcon: const Icon(Icons.search),
+          suffixIcon: IconButton(
+              icon: const Icon(Icons.clear),
+              onPressed: () {
+                searchInputController.clear();
+                buscaFiltro.value = '';
+              }),
+          hintText: 'Buscar...',
+        ),
+        onChanged: (value) {
+          buscaFiltro.value = value;
+        },
+      ),
+    );
+  }
+
+  /// WIDGET DE CÂNTICOS SELECIONADOS
+  get _rowSelecao {
+    return widget.culto != null
+        ? Container(
+            color: Theme.of(context).colorScheme.secondary.withOpacity(0.2),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            child: Row(
+              children: [
+                // Seleção
+                Expanded(child: _selecionadosToString),
+                // Botão adicionar/atualizar canticos do evento
+                ElevatedButton(
+                  child: const Text('CONCLUIR'),
+                  onPressed: () async {
+                    Mensagem.aguardar(context: context);
+                    await widget.culto?.reference
+                        .update({'canticos': _selecionados});
+                    Modular.to.pop(); // fechar progresso
+                    Modular.to.pop(); // fecha dialog
+                  },
+                )
+              ],
+            ))
+        : const SizedBox();
+  }
+
+  /// TEXTO DE CÂNTICOS SELECIONADOS
+  Widget get _selecionadosToString {
+    if (_selecionados == null || _selecionados!.isEmpty) {
+      return const Text('Nenhum cântico selecionado.');
+    }
+    return Wrap(
+      children: List.generate(_selecionados!.length, (index) {
+        return FutureBuilder<DocumentSnapshot<Cantico>?>(
+            future: MeuFirebase.obterSnapshotCantico(_selecionados![index].id),
+            builder: (context, snapshot) {
+              return Text(
+                  '${index + 1} - ${snapshot.data?.data()?.nome ?? '[erro]'}${index < _selecionados!.length - 1 ? "; " : ""}');
+            });
+      }),
+    );
+  }
+
+  /// LISTA DE CÂNTICOS
+  get _listaCanticos {
+    return ValueListenableBuilder(
+        valueListenable: filtroRepertorio,
+        builder: (context, filtro, _) {
+          bool? somenteHinos;
+          switch (filtro) {
+            case FiltroRepertorio.todos:
+              somenteHinos = null;
+              break;
+            case FiltroRepertorio.cantos:
+              somenteHinos = false;
+              break;
+            case FiltroRepertorio.hinos:
+              somenteHinos = true;
+              break;
+            default:
           }
-          List<QueryDocumentSnapshot<Cantico>>? listaOriginal =
-              canticos.data?.docs;
-          List<QueryDocumentSnapshot<Cantico>> listaFiltrada = [];
-          if (listaOriginal == null || listaOriginal.isEmpty) {
-            return Padding(
-              padding: const EdgeInsets.all(64),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  // Imagem
-                  Flexible(
-                    child: Image.asset(
-                      'assets/images/song.png',
-                      fit: BoxFit.contain,
-                      width: 256,
-                      height: 256,
-                    ),
-                  ),
-                  // Informação
-                  Text(
-                    'Nenhum ${somenteHinos == null ? "cântico ou hino" : somenteHinos == true ? "hino" : "cântico"} cadastrado',
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-            );
-          }
-          return ValueListenableBuilder<String>(
-              valueListenable: sFiltro,
-              builder: (_, filtro, child) {
-                listaFiltrada.clear();
-                if (filtro.isEmpty || filtro.length < 4) {
-                  listaFiltrada.addAll(listaOriginal.where((element) => true));
-                } else {
-                  listaFiltrada.addAll(listaOriginal.where((element) =>
-                      MyStrings.hasContain(element.data().nome, filtro) ||
-                      MyStrings.hasContain(
-                          element.data().autor ?? '', filtro) ||
-                      MyStrings.hasContain(
-                          element.data().letra ?? '', filtro)));
+          return StreamBuilder<QuerySnapshot<Cantico>>(
+              stream: MeuFirebase.escutarCanticos(somenteHinos),
+              builder: (_, canticos) {
+                if (!canticos.hasData) {
+                  return const Center(child: CircularProgressIndicator());
                 }
-                if (listaFiltrada.isEmpty) {
-                  return Padding(
-                    padding: const EdgeInsets.all(64),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        // Imagem
-                        Flexible(
-                          child: Image.asset(
-                            'assets/images/song.png',
-                            fit: BoxFit.contain,
-                            width: 256,
-                            height: 256,
-                          ),
-                        ),
-                        // Informação
-                        Text(
-                          'Nenhum ${somenteHinos == null ? "cântico ou hino" : somenteHinos == true ? "hino" : "cântico"} encontrado na busca',
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
-                    ),
+                List<QueryDocumentSnapshot<Cantico>>? listaOriginal =
+                    canticos.data?.docs;
+                List<QueryDocumentSnapshot<Cantico>> listaFiltrada = [];
+                if (listaOriginal == null || listaOriginal.isEmpty) {
+                  return TelaMensagem(
+                    'Nenhum ${somenteHinos == null ? "cântico ou hino" : somenteHinos == true ? "hino" : "cântico"} cadastrado',
+                    asset: 'assets/images/song.png',
                   );
                 }
-                return LayoutBuilder(
-                  builder: ((context, constraints) {
-                    return Container(
-                      //height: constraints.maxHeight,
-                      child: ListView(
+                return ValueListenableBuilder<String>(
+                    valueListenable: buscaFiltro,
+                    builder: (_, filtro, child) {
+                      listaFiltrada.clear();
+                      if (filtro.isEmpty || filtro.length < 4) {
+                        listaFiltrada
+                            .addAll(listaOriginal.where((element) => true));
+                      } else {
+                        listaFiltrada.addAll(listaOriginal.where((element) =>
+                            MyStrings.hasContain(element.data().nome, filtro) ||
+                            MyStrings.hasContain(
+                                element.data().autor ?? '', filtro) ||
+                            MyStrings.hasContain(
+                                element.data().letra ?? '', filtro)));
+                      }
+                      if (listaFiltrada.isEmpty) {
+                        return TelaMensagem(
+                          'Nenhum ${somenteHinos == null ? "cântico ou hino" : somenteHinos == true ? "hino" : "cântico"} encontrado na busca',
+                          asset: 'assets/images/song.png',
+                        );
+                      }
+                      return ListView(
                         padding: EdgeInsets.zero,
                         shrinkWrap: true,
                         children: List.generate(listaFiltrada.length, (index) {
@@ -277,8 +309,6 @@ class _PaginaCanticosState extends State<PaginaCanticos> {
                                           arguments: [
                                             listaFiltrada[index].data()
                                           ]);
-                                      //Dialogos.verLetraDoCantico(
-                                      //    context, listaFiltrada[index].data());
                                     },
                                     icon: const Icon(Icons.abc)),
                             horizontalTitleGap: 4,
@@ -375,28 +405,9 @@ class _PaginaCanticosState extends State<PaginaCanticos> {
                                   },
                           );
                         }),
-                      ),
-                    );
-                  }),
-                );
+                      );
+                    });
               });
         });
-  }
-
-  /// Rodapé: Cânticos selecionados
-  Widget get _selecionadosToString {
-    if (_selecionados == null || _selecionados!.isEmpty) {
-      return const Text('Nenhum cântico selecionado.');
-    }
-    return Wrap(
-      children: List.generate(_selecionados!.length, (index) {
-        return FutureBuilder<DocumentSnapshot<Cantico>?>(
-            future: MeuFirebase.obterSnapshotCantico(_selecionados![index].id),
-            builder: (context, snapshot) {
-              return Text(
-                  '${index + 1} - ${snapshot.data?.data()?.nome ?? '[erro]'}${index < _selecionados!.length - 1 ? "; " : ""}');
-            });
-      }),
-    );
   }
 }
