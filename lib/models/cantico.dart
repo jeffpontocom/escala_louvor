@@ -3,6 +3,8 @@ class Cantico {
 
   late String nome;
   String? autor;
+  String? tom;
+  String? compasso;
   String? letra;
   String? cifraUrl;
   String? youTubeUrl;
@@ -12,6 +14,8 @@ class Cantico {
   Cantico({
     required this.nome,
     this.autor,
+    this.tom,
+    this.compasso,
     this.letra,
     this.cifraUrl,
     this.youTubeUrl,
@@ -23,6 +27,8 @@ class Cantico {
       : this(
           nome: (json['nome'] ?? '[novo cantico]') as String,
           autor: json['autor'] as String?,
+          tom: json['tom'] as String?,
+          compasso: json['compasso'] as String?,
           letra: json['letra'] as String?,
           cifraUrl: json['cifraUrl'] as String?,
           youTubeUrl: json['youTubeUrl'] as String?,
@@ -34,6 +40,8 @@ class Cantico {
     return {
       'nome': nome,
       'autor': autor,
+      'tom': tom,
+      'compasso': compasso,
       'letra': letra,
       'cifraUrl': cifraUrl,
       'youTubeUrl': youTubeUrl,

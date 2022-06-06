@@ -1,6 +1,5 @@
 import 'dart:developer' as dev;
 
-import 'package:escala_louvor/widgets/avatar.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -9,11 +8,12 @@ import 'package:stylish_bottom_bar/stylish_bottom_bar.dart';
 
 import '/rotas.dart';
 import '/utils/global.dart';
+import '/widgets/avatar.dart';
 
 enum Paginas {
   agenda,
-  avisos,
   equipe,
+  avisos,
   canticos,
 }
 
@@ -27,7 +27,7 @@ String paginaNome(int index) {
     case Paginas.canticos:
       return 'Repertório musical';
     case Paginas.equipe:
-      return 'Equipe de louvor';
+      return 'Membros da equipe';
   }
 }
 
@@ -125,7 +125,18 @@ class _HomeState extends State<Home> {
       title: ValueListenableBuilder<int>(
           valueListenable: _pagina,
           builder: (context, pagina, _) {
-            return Text(paginaNome(pagina));
+            return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    Global.nomeDoApp,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w300,
+                    ),
+                  ),
+                  Text(paginaNome(pagina)),
+                ]);
           }),
       centerTitle: false,
       elevation: _isPortrait ? null : 0,
@@ -207,7 +218,8 @@ class _HomeState extends State<Home> {
           leading: floatButton,
           destinations: List.generate(Paginas.values.length, (index) {
             return NavigationRailDestination(
-                icon: paginaIcone(index), label: Text(paginaNome(index)));
+                icon: paginaIcone(index),
+                label: Text(paginaNome(index).split(' ').first));
           }),
           onDestinationSelected: (index) {
             _pagina.value = index;

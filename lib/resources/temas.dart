@@ -13,7 +13,7 @@ class Temas {
         centerTitle: true,
         titleTextStyle: TextStyle(
             fontFamily: 'Offside',
-            fontSize: 22,
+            fontSize: 20,
             fontWeight: FontWeight.bold,
             color: Colors.white),
       ),

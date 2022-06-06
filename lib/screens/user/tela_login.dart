@@ -6,10 +6,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 
-import '../home/tela_home.dart';
 import '/models/integrante.dart';
+import '/resources/medidas.dart';
+import '/screens/home/tela_home.dart';
 import '/utils/global.dart';
-import '../../resources/medidas.dart';
 import '/utils/mensagens.dart';
 import '/utils/utils.dart';
 

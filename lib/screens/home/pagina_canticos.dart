@@ -1,19 +1,16 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:escala_louvor/functions/metodos_firebase.dart';
-import 'package:escala_louvor/utils/global.dart';
-import 'package:escala_louvor/utils/mensagens.dart';
-import 'package:escala_louvor/utils/utils.dart';
-import 'package:escala_louvor/widgets/tela_mensagem.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 
-import 'package:url_launcher/url_launcher.dart';
-
-import '../../../models/cantico.dart';
-import '../../../models/culto.dart';
-import '../../rotas.dart';
-import '../../widgets/dialogos.dart';
+import '/functions/metodos_firebase.dart';
+import '/models/cantico.dart';
+import '/models/culto.dart';
+import '/utils/global.dart';
+import '/utils/mensagens.dart';
+import '/utils/utils.dart';
+import '/widgets/tela_mensagem.dart';
+import '/widgets/tile_cantico.dart';
+import '/widgets/dialogos.dart';
 
 enum FiltroRepertorio {
   todos,
@@ -187,7 +184,7 @@ class _PaginaCanticosState extends State<PaginaCanticos> {
   get _rowSelecao {
     return widget.culto != null
         ? Container(
-            color: Theme.of(context).colorScheme.secondary.withOpacity(0.2),
+            color: Theme.of(context).colorScheme.secondary.withOpacity(0.38),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             child: Row(
               children: [
@@ -284,13 +281,24 @@ class _PaginaCanticosState extends State<PaginaCanticos> {
                         padding: EdgeInsets.zero,
                         shrinkWrap: true,
                         children: List.generate(listaFiltrada.length, (index) {
-                          bool selecionado = (_selecionados
-                                  ?.map((e) => e.toString())
-                                  .contains(listaFiltrada[index]
-                                      .reference
-                                      .toString()) ??
-                              false);
-                          return ListTile(
+                          bool? selecionado = widget.culto == null
+                              ? null
+                              : (_selecionados
+                                      ?.map((e) => e.toString())
+                                      .contains(listaFiltrada[index]
+                                          .reference
+                                          .toString())) ??
+                                  false;
+                          //
+                          return TileCantico(
+                            snapshot: listaFiltrada[index],
+                            selecionado: selecionado,
+                            onTap: widget.culto == null
+                                ? null
+                                : () => onSelectItem(
+                                    listaFiltrada[index].reference),
+                          );
+                          /* return ListTile(
                             visualDensity: VisualDensity.compact,
                             contentPadding:
                                 const EdgeInsets.symmetric(horizontal: 4),
@@ -403,11 +411,25 @@ class _PaginaCanticosState extends State<PaginaCanticos> {
                                       }
                                     });
                                   },
-                          );
+                          ); */
                         }),
                       );
                     });
               });
         });
+  }
+
+  void onSelectItem(DocumentReference<Cantico> reference) {
+    setState(() {
+      _selecionados ??= [];
+      if (_selecionados!
+          .map((e) => e.toString())
+          .contains(reference.toString())) {
+        _selecionados!.removeWhere(
+            (element) => element.toString() == reference.toString());
+      } else {
+        _selecionados!.add(reference);
+      }
+    });
   }
 }

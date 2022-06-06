@@ -40,22 +40,22 @@ class AppRotas extends Module {
         ChildRoute(
           '/${Paginas.agenda.name}',
           child: (context, args) => const PaginaAgenda(),
-          transition: TransitionType.upToDown,
+          transition: TransitionType.downToUp,
         ),
         ChildRoute(
           '/${Paginas.canticos.name}',
           child: (context, args) => const PaginaCanticos(),
-          transition: TransitionType.upToDown,
+          transition: TransitionType.downToUp,
         ),
         ChildRoute(
           '/${Paginas.avisos.name}',
           child: (context, args) => const PaginaAvisos(),
-          transition: TransitionType.upToDown,
+          transition: TransitionType.downToUp,
         ),
         ChildRoute(
           '/${Paginas.equipe.name}',
           child: (context, args) => const PaginaEquipe(),
-          transition: TransitionType.upToDown,
+          transition: TransitionType.downToUp,
         ),
       ],
     ),
@@ -98,7 +98,7 @@ class AppRotas extends Module {
     ),
     ChildRoute(
       CANTICO,
-      child: (_, args) => TelaLetrasView(canticos: args.data),
+      child: (_, args) => TelaLetrasView(snapshot: args.data),
       transition: TransitionType.downToUp,
       guards: [AuthGuard()],
     ),
