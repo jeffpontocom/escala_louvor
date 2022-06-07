@@ -112,6 +112,17 @@ class MeuFirebase {
         .snapshots();
   }
 
+  /// Stream Cantico específico
+  static Stream<DocumentSnapshot<Cantico>>? obterStreamCantico(String id) {
+    return FirebaseFirestore.instance
+        .collection(Cantico.collection)
+        .doc(id)
+        .withConverter<Cantico>(
+            fromFirestore: (snapshot, _) => Cantico.fromJson(snapshot.data()!),
+            toFirestore: (pacote, _) => pacote.toJson())
+        .snapshots();
+  }
+
   /* SNAPSHOTS */
 
   /// Lista de Culto
@@ -435,14 +446,7 @@ class MeuFirebase {
   /// Atualizar Culto
   static Future atualizarCantico(
       Cantico cantico, DocumentReference<Cantico> reference) async {
-    reference.update({
-      'nome': cantico.nome,
-      'autor': cantico.autor,
-      'cifraUrl': cantico.cifraUrl,
-      'youTubeUrl': cantico.youTubeUrl,
-      'letra': cantico.letra,
-      'isHino': cantico.isHino,
-    });
+    reference.set(cantico);
   }
 
   /// Atualizar ou Criar Culto

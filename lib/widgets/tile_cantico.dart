@@ -31,15 +31,22 @@ class TileCantico extends StatelessWidget {
       title: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            cantico.nome,
-            overflow: TextOverflow.ellipsis,
+          Flexible(
+            child: Text(
+              cantico.nome,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          const SizedBox(width: 8),
+          CircleAvatar(
+            radius: 10,
+            backgroundColor: Colors.grey.withOpacity(0.38),
+            child: Padding(
+              padding: const EdgeInsets.all(2),
+              child: FittedBox(child: Text(cantico.tom ?? '?')),
+            ),
           ),
           const SizedBox(width: 4),
-          CircleAvatar(
-            radius: 12,
-            child: Text(cantico.tom ?? '?'),
-          ),
         ],
       ),
       // AUTO DO CÂNTICO
@@ -60,11 +67,14 @@ class TileCantico extends StatelessWidget {
                       borderRadius: BorderRadius.circular(8),
                       color: Colors.grey.withOpacity(0.38)),
                   child: IconButton(
-                      onPressed: () {
-                        MeuFirebase.abrirArquivosPdf(
-                            context, [cantico.cifraUrl!]);
-                      },
-                      icon: const Icon(Icons.queue_music)),
+                    icon: const Icon(Icons.queue_music),
+                    padding: EdgeInsets.zero,
+                    visualDensity: VisualDensity.compact,
+                    onPressed: () {
+                      MeuFirebase.abrirArquivosPdf(
+                          context, [cantico.cifraUrl!]);
+                    },
+                  ),
                 ),
           const SizedBox(width: 8),
           // YouTube
@@ -75,18 +85,22 @@ class TileCantico extends StatelessWidget {
                       borderRadius: BorderRadius.circular(8),
                       color: Colors.grey.withOpacity(0.38)),
                   child: IconButton(
-                      onPressed: () async {
-                        if (!await launch(cantico.youTubeUrl ?? '')) {
-                          throw 'Could not launch youTubeUrl';
-                        }
-                      },
-                      icon: const FaIcon(FontAwesomeIcons.youtube,
-                          color: Colors.red)),
+                    icon: const FaIcon(FontAwesomeIcons.youtube,
+                        color: Colors.red),
+                    padding: EdgeInsets.zero,
+                    visualDensity: VisualDensity.compact,
+                    onPressed: () async {
+                      if (!await launch(cantico.youTubeUrl ?? '')) {
+                        throw 'Could not launch youTubeUrl';
+                      }
+                    },
+                  ),
                 ),
         ],
       ),
       onTap: onTap ??
-          () => Modular.to.pushNamed(AppRotas.CANTICO, arguments: snapshot),
+          () => Modular.to.pushNamed('${AppRotas.CANTICO}?id=${snapshot.id}',
+              arguments: snapshot),
       /* onTap: widget.culto == null
           ? null
           : () {

@@ -98,9 +98,10 @@ class AppRotas extends Module {
     ),
     ChildRoute(
       CANTICO,
-      child: (_, args) => TelaLetrasView(snapshot: args.data),
+      child: (_, args) =>
+          TelaLetrasView(id: args.queryParams['id'] ?? '', snapshot: args.data),
       transition: TransitionType.downToUp,
-      guards: [AuthGuard()],
+      guards: [AuthGuard(), QueryGuard()],
     ),
     WildcardRoute(child: (_, __) => const App()),
   ];

@@ -827,9 +827,9 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
               contentPadding: const EdgeInsets.symmetric(horizontal: 8),
               leading: IconButton(
                   onPressed: () {
-                    Modular.to.pushNamed(AppRotas.CANTICO,
+                    Modular.to.pushNamed(
+                        '${AppRotas.CANTICO}?id=${snapshot.data!.id}',
                         arguments: [snapshot.data!.data()!]);
-                    //Dialogos.verLetraDoCantico(context, snapshot.data!.data()!);
                   },
                   icon: const Icon(Icons.abc)),
               horizontalTitleGap: 8,

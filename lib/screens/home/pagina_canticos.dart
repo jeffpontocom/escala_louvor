@@ -146,8 +146,7 @@ class _PaginaCanticosState extends State<PaginaCanticos> {
                   label: const Text('Novo'),
                   backgroundColor: Theme.of(context).colorScheme.primary,
                   onPressed: () {
-                    var cantico = Cantico(nome: '');
-                    Dialogos.editarCantico(context, cantico);
+                    Dialogos.editarCantico(context, cantico: Cantico(nome: ''));
                   })
               : const SizedBox(),
         ],
@@ -277,10 +276,11 @@ class _PaginaCanticosState extends State<PaginaCanticos> {
                           asset: 'assets/images/song.png',
                         );
                       }
-                      return ListView(
+                      return ListView.separated(
                         padding: EdgeInsets.zero,
                         shrinkWrap: true,
-                        children: List.generate(listaFiltrada.length, (index) {
+                        itemCount: listaFiltrada.length,
+                        itemBuilder: (context, index) {
                           bool? selecionado = widget.culto == null
                               ? null
                               : (_selecionados
@@ -298,121 +298,10 @@ class _PaginaCanticosState extends State<PaginaCanticos> {
                                 : () => onSelectItem(
                                     listaFiltrada[index].reference),
                           );
-                          /* return ListTile(
-                            visualDensity: VisualDensity.compact,
-                            contentPadding:
-                                const EdgeInsets.symmetric(horizontal: 4),
-                            leading: selecionado
-                                ? const SizedBox(
-                                    width: kMinInteractiveDimension,
-                                    height: kMinInteractiveDimension,
-                                    child: Icon(
-                                      Icons.check_circle,
-                                      color: Colors.green,
-                                    ),
-                                  )
-                                : IconButton(
-                                    onPressed: () {
-                                      Modular.to.pushNamed(AppRotas.CANTICO,
-                                          arguments: [
-                                            listaFiltrada[index].data()
-                                          ]);
-                                    },
-                                    icon: const Icon(Icons.abc)),
-                            horizontalTitleGap: 4,
-                            title: Text(
-                              listaFiltrada[index].data().nome,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            subtitle: Text(
-                              listaFiltrada[index].data().autor ?? '',
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                            trailing: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                // Cifra
-                                listaFiltrada[index].data().cifraUrl == null
-                                    ? const SizedBox()
-                                    : IconButton(
-                                        onPressed: () {
-                                          MeuFirebase.abrirArquivosPdf(
-                                              context, [
-                                            listaFiltrada[index]
-                                                .data()
-                                                .cifraUrl!
-                                          ]);
-                                        },
-                                        icon: const Icon(Icons.queue_music,
-                                            color: Colors.green)),
-                                // YouTube
-                                listaFiltrada[index].data().youTubeUrl ==
-                                            null ||
-                                        listaFiltrada[index]
-                                            .data()
-                                            .youTubeUrl!
-                                            .isEmpty
-                                    ? const SizedBox()
-                                    : IconButton(
-                                        onPressed: () async {
-                                          if (!await launch(listaFiltrada[index]
-                                                  .data()
-                                                  .youTubeUrl ??
-                                              '')) {
-                                            throw 'Could not launch youTubeUrl';
-                                          }
-                                        },
-                                        icon: const FaIcon(
-                                            FontAwesomeIcons.youtube,
-                                            color: Colors.red)),
-                                // Menu
-                                Global.logado!.adm ||
-                                        Global.logado!.ehDirigente ||
-                                        Global.logado!.ehCoordenador
-                                    ? PopupMenuButton(
-                                        onSelected: (value) {
-                                          if (value == 'edit') {
-                                            Dialogos.editarCantico(context,
-                                                listaFiltrada[index].data(),
-                                                reference: listaFiltrada[index]
-                                                    .reference);
-                                          }
-                                        },
-                                        itemBuilder: (_) {
-                                          return const [
-                                            PopupMenuItem(
-                                              value: 'edit',
-                                              child: Text('Editar'),
-                                            ),
-                                          ];
-                                        },
-                                      )
-                                    : const SizedBox(),
-                              ],
-                            ),
-                            onTap: widget.culto == null
-                                ? null
-                                : () {
-                                    setState(() {
-                                      _selecionados ??= [];
-                                      if (_selecionados!
-                                          .map((e) => e.toString())
-                                          .contains(listaFiltrada[index]
-                                              .reference
-                                              .toString())) {
-                                        _selecionados!.removeWhere((element) =>
-                                            element.toString() ==
-                                            listaFiltrada[index]
-                                                .reference
-                                                .toString());
-                                      } else {
-                                        _selecionados!.add(
-                                            listaFiltrada[index].reference);
-                                      }
-                                    });
-                                  },
-                          ); */
-                        }),
+                        },
+                        separatorBuilder: (context, index) {
+                          return const Divider(height: 1);
+                        },
                       );
                     });
               });

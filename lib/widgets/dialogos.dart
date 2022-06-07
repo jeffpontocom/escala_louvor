@@ -191,120 +191,224 @@ class Dialogos {
   }
 
   /// Editar Cantico
-  static void editarCantico(BuildContext context, Cantico cantico,
-      {DocumentReference<Cantico>? reference}) async {
+  static void editarCantico(
+    BuildContext context, {
+    required Cantico cantico,
+    DocumentReference<Cantico>? reference,
+  }) async {
+    var titulo = 'Editar Cântico';
+    if (reference == null) {
+      titulo = 'Novo Cântico';
+    }
     return Mensagem.bottomDialog(
       context: context,
-      titulo: 'Editar cântico',
-      conteudo: ListView(
-          shrinkWrap: true,
-          padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-          children: [
-            // É hino
-            StatefulBuilder(builder: (_, innerState) {
-              return Row(
-                children: [
-                  // Cifra
-                  Flexible(
-                    flex: 3,
-                    child: ListTile(
-                      contentPadding: EdgeInsets.zero,
-                      horizontalTitleGap: 0,
-                      leading:
-                          const Icon(Icons.queue_music, color: Colors.green),
-                      title: const Text('Cifra'),
-                      trailing: cantico.cifraUrl == null
-                          ? const Icon(Icons.upload_file)
-                          : IconButton(
-                              // Ação para remover o arquivo
-                              onPressed: () async {
-                                innerState(() => cantico.cifraUrl = null);
-                              },
-                              icon: const Icon(Icons.delete_forever)),
-                      onTap: cantico.cifraUrl == null
-                          ?
-                          // Ação para carregar arquivo
-                          () async {
+      titulo: titulo,
+      conteudo: StatefulBuilder(
+        builder: (context, innerState) {
+          return ListView(
+              shrinkWrap: true,
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              children: [
+                // TÍTULO
+                TextFormField(
+                  initialValue: cantico.nome,
+                  textCapitalization: TextCapitalization.sentences,
+                  textInputAction: TextInputAction.next,
+                  decoration: const InputDecoration(
+                    labelText: 'Título',
+                    prefixIcon: Icon(Icons.subtitles),
+                    isDense: true,
+                    floatingLabelBehavior: FloatingLabelBehavior.always,
+                  ),
+                  onChanged: (value) {
+                    cantico.nome = value;
+                  },
+                ),
+                const SizedBox(height: 8),
+
+                // AUTOR(ES)
+                TextFormField(
+                  initialValue: cantico.autor,
+                  textCapitalization: TextCapitalization.words,
+                  textInputAction: TextInputAction.next,
+                  decoration: const InputDecoration(
+                    labelText: 'Autor(es)',
+                    prefixIcon: Icon(Icons.person),
+                    isDense: true,
+                    floatingLabelBehavior: FloatingLabelBehavior.always,
+                  ),
+                  onChanged: (value) {
+                    cantico.autor = value;
+                  },
+                ),
+                const SizedBox(height: 8),
+
+                // TOM e COMPASSO
+                Row(
+                  children: [
+                    Flexible(
+                      flex: 2,
+                      child: TextFormField(
+                        initialValue: cantico.tom,
+                        textCapitalization: TextCapitalization.words,
+                        textInputAction: TextInputAction.next,
+                        decoration: const InputDecoration(
+                          labelText: 'Tom',
+                          prefixIcon: Icon(Icons.scatter_plot_sharp),
+                          isDense: true,
+                          floatingLabelBehavior: FloatingLabelBehavior.always,
+                        ),
+                        onChanged: (value) {
+                          cantico.tom = value;
+                        },
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    Flexible(
+                      flex: 3,
+                      child: TextFormField(
+                        initialValue: cantico.compasso,
+                        textCapitalization: TextCapitalization.words,
+                        textInputAction: TextInputAction.next,
+                        decoration: const InputDecoration(
+                          labelText: 'Compasso',
+                          prefixIcon: Icon(Icons.compass_calibration),
+                          isDense: true,
+                          floatingLabelBehavior: FloatingLabelBehavior.always,
+                        ),
+                        onChanged: (value) {
+                          cantico.compasso = value;
+                        },
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+
+                // LINK DO VIDEO
+                TextFormField(
+                  initialValue: cantico.youTubeUrl,
+                  textCapitalization: TextCapitalization.none,
+                  textInputAction: TextInputAction.next,
+                  decoration: const InputDecoration(
+                    labelText: 'Link do vídeo',
+                    prefixIcon: Icon(Icons.live_tv),
+                    isDense: true,
+                    floatingLabelBehavior: FloatingLabelBehavior.always,
+                  ),
+                  onChanged: (value) {
+                    cantico.youTubeUrl = value;
+                  },
+                ),
+                const SizedBox(height: 8),
+
+                // CIFRA
+                TextFormField(
+                  focusNode: FocusNode(canRequestFocus: false),
+                  readOnly: true,
+                  decoration: InputDecoration(
+                    labelText: 'Cifra',
+                    prefixIcon: const Icon(Icons.queue_music),
+                    isDense: true,
+                    floatingLabelBehavior: FloatingLabelBehavior.always,
+                    hintText: cantico.cifraUrl == null
+                        ? 'Carregar arquivo em PDF'
+                        : cantico.cifraUrl?.split('=').last ??
+                            'Arquivo sem nome!',
+                    hintStyle: Theme.of(context).textTheme.caption,
+                    suffixIcon: cantico.cifraUrl == null
+                        // Ação para carregar arquivo
+                        ? IconButton(
+                            icon: Icon(Icons.upload_file,
+                                color: Theme.of(context).colorScheme.primary),
+                            onPressed: () async {
                               String? url =
                                   await MeuFirebase.carregarArquivoPdf(context,
                                       pasta: 'cifras');
                               if (url != null && url.isNotEmpty) {
                                 innerState(() => cantico.cifraUrl = url);
                               }
-                            }
-                          :
-                          // Ação para abrir o arquivo
-                          () => MeuFirebase.abrirArquivosPdf(
-                              context, [cantico.cifraUrl!]),
+                            },
+                          )
+                        // Ação para remover o arquivo
+                        : IconButton(
+                            icon: const Icon(
+                              Icons.delete_forever,
+                              color: Colors.red,
+                            ),
+                            onPressed: () {
+                              innerState(() => cantico.cifraUrl = null);
+                            },
+                          ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+
+                // TEMA e TIPO
+                Row(
+                  children: [
+                    // Tema
+                    Flexible(
+                      flex: 3,
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButtonFormField<String>(
+                            hint: const Text('Selecione o tema'),
+                            isDense: true,
+                            items: const [
+                              DropdownMenuItem(
+                                  value: 'Contrição', child: Text('Contrição')),
+                              DropdownMenuItem(
+                                  value: 'Jubilo', child: Text('Jubilo')),
+                            ],
+                            decoration: const InputDecoration(
+                              labelText: 'Tema',
+                              isDense: true,
+                              floatingLabelBehavior:
+                                  FloatingLabelBehavior.always,
+                            ),
+                            onChanged: (value) {}),
+                      ),
                     ),
+                    const SizedBox(width: 8),
+                    // Tipo (é hino?)
+                    Flexible(
+                      flex: 2,
+                      child: CheckboxListTile(
+                          title: const Text('É hino'),
+                          activeColor: Theme.of(context).colorScheme.primary,
+                          tileColor: Theme.of(context)
+                              .colorScheme
+                              .secondary
+                              .withOpacity(0.12),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(32)),
+                          value: cantico.isHino,
+                          onChanged: (value) {
+                            innerState((() => cantico.isHino = value ?? false));
+                          }),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 8),
+
+                // LETRA
+                TextFormField(
+                  initialValue: cantico.letra,
+                  minLines: 5,
+                  maxLines: 15,
+                  textCapitalization: TextCapitalization.sentences,
+                  textInputAction: TextInputAction.newline,
+                  decoration: const InputDecoration(
+                    labelText: 'Letra',
+                    floatingLabelBehavior: FloatingLabelBehavior.always,
                   ),
-                  const VerticalDivider(width: 12),
-                  // Tipo (é hino?)
-                  Flexible(
-                    flex: 2,
-                    child: CheckboxListTile(
-                        title: const Text('Hino', textAlign: TextAlign.center),
-                        activeColor: Theme.of(context).colorScheme.primary,
-                        contentPadding: EdgeInsets.zero,
-                        tileColor: Colors.grey.withOpacity(0.18),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8)),
-                        value: cantico.isHino,
-                        onChanged: (value) {
-                          innerState((() => cantico.isHino = value ?? false));
-                        }),
-                  ),
-                ],
-              );
-            }),
-            // Nome ou título
-            TextFormField(
-              initialValue: cantico.nome,
-              decoration: const InputDecoration(
-                labelText: 'Título',
-                floatingLabelBehavior: FloatingLabelBehavior.always,
-              ),
-              onChanged: (value) {
-                cantico.nome = value;
-              },
-            ),
-            // Autor(es)
-            TextFormField(
-              initialValue: cantico.autor,
-              decoration: const InputDecoration(
-                labelText: 'Autor(es)',
-                icon: Icon(Icons.co_present_rounded),
-                floatingLabelBehavior: FloatingLabelBehavior.always,
-              ),
-              onChanged: (value) {
-                cantico.autor = value;
-              },
-            ),
-            // YouTube Url
-            TextFormField(
-              initialValue: cantico.youTubeUrl,
-              decoration: const InputDecoration(
-                  labelText: 'Link do vídeo',
-                  floatingLabelBehavior: FloatingLabelBehavior.always,
-                  icon: FaIcon(FontAwesomeIcons.youtube, color: Colors.red)),
-              onChanged: (value) {
-                cantico.youTubeUrl = value;
-              },
-            ),
-            // Letra
-            TextFormField(
-              initialValue: cantico.letra,
-              minLines: 5,
-              maxLines: 15,
-              decoration: const InputDecoration(
-                labelText: 'Letra',
-                floatingLabelBehavior: FloatingLabelBehavior.always,
-              ),
-              onChanged: (value) {
-                cantico.letra = value;
-              },
-            ),
-          ]),
+                  onChanged: (value) {
+                    cantico.letra = value;
+                  },
+                ),
+              ]);
+        },
+      ),
       rodape: Row(
         children: [
           reference == null
@@ -315,10 +419,20 @@ class Dialogos {
                   style: ElevatedButton.styleFrom(primary: Colors.red),
                   onPressed: () async {
                     // Abre progresso
-                    Mensagem.aguardar(context: context);
-                    await MeuFirebase.apagarCantico(cantico, id: reference.id);
-                    Modular.to.pop(); // Fecha progresso
-                    Modular.to.maybePop(); // Fecha dialog
+                    Mensagem.decisao(
+                        context: context,
+                        titulo: 'Apagar',
+                        mensagem:
+                            'Deseja apagar definitivamente "${cantico.nome}".',
+                        onPressed: (ok) async {
+                          if (ok) {
+                            Mensagem.aguardar(context: context);
+                            await MeuFirebase.apagarCantico(cantico,
+                                id: reference.id);
+                            Modular.to.pop(); // Fecha progresso
+                            Modular.to.maybePop();
+                          }
+                        }); // Fecha dialog
                   },
                 ),
           const Expanded(child: SizedBox()),
@@ -328,70 +442,17 @@ class Dialogos {
             label: Text(reference == null ? 'CRIAR' : 'ATUALIZAR'),
             onPressed: () async {
               // Salva os dados no firebase
+              Mensagem.aguardar(context: context); // Abre progresso
               if (reference == null) {
                 await MeuFirebase.criarCantico(cantico);
               } else {
                 await MeuFirebase.atualizarCantico(cantico, reference);
               }
+              Modular.to.pop(); // Fecha progresso
               Modular.to.pop(); // Fecha dialog
             },
           ),
         ],
-      ),
-    );
-  }
-
-  static void verLetraDoCantico(BuildContext context, Cantico cantico) {
-    ValueNotifier<double> fontSize = ValueNotifier(20);
-    var minFontSize = 15.0;
-    var maxFontSize = 50.0;
-    late double textSizeBefore;
-    late double textSizeAfter;
-    return Mensagem.bottomDialog(
-      context: context,
-      titulo: cantico.nome,
-      conteudo: GestureDetector(
-        // Captura de gestos para alterar tamanho da fonte
-        onScaleStart: (details) {
-          textSizeAfter = fontSize.value;
-          textSizeBefore = fontSize.value;
-        },
-        onScaleUpdate: (details) {
-          textSizeAfter = textSizeBefore * details.verticalScale;
-          if (textSizeAfter > minFontSize && textSizeAfter < maxFontSize) {
-            fontSize.value = textSizeAfter;
-          }
-        },
-        onScaleEnd: (details) {
-          if (textSizeAfter < minFontSize) {
-            textSizeAfter = minFontSize;
-          }
-          if (textSizeAfter > maxFontSize) {
-            textSizeAfter = maxFontSize;
-          }
-          fontSize.value = textSizeAfter;
-        },
-        // Pagina principal
-        child: ValueListenableBuilder<double>(
-            valueListenable: fontSize,
-            builder: (context, size, _) {
-              return ListView(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 48, vertical: 12),
-                shrinkWrap: true,
-                children: [
-                  // Autor
-                  Text(cantico.autor ?? ''),
-                  // Letra
-                  const SizedBox(height: 24),
-                  Text(
-                    cantico.letra ?? '',
-                    style: TextStyle(fontSize: size),
-                  ),
-                  const SizedBox(height: 48),
-                ],
-              );
-            }),
       ),
     );
   }

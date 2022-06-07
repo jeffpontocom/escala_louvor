@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 class TelaMensagem extends StatelessWidget {
   final String mensagem;
+  final String? title;
   final String? asset;
   final IconData? icone;
   final bool isError;
@@ -9,6 +10,7 @@ class TelaMensagem extends StatelessWidget {
 
   const TelaMensagem(this.mensagem,
       {Key? key,
+      this.title,
       this.asset,
       this.icone,
       this.isError = false,
@@ -21,11 +23,11 @@ class TelaMensagem extends StatelessWidget {
       children: [
         isLoading ? const LinearProgressIndicator() : const SizedBox(),
         Expanded(
-          child: Padding(
+          child: Container(
               padding: const EdgeInsets.all(24),
+              alignment: Alignment.center,
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   // IMAGEM
                   Flexible(
@@ -41,6 +43,19 @@ class TelaMensagem extends StatelessWidget {
                             : const SizedBox(height: 256),
                   ),
                   const SizedBox(height: 24),
+                  title != null
+                      ? Padding(
+                          padding: EdgeInsets.all(8),
+                          child: Text(
+                            title!,
+                            textAlign: TextAlign.center,
+                            style: Theme.of(context)
+                                .textTheme
+                                .titleLarge
+                                ?.copyWith(fontWeight: FontWeight.bold),
+                          ),
+                        )
+                      : const SizedBox(),
                   // MENSAGEM
                   Text(
                     mensagem,

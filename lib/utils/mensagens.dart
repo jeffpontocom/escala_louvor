@@ -139,15 +139,15 @@ class Mensagem {
     Widget? rodape,
     IconData? icon,
     ScrollController? scrollController,
-    VoidCallback? onPressed,
+    VoidCallback? onClose,
   }) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       useRootNavigator: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16.0)),
-      ),
+      /* shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(0)),
+      ), */
       builder: (context) {
         return OrientationBuilder(builder: (context, orientation) {
           return ConstrainedBox(
@@ -164,45 +164,37 @@ class Mensagem {
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Elemento gráfico (indicador de dialog)
-                  Container(
-                    width: 48,
-                    height: 4,
-                    margin: const EdgeInsets.only(top: 12),
-                    decoration: BoxDecoration(
-                      shape: BoxShape.rectangle,
-                      borderRadius: const BorderRadius.all(Radius.circular(16)),
-                      color: Colors.grey.withOpacity(0.5),
-                    ),
-                  ),
                   // Cabeçalho
                   Row(
                     children: [
-                      IconButton(
-                        onPressed: null,
-                        icon: Icon(icon ?? Icons.subtitles,
-                            color: Colors.grey.withOpacity(0.5)),
-                      ),
+                      const SizedBox(width: 16),
                       Expanded(
                         child: Text(
                           titulo,
-                          textAlign: TextAlign.center,
-                          style: Theme.of(context).textTheme.titleLarge,
+                          style: Theme.of(context)
+                              .textTheme
+                              .titleMedium
+                              ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                       ),
                       CloseButton(color: Colors.grey.withOpacity(0.5)),
                     ],
                   ),
+                  const Divider(height: 1),
                   // Conteúdo
                   Flexible(child: conteudo),
                   // Rodapé
-                  rodape == null ? const SizedBox() : const Divider(height: 1),
                   rodape == null
                       ? const SizedBox()
-                      : Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 12),
-                          child: rodape,
+                      : Column(
+                          children: [
+                            const Divider(height: 1),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 4),
+                              child: rodape,
+                            ),
+                          ],
                         ),
                 ],
               ),
@@ -211,7 +203,7 @@ class Mensagem {
         });
       },
     ).then((value) {
-      if (onPressed != null) onPressed();
+      if (onClose != null) onClose();
     });
   }
 
