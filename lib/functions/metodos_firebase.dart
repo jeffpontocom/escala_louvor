@@ -672,12 +672,12 @@ class MeuFirebase {
   }
 
   /// Abrir arquivo PDF
-  static void abrirArquivosPdf(BuildContext context, List<String>? urls) async {
-    if (urls == null || urls.isEmpty) return;
+  /* static void abrirArquivosPdf(BuildContext context, String? fileUrl) async {
+    if (fileUrl == null || fileUrl.isEmpty) return;
     try {
       Mensagem.aguardar(context: context, mensagem: 'Abrindo arquivo...');
       List<Response> arquivos = [];
-      for (var url in urls) {
+      for (var url in fileUrl) {
         var data = await http.get(Uri.parse(url));
         arquivos.add(data);
       }
@@ -687,5 +687,5 @@ class MeuFirebase {
       Modular.to.maybePop(); // fecha progresso
       throw Exception("Error opening url file");
     }
-  }
+  } */
 }

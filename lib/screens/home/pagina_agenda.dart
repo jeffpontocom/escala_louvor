@@ -242,7 +242,7 @@ class _PaginaAgendaState extends State<PaginaAgenda> {
                       dataCulto: Timestamp.fromDate(dataInicial),
                       igreja: Global.igrejaSelecionada.value!.reference,
                     );
-                    Dialogos.editarCulto(context, culto);
+                    Dialogos.editarCulto(context, culto: culto);
                   })
               : const SizedBox(),
         ],

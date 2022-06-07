@@ -1,11 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart';
+import 'package:http/http.dart' as http;
 import 'package:printing/printing.dart';
 import 'package:wakelock/wakelock.dart';
 
+import '/views/scaffold_falha.dart';
+
 class TelaPdfView extends StatefulWidget {
-  final List<Response> arquivos;
-  const TelaPdfView({Key? key, required this.arquivos}) : super(key: key);
+  final String fileUrl;
+  final String fileName;
+
+  const TelaPdfView({Key? key, required this.fileUrl, required this.fileName})
+      : super(key: key);
 
   @override
   State<TelaPdfView> createState() => _TelaPdfViewState();
@@ -26,30 +31,24 @@ class _TelaPdfViewState extends State<TelaPdfView> {
 
   @override
   Widget build(BuildContext context) {
-    return DefaultTabController(
-      length: widget.arquivos.length,
-      child: SafeArea(
-        child: Scaffold(
-          body: TabBarView(
-            children: List.generate(widget.arquivos.length, (index) {
-              return PdfPreview(
-                build: (format) {
-                  return widget.arquivos[index].bodyBytes;
-                },
-                previewPageMargin: const EdgeInsets.all(8),
-                canDebug: false,
-                canChangeOrientation: false,
-                canChangePageFormat: false,
-                /* actions: [
-                  PdfPreviewAction(
-                      icon: const Icon(Icons.fast_rewind),
-                      onPressed: (_, __, ___) =>
-                          DefaultTabController.of(context)
-                              ?.animateTo(index - 1))
-                ], */
-              );
-            }),
-          ),
+    return SafeArea(
+      child: Scaffold(
+        body: PdfPreview(
+          padding: EdgeInsets.zero,
+          previewPageMargin: const EdgeInsets.all(8),
+          canDebug: false,
+          canChangeOrientation: false,
+          canChangePageFormat: false,
+          pdfFileName: widget.fileName,
+          dpi: 200,
+          shouldRepaint: true,
+          actions: const [BackButton()],
+          build: (format) async {
+            var data = await http.get(Uri.parse(widget.fileUrl));
+            return data.bodyBytes;
+          },
+          onError: (context, _) =>
+              const ViewFalha(mensagem: 'Não foi possível abrir o arquivo'),
         ),
       ),
     );

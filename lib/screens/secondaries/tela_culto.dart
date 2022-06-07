@@ -1,8 +1,11 @@
 import 'dart:developer' as dev;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:escala_louvor/resources/animations/shimmer.dart';
 import 'package:escala_louvor/rotas.dart';
+import 'package:escala_louvor/screens/secondaries/tela_pdf_view.dart';
 import 'package:escala_louvor/widgets/avatar.dart';
+import 'package:escala_louvor/widgets/tile_cantico.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
@@ -404,7 +407,10 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
       // Ação de toque
       onTap: mCulto.liturgiaUrl == null
           ? null
-          : () => MeuFirebase.abrirArquivosPdf(context, [mCulto.liturgiaUrl!]),
+          : () => Modular.to.pushNamed(AppRotas.ARQUIVOS,
+              arguments: [mCulto.liturgiaUrl!, 'Liturgia']),
+
+      /* MeuFirebase.abrirArquivosPdf(context, [mCulto.liturgiaUrl!]), */
     );
   }
 
@@ -808,10 +814,22 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
           future: MeuFirebase.obterSnapshotCantico(mCulto.canticos![index].id),
           builder: (context, snapshot) {
             if (!snapshot.hasData) {
-              // TODO: Tile de carregamento
-              return const Padding(
-                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: Text('Carregando...'),
+              return ListTile(
+                title: Shimmer.fromColors(
+                  baseColor: Colors.grey.withOpacity(0.38),
+                  highlightColor: Colors.grey.withOpacity(0.12),
+                  child: const Text('          '),
+                ),
+                subtitle: Shimmer.fromColors(
+                  baseColor: Colors.grey.withOpacity(0.38),
+                  highlightColor: Colors.grey.withOpacity(0.12),
+                  child: const Text('          '),
+                ),
+                trailing: Shimmer.fromColors(
+                  baseColor: Colors.grey.withOpacity(0.38),
+                  highlightColor: Colors.grey.withOpacity(0.12),
+                  child: const CircleAvatar(radius: 12),
+                ),
               );
             }
             if (snapshot.hasError || snapshot.data?.data() == null) {
@@ -822,55 +840,11 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
                     'Falha ao carregar dados do cântico\nID:  ${snapshot.data?.id ?? '[nulo]'}'),
               );
             }
-            return ListTile(
-              visualDensity: VisualDensity.compact,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 8),
-              leading: IconButton(
-                  onPressed: () {
-                    Modular.to.pushNamed(
-                        '${AppRotas.CANTICO}?id=${snapshot.data!.id}',
-                        arguments: [snapshot.data!.data()!]);
-                  },
-                  icon: const Icon(Icons.abc)),
-              horizontalTitleGap: 8,
-              title: Text(
-                snapshot.data?.data()?.nome ?? '...',
-                overflow: TextOverflow.ellipsis,
-              ),
-              subtitle: Text(
-                snapshot.data?.data()?.autor ?? '',
-                overflow: TextOverflow.ellipsis,
-              ),
-              trailing: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  // Cifra
-                  snapshot.data?.data()?.cifraUrl == null
-                      ? const SizedBox()
-                      : IconButton(
-                          onPressed: () {
-                            MeuFirebase.abrirArquivosPdf(
-                                context, [snapshot.data!.data()!.cifraUrl!]);
-                          },
-                          icon: const Icon(
-                            Icons.queue_music,
-                            color: Colors.green,
-                          )),
-                  // YouTube
-                  snapshot.data?.data()?.youTubeUrl == null
-                      ? const SizedBox()
-                      : IconButton(
-                          onPressed: () async {
-                            MyActions.openSite(
-                                snapshot.data?.data()?.youTubeUrl ?? '');
-                          },
-                          icon: const FaIcon(
-                            FontAwesomeIcons.youtube,
-                            color: Colors.red,
-                          )),
-                  const SizedBox(width: kIsWeb ? 24 : 0),
-                ],
-              ),
+            var cantico = snapshot.data!.data();
+            return TileCantico(
+              snapshot: snapshot.data!,
+              selecionado: null,
+              reordenavel: true,
             );
           });
     });
@@ -1009,8 +983,8 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
               ? TextButton.icon(
                   label: const Text('Editar dados do evento'),
                   icon: const Icon(Icons.edit_calendar),
-                  onPressed: () => Dialogos.editarCulto(context, mCulto,
-                      reference: mSnapshot.reference),
+                  onPressed: () => Dialogos.editarCulto(context,
+                      culto: mCulto, reference: mSnapshot.reference),
                 )
               : const SizedBox(),
         ],

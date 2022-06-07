@@ -1,11 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:escala_louvor/views/scaffold_falha.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_modular/flutter_modular.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:wakelock/wakelock.dart';
 
 import '../../functions/metodos_firebase.dart';
+import '../../rotas.dart';
 import '../../utils/global.dart';
 import '../../widgets/dialogos.dart';
 import '../../widgets/tela_mensagem.dart';
@@ -13,7 +15,7 @@ import '/models/cantico.dart';
 
 class TelaLetrasView extends StatefulWidget {
   final String id;
-  final QueryDocumentSnapshot<Cantico>? snapshot;
+  final DocumentSnapshot<Cantico>? snapshot;
   const TelaLetrasView({Key? key, required this.id, this.snapshot})
       : super(key: key);
 
@@ -142,8 +144,13 @@ class _TelaLetrasViewState extends State<TelaLetrasView> {
                                     padding: EdgeInsets.zero,
                                     visualDensity: VisualDensity.compact,
                                     onPressed: () {
-                                      MeuFirebase.abrirArquivosPdf(
-                                          context, [mCantico.cifraUrl!]);
+                                      var url = mCantico.cifraUrl!;
+                                      var name =
+                                          '${mCantico.nome.toUpperCase()} (${mCantico.tom ?? "_"})';
+                                      Modular.to.pushNamed(AppRotas.ARQUIVOS,
+                                          arguments: [url, name]);
+                                      /* MeuFirebase.abrirArquivosPdf(
+                                          context, [mCantico.cifraUrl!]); */
                                     },
                                   ),
                                 ),

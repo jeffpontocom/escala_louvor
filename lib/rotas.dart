@@ -92,7 +92,10 @@ class AppRotas extends Module {
     ),
     ChildRoute(
       ARQUIVOS,
-      child: (_, args) => TelaPdfView(arquivos: args.data),
+      child: (_, args) => TelaPdfView(
+        fileUrl: args.data[0],
+        fileName: args.data[1],
+      ),
       transition: TransitionType.downToUp,
       guards: [AuthGuard()],
     ),

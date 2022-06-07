@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:escala_louvor/widgets/avatar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 
 import '../../functions/metodos_firebase.dart';
@@ -12,35 +12,41 @@ import '../../utils/mensagens.dart';
 import '../screens/home/tela_home.dart';
 
 class Dialogos {
-  static void editarCulto(BuildContext context, Culto culto,
-      {DocumentReference<Culto>? reference}) async {
+  /// DIÁLOGO
+  /// Editar Culto
+  static void editarCulto(
+    BuildContext context, {
+    required Culto culto,
+    DocumentReference<Culto>? reference,
+  }) async {
+    var titulo = 'Editar Culto';
+    if (reference == null) {
+      titulo = 'Novo Culto';
+    }
     List<String> ocasioes = ['EBD', 'Culto vespertino', 'Evento especial'];
 
     return Mensagem.bottomDialog(
       context: context,
-      titulo: 'Editar culto/evento',
-      conteudo: ListView(
-        shrinkWrap: true,
-        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
-        children: [
-          StatefulBuilder(builder: (_, innerState) {
-            return Wrap(
-              spacing: 8,
+      titulo: titulo,
+      conteudo: StatefulBuilder(builder: (context, innerState) {
+        return ListView(
+          shrinkWrap: true,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          children: [
+            // IGREJA
+            Chip(
+              avatar: CachedAvatar(
+                url: Global.igrejaSelecionada.value?.data()?.fotoUrl,
+                icone: Icons.church,
+              ),
+              label: Text(Global.igrejaSelecionada.value?.data()?.sigla ?? ''),
+              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            ),
+            const SizedBox(height: 8),
+
+            // DATA E HORA
+            Row(
               children: [
-                // Igreja
-                CircleAvatar(
-                  radius: 24,
-                  child: Text(
-                    Global.igrejaSelecionada.value?.data()?.sigla ?? '',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontFamily: 'Offside',
-                      fontSize: 14,
-                      letterSpacing: 0,
-                    ),
-                  ),
-                ),
                 // Data
                 ActionChip(
                   avatar: const Icon(Icons.edit_calendar),
@@ -71,6 +77,7 @@ class Dialogos {
                     });
                   },
                 ),
+                const SizedBox(width: 8),
                 // Hora
                 ActionChip(
                   avatar: const Icon(Icons.access_time_outlined),
@@ -100,59 +107,65 @@ class Dialogos {
                   },
                 ),
               ],
-            );
-          }),
-          const SizedBox(height: 12),
-
-          // Ocasiao
-          Autocomplete(
-            initialValue: TextEditingValue(text: culto.ocasiao ?? ''),
-            optionsBuilder: (textEditingValue) {
-              List<String> matches = <String>[];
-              matches.addAll(ocasioes);
-              matches.retainWhere((s) {
-                return s
-                    .toLowerCase()
-                    .contains(textEditingValue.text.toLowerCase());
-              });
-              return matches;
-            },
-            fieldViewBuilder: (context, controller, focus, onSubmit) {
-              return TextFormField(
-                controller: controller,
-                focusNode: focus,
-                decoration: const InputDecoration(
-                  labelText: 'Ocasião',
-                  floatingLabelBehavior: FloatingLabelBehavior.always,
-                ),
-                onChanged: (value) {
-                  culto.ocasiao = value;
-                },
-                onFieldSubmitted: (value) => onSubmit,
-              );
-            },
-            onSelected: (String value) {
-              culto.ocasiao = value;
-            },
-          ),
-
-          //Obs
-          TextFormField(
-            initialValue: culto.obs,
-            minLines: 5,
-            maxLines: 15,
-            decoration: const InputDecoration(
-              labelText: 'Observações (pontos de atenção para a equipe)',
-              floatingLabelBehavior: FloatingLabelBehavior.always,
             ),
-            onChanged: (value) {
-              culto.obs = value;
-            },
-          ),
+            const SizedBox(height: 16),
 
-          const SizedBox(height: 64),
-        ],
-      ),
+            // Ocasiao
+            Autocomplete(
+              initialValue: TextEditingValue(text: culto.ocasiao ?? ''),
+              optionsBuilder: (textEditingValue) {
+                List<String> matches = <String>[];
+                matches.addAll(ocasioes);
+                matches.retainWhere((s) {
+                  return s
+                      .toLowerCase()
+                      .contains(textEditingValue.text.toLowerCase());
+                });
+                return matches;
+              },
+              fieldViewBuilder: (context, controller, focus, onSubmit) {
+                return TextFormField(
+                  controller: controller,
+                  textCapitalization: TextCapitalization.sentences,
+                  textInputAction: TextInputAction.next,
+                  focusNode: focus,
+                  decoration: const InputDecoration(
+                    labelText: 'Ocasião',
+                    isDense: true,
+                    floatingLabelBehavior: FloatingLabelBehavior.always,
+                  ),
+                  onChanged: (value) {
+                    culto.ocasiao = value;
+                  },
+                  onFieldSubmitted: (value) => onSubmit,
+                );
+              },
+              onSelected: (String value) {
+                culto.ocasiao = value;
+              },
+            ),
+            const SizedBox(height: 8),
+
+            //Obs
+            TextFormField(
+              initialValue: culto.obs,
+              minLines: 5,
+              maxLines: 15,
+              textCapitalization: TextCapitalization.sentences,
+              textInputAction: TextInputAction.newline,
+              decoration: const InputDecoration(
+                labelText: 'Observações (pontos de atenção para a equipe)',
+                isDense: true,
+                floatingLabelBehavior: FloatingLabelBehavior.always,
+              ),
+              onChanged: (value) {
+                culto.obs = value;
+              },
+            ),
+            const SizedBox(height: 8),
+          ],
+        );
+      }),
       rodape: Row(
         children: [
           reference == null
@@ -190,7 +203,8 @@ class Dialogos {
     );
   }
 
-  /// Editar Cantico
+  /// DIÁLOGO
+  /// Editar Cântico
   static void editarCantico(
     BuildContext context, {
     required Cantico cantico,

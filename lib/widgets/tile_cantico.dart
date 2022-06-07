@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -9,16 +10,21 @@ import '../models/cantico.dart';
 import '../rotas.dart';
 
 class TileCantico extends StatelessWidget {
-  final QueryDocumentSnapshot<Cantico> snapshot;
+  final DocumentSnapshot<Cantico> snapshot;
   final bool? selecionado;
+  final bool reordenavel;
   final GestureTapCallback? onTap;
   const TileCantico(
-      {Key? key, required this.snapshot, this.selecionado = false, this.onTap})
+      {Key? key,
+      required this.snapshot,
+      this.selecionado = false,
+      this.reordenavel = false,
+      this.onTap})
       : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    Cantico cantico = snapshot.data();
+    Cantico cantico = snapshot.data()!;
     return ListTile(
       // ICONE DE SELEÇÃO
       leading: selecionado == null
@@ -38,13 +44,14 @@ class TileCantico extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 8),
-          CircleAvatar(
-            radius: 10,
-            backgroundColor: Colors.grey.withOpacity(0.38),
-            child: Padding(
-              padding: const EdgeInsets.all(2),
-              child: FittedBox(child: Text(cantico.tom ?? '?')),
-            ),
+          Chip(
+            materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+            visualDensity: const VisualDensity(
+                horizontal: 0, vertical: VisualDensity.minimumDensity),
+            labelPadding: EdgeInsets.zero,
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 0),
+            label: Text(cantico.tom ?? '?'),
+            labelStyle: Theme.of(context).textTheme.caption,
           ),
           const SizedBox(width: 4),
         ],
@@ -59,7 +66,6 @@ class TileCantico extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           // Cifra
-          // TODO: Mostrar erro se não houver conexão com internet
           cantico.cifraUrl == null
               ? const SizedBox()
               : Container(
@@ -71,8 +77,11 @@ class TileCantico extends StatelessWidget {
                     padding: EdgeInsets.zero,
                     visualDensity: VisualDensity.compact,
                     onPressed: () {
-                      MeuFirebase.abrirArquivosPdf(
-                          context, [cantico.cifraUrl!]);
+                      var url = cantico.cifraUrl!;
+                      var name =
+                          '${cantico.nome.toUpperCase()} (${cantico.tom ?? "_"})';
+                      Modular.to
+                          .pushNamed(AppRotas.ARQUIVOS, arguments: [url, name]);
                     },
                   ),
                 ),
@@ -96,6 +105,8 @@ class TileCantico extends StatelessWidget {
                     },
                   ),
                 ),
+          // Reordenavel na Web
+          SizedBox(width: reordenavel && kIsWeb ? 24 : null),
         ],
       ),
       onTap: onTap ??
