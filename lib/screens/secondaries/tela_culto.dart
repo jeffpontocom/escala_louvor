@@ -1,29 +1,26 @@
 import 'dart:developer' as dev;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:escala_louvor/resources/animations/shimmer.dart';
-import 'package:escala_louvor/rotas.dart';
-import 'package:escala_louvor/screens/secondaries/tela_pdf_view.dart';
-import 'package:escala_louvor/widgets/avatar.dart';
-import 'package:escala_louvor/widgets/tile_cantico.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 
-import '../../widgets/tile_culto.dart';
-import '../home/pagina_canticos.dart';
-import '../home/tela_home.dart';
+import '/rotas.dart';
 import '/functions/metodos_firebase.dart';
-import '../../../utils/global.dart';
 import '/models/cantico.dart';
 import '/models/culto.dart';
 import '/models/instrumento.dart';
 import '/models/integrante.dart';
-import '../../widgets/dialogos.dart';
+import '/resources/animations/shimmer.dart';
+import '/screens/home/pagina_canticos.dart';
+import '/screens/home/tela_home.dart';
+import '/utils/global.dart';
 import '/utils/mensagens.dart';
-import '/utils/utils.dart';
+import '/widgets/avatar.dart';
+import '/widgets/dialogos.dart';
+import '/widgets/tile_cantico.dart';
+import '/widgets/tile_culto.dart';
 
 class TelaDetalhesEscala extends StatefulWidget {
   final String id;
@@ -42,12 +39,6 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
   late DocumentSnapshot<Culto> mSnapshot;
   Integrante? mLogado = Global.logado;
   //late bool _isPortrait;
-
-  /* bool get _podeSerEscalado {
-    return (mLogado?.ehDirigente ?? false) ||
-        (mLogado?.ehCoordenador ?? false) ||
-        (mLogado?.ehComponente ?? false);
-  } */
 
   bool get _ehODirigente {
     if (mCulto.dirigente == null) {
@@ -155,10 +146,6 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
                           // Canticos
                           _secaoCanticos,
                           _listaDeCanticos,
-                          /*const Divider(height: 16),
-                          // Botões de ação
-                           _secaoAcoes,
-                          _listaDeAcoes, */
                           const SizedBox(height: 16),
                           // Fim da tela
                         ],
@@ -237,131 +224,6 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
             break;
         }
       },
-    );
-  }
-
-  /// Informações sobre a data do culto
-  Widget get _cultoData {
-    DateTime data = mCulto.dataCulto.toDate();
-    var diaSemana = DateFormat(DateFormat.WEEKDAY, 'pt_BR').format(data);
-    var diaMes = DateFormat(DateFormat.ABBR_MONTH_DAY, 'pt_BR').format(data);
-    var hora = DateFormat(DateFormat.HOUR24_MINUTE, 'pt_BR').format(data);
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Ícone dia/noite
-        Icon(
-          data.hour >= 6 && data.hour < 18 ? Icons.sunny : Icons.dark_mode,
-          size: 20,
-        ),
-        const VerticalDivider(width: 8),
-        // Informações
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Ocasião
-            Padding(
-              padding: const EdgeInsets.only(top: 4, bottom: 8),
-              child: Text((mCulto.ocasiao ?? '').toUpperCase(),
-                  style: Theme.of(context).textTheme.bodySmall),
-            ),
-            // Dia da Semana
-            Text(diaSemana, style: Theme.of(context).textTheme.labelMedium),
-            // Data e Hora abreviados
-            Text('$diaMes | $hora',
-                style: Theme.of(context).textTheme.headline5),
-          ],
-        ),
-      ],
-    );
-  }
-
-  /// Botão disponibilidade
-  Widget get _buttonDisponibilidade {
-    bool alterar = false;
-    return StatefulBuilder(builder: (context, setState) {
-      bool escalado = mCulto.usuarioEscalado(Global.logadoReference);
-      bool disponivel = mCulto.usuarioDisponivel(Global.logadoReference);
-      bool restrito = mCulto.usuarioRestrito(Global.logadoReference);
-      return OutlinedButton(
-        onPressed: escalado || restrito
-            ? () {}
-            : () async {
-                setState(() {
-                  alterar = true;
-                });
-                await MeuFirebase.definirDisponibilidadeParaOCulto(
-                    mSnapshot.reference);
-                setState(() {
-                  alterar = false;
-                });
-              },
-        onLongPress: escalado || disponivel
-            ? () {}
-            : () async {
-                setState(() {
-                  alterar = true;
-                });
-                await MeuFirebase.definirRestricaoParaOCulto(
-                    mSnapshot.reference);
-                setState(() {
-                  alterar = false;
-                });
-              },
-        style: OutlinedButton.styleFrom(
-          minimumSize: const Size(128, 56),
-          maximumSize: const Size.fromWidth(128),
-          padding: const EdgeInsets.all(12),
-          backgroundColor: escalado
-              ? Colors.green
-              : disponivel
-                  ? Colors.blue
-                  : restrito
-                      ? Colors.red
-                      : null,
-          primary: escalado || disponivel || restrito
-              ? Colors.white
-              : Colors.grey.withOpacity(0.5),
-        ),
-        child: Wrap(
-          direction: Axis.vertical,
-          crossAxisAlignment: WrapCrossAlignment.center,
-          spacing: 4,
-          children: [
-            alterar
-                ? const Center(
-                    child: SizedBox.square(
-                      dimension: 24,
-                      child: CircularProgressIndicator(),
-                    ),
-                  )
-                : const Icon(Icons.emoji_people),
-            Text(escalado
-                ? 'Estou escalado!'
-                : disponivel
-                    ? 'Estou disponível!'
-                    : restrito
-                        ? 'Estou restrito!'
-                        : 'Estou disponível?'),
-          ],
-        ),
-      );
-    });
-  }
-
-  /// Seção observações
-  Widget get _rowObservacoes {
-    return ListTile(
-      dense: true,
-      minLeadingWidth: 64,
-      shape: UnderlineInputBorder(
-        borderSide: BorderSide(color: Colors.grey.withOpacity(0.26)),
-      ),
-      leading: const Text('ATENÇÃO'),
-      title: Text(
-        mCulto.obs ?? '',
-        style: const TextStyle(color: Colors.red),
-      ),
     );
   }
 
@@ -480,34 +342,68 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
     );
   }
 
+  /// Seção observações
+  Widget get _rowObservacoes {
+    return ListTile(
+      dense: true,
+      minLeadingWidth: 64,
+      shape: UnderlineInputBorder(
+        borderSide: BorderSide(color: Colors.grey.withOpacity(0.26)),
+      ),
+      leading: const Text('ATENÇÃO'),
+      title: Text(
+        mCulto.obs ?? '',
+        style: const TextStyle(color: Colors.red),
+      ),
+    );
+  }
+
   /// Seção o que falta
   Widget get _secaoOqueFalta {
-    return FutureBuilder<QuerySnapshot<Instrumento>>(
-        future: MeuFirebase.obterListaInstrumentos(ativo: true),
-        builder: (context, snapshot) {
-          String resultado = 'Analisando equipe...';
-          if (mCulto.equipe == null ||
-              mCulto.equipe!.isEmpty ||
-              !mCulto.equipe!.values.any((element) => element.isNotEmpty)) {
-            resultado = 'Escalar equipe!';
-          } else if (!snapshot.hasData) {
-            resultado = 'Analisando equipe...';
-          } else if (snapshot.hasError) {
-            resultado = 'Falha ao analisar equipe!';
-          } else {
-            resultado = _verificaEquipe(snapshot.data);
-          }
-          return ListTile(
-            dense: true,
-            tileColor:
-                Theme.of(context).colorScheme.secondary.withOpacity(0.15),
-            shape: UnderlineInputBorder(
-              borderSide: BorderSide(color: Colors.grey.withOpacity(0.26)),
-            ),
-            title:
-                Text(resultado, style: Theme.of(context).textTheme.bodySmall),
-          );
-        });
+    return Container(
+      color: Theme.of(context).colorScheme.secondary.withOpacity(0.15),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      child: Row(
+        children: [
+          Expanded(
+            child: FutureBuilder<QuerySnapshot<Instrumento>>(
+                future: MeuFirebase.obterListaInstrumentos(ativo: true),
+                builder: (context, snapshot) {
+                  String resultado = 'Analisando equipe...';
+                  if (mCulto.equipe == null ||
+                      mCulto.equipe!.isEmpty ||
+                      !mCulto.equipe!.values
+                          .any((element) => element.isNotEmpty)) {
+                    resultado = 'Escalar equipe!';
+                  } else if (!snapshot.hasData) {
+                    resultado = 'Analisando equipe...';
+                  } else if (snapshot.hasError) {
+                    resultado = 'Falha ao analisar equipe!';
+                  } else {
+                    resultado = _verificaEquipe(snapshot.data);
+                  }
+                  return Text(resultado,
+                      style: Theme.of(context).textTheme.bodySmall);
+                }),
+          ),
+          mCulto.emEdicao
+              ? OutlinedButton.icon(
+                  onPressed: () {
+                    mSnapshot.reference.update({'emEdicao': false});
+                  },
+                  icon: const Icon(Icons.lock_outline),
+                  label: const Text('FECHAR'),
+                )
+              : OutlinedButton.icon(
+                  onPressed: () {
+                    mSnapshot.reference.update({'emEdicao': true});
+                  },
+                  icon: const Icon(Icons.lock_open),
+                  label: const Text('ESCALAR'),
+                ),
+        ],
+      ),
+    );
   }
 
   /// Verifica se há o mínimo de instrumentos para compor a equipe
@@ -1479,7 +1375,7 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
         context: context,
         titulo: 'Confirme',
         mensagem:
-            'Deseja notificar todos os usuários escalados sobre esse culto',
+            'Deseja notificar todos os usuários escalados sobre esse culto?',
         onPressed: (ok) async {
           if (ok) {
             // abre progresso

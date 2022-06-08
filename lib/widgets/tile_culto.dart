@@ -25,18 +25,52 @@ class TileCulto extends StatelessWidget {
       this.showResumo = false})
       : super(key: key);
 
-  Color get corEscalado => Colors.green.shade600;
-  Color get corDisponivel => Colors.blue.shade600;
-  Color get corRestrito => Colors.red.shade600;
-  Color get corIndeciso => Colors.orange;
+  // DEFINIÇÕES SOBRE DISPONIBILIDADE
+
+  // Usuário
+  bool get _possoSerEscalado => culto.usuarioPodeSerEscalado(Global.logado);
+  bool get _estouEscalado => culto.usuarioEscalado(Global.logadoReference);
+  bool get _estouDisponivel => culto.usuarioDisponivel(Global.logadoReference);
+  bool get _estouRestrito => culto.usuarioRestrito(Global.logadoReference);
+  // Cores
+  Color get _corEscalado => Colors.green.shade600;
+  Color get _corDisponivel => Colors.blue.shade600;
+  Color get _corRestrito => Colors.red.shade600;
+  Color get _corIndeciso => Colors.orange;
 
   @override
   Widget build(BuildContext context) {
     return Slidable(
-      endActionPane: ActionPane(
-        motion: const DrawerMotion(),
-        children: slidableButtons,
-      ),
+      startActionPane: _possoSerEscalado
+          ? ActionPane(
+              motion: const DrawerMotion(),
+              children: slidableButtons,
+            )
+          : const ActionPane(
+              extentRatio: 0.3,
+              motion: DrawerMotion(),
+              children: [
+                SlidableAction(
+                    label: 'Nenhuma\nação possível',
+                    backgroundColor: Colors.grey,
+                    onPressed: null)
+              ],
+            ),
+      endActionPane: _possoSerEscalado
+          ? ActionPane(
+              motion: const DrawerMotion(),
+              children: slidableButtons,
+            )
+          : const ActionPane(
+              extentRatio: 0.3,
+              motion: DrawerMotion(),
+              children: [
+                SlidableAction(
+                    label: 'Nenhuma\nação possível',
+                    backgroundColor: Colors.grey,
+                    onPressed: null)
+              ],
+            ),
       child: LayoutBuilder(
         builder: (context, constraints) {
           return Row(children: [
@@ -63,10 +97,10 @@ class TileCulto extends StatelessWidget {
                         ),
                         const Expanded(child: SizedBox()),
                         igreja,
-                        showResumo
+                        showResumo && _possoSerEscalado
                             ? Padding(
                                 padding: const EdgeInsets.only(left: 4, top: 2),
-                                child: chipStatusDisponibilidade)
+                                child: avatarDisponibilidade)
                             : const SizedBox(),
                       ],
                     ),
@@ -81,14 +115,13 @@ class TileCulto extends StatelessWidget {
                         const Expanded(child: SizedBox()),
                       ],
                     ),
+                    const SizedBox(height: 8),
                     // Linha 3: Escalados e Cânticos
                     Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Expanded(child: equipe),
-                        const SizedBox(
-                          width: 8,
-                          height: 36,
-                        ),
+                        Expanded(child: culto.emEdicao ? chipEmEdicao : equipe),
+                        const SizedBox(width: 8),
                         precisaAtencao,
                         const SizedBox(width: 4),
                         canticos,
@@ -108,7 +141,7 @@ class TileCulto extends StatelessWidget {
             ),
             // Coluna 2: Botão
             Container(
-                child: _podeSerEscalado && !showResumo
+                child: _possoSerEscalado && !showResumo
                     ? botaoDisponibilidade
                     : null),
           ]);
@@ -117,21 +150,21 @@ class TileCulto extends StatelessWidget {
     );
   }
 
-  get chipStatusDisponibilidade {
+  get avatarDisponibilidade {
     Image image;
     Color color;
     if (_estouEscalado) {
       image = Image.asset('assets/icons/ic_escalado.png');
-      color = corEscalado;
+      color = _corEscalado;
     } else if (_estouDisponivel) {
       image = Image.asset('assets/icons/ic_disponivel.png');
-      color = corDisponivel;
+      color = _corDisponivel;
     } else if (_estouRestrito) {
       image = Image.asset('assets/icons/ic_restrito.png');
-      color = corRestrito;
+      color = _corRestrito;
     } else {
       image = Image.asset('assets/icons/ic_indeciso.png');
-      color = corIndeciso;
+      color = _corIndeciso;
     }
     return CircleAvatar(
       radius: 12,
@@ -147,7 +180,7 @@ class TileCulto extends StatelessWidget {
       return [
         CustomSlidableAction(
           flex: 1,
-          backgroundColor: corEscalado,
+          backgroundColor: _corEscalado,
           foregroundColor: Colors.white,
           onPressed: doNothing,
           child: sliderChild(
@@ -192,7 +225,7 @@ class TileCulto extends StatelessWidget {
     return [
       CustomSlidableAction(
         flex: 1,
-        backgroundColor: corDisponivel,
+        backgroundColor: _corDisponivel,
         foregroundColor: Colors.white,
         onPressed: (context) async {
           await MeuFirebase.definirDisponibilidadeParaOCulto(reference);
@@ -204,7 +237,7 @@ class TileCulto extends StatelessWidget {
       ),
       CustomSlidableAction(
         flex: 1,
-        backgroundColor: corRestrito,
+        backgroundColor: _corRestrito,
         foregroundColor: Colors.white,
         onPressed: (context) async {
           await MeuFirebase.definirRestricaoParaOCulto(reference);
@@ -324,12 +357,31 @@ class TileCulto extends StatelessWidget {
             url: igreja?.fotoUrl,
             maxRadius: 10,
           ),
-          label: Text(igreja?.sigla ?? '',
-              style: Theme.of(context).textTheme.caption),
+          label: Text(igreja?.sigla ?? '', style: theme.textTheme.caption),
           materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
           visualDensity: VisualDensity.compact,
         );
       },
+    );
+  }
+
+  get chipEmEdicao {
+    return Wrap(
+      children: [
+        Chip(
+          avatar: Icon(
+            Icons.lock_open,
+            size: 16,
+            color: _corIndeciso,
+          ),
+          label: Text('Em recrutamento', style: theme.textTheme.caption),
+          backgroundColor: Colors.grey.withOpacity(0.12),
+          padding: const EdgeInsets.only(right: 12),
+          labelPadding: EdgeInsets.zero,
+          materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          visualDensity: VisualDensity.compact,
+        )
+      ],
     );
   }
 
@@ -425,9 +477,9 @@ class TileCulto extends StatelessWidget {
     if (culto.dataEnsaio == null) return const SizedBox();
     DateTime data = culto.dataEnsaio!.toDate();
     var dataFormatada = DateFormat('EEE, HH:mm', 'pt_BR').format(data);
-    return Text(
-      '• Ensaio: $dataFormatada',
-      style: theme.textTheme.bodySmall,
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 4),
+      child: Text('ENSAIO: $dataFormatada', style: theme.textTheme.bodySmall),
     );
   }
 
@@ -435,13 +487,8 @@ class TileCulto extends StatelessWidget {
   get botaoDisponibilidade {
     bool alterar = false;
     return StatefulBuilder(builder: (context, setState) {
-      bool escalado = culto.usuarioEscalado(Global.logadoReference);
-      bool disponivel = culto.usuarioDisponivel(Global.logadoReference);
-      bool restrito = culto.usuarioRestrito(Global.logadoReference);
-      var colorVar =
-          Theme.of(context).brightness == Brightness.dark ? 800 : 600;
       return OutlinedButton(
-        onPressed: escalado || restrito
+        onPressed: _estouEscalado || _estouRestrito
             ? () {}
             : () async {
                 setState(() {
@@ -449,7 +496,7 @@ class TileCulto extends StatelessWidget {
                 });
                 await MeuFirebase.definirDisponibilidadeParaOCulto(reference);
               },
-        onLongPress: escalado || disponivel
+        onLongPress: _estouEscalado || _estouDisponivel
             ? () {}
             : () async {
                 setState(() {
@@ -463,13 +510,13 @@ class TileCulto extends StatelessWidget {
           side: const BorderSide(style: BorderStyle.none),
           shape: const RoundedRectangleBorder(
               borderRadius: BorderRadius.horizontal(left: Radius.circular(8))),
-          backgroundColor: escalado
-              ? corEscalado
-              : disponivel
-                  ? corDisponivel
-                  : restrito
-                      ? corRestrito
-                      : corIndeciso,
+          backgroundColor: _estouEscalado
+              ? _corEscalado
+              : _estouDisponivel
+                  ? _corDisponivel
+                  : _estouRestrito
+                      ? _corRestrito
+                      : _corIndeciso,
           primary: Colors.white,
         ),
         child: Column(
@@ -483,11 +530,11 @@ class TileCulto extends StatelessWidget {
                     ),
                   )
                 : Image.asset(
-                    escalado
+                    _estouEscalado
                         ? 'assets/icons/ic_escalado.png'
-                        : disponivel
+                        : _estouDisponivel
                             ? 'assets/icons/ic_disponivel.png'
-                            : restrito
+                            : _estouRestrito
                                 ? 'assets/icons/ic_restrito.png'
                                 : 'assets/icons/ic_indeciso.png',
                     height: 32,
@@ -496,11 +543,11 @@ class TileCulto extends StatelessWidget {
                   ),
             const SizedBox(height: 4),
             Text(
-              escalado
+              _estouEscalado
                   ? 'Estou ESCALADO'
-                  : disponivel
+                  : _estouDisponivel
                       ? 'Estou DISPONÍVEL'
-                      : restrito
+                      : _estouRestrito
                           ? 'Estou RESTRITO'
                           : 'Ainda não decidi',
               textAlign: TextAlign.center,
@@ -514,18 +561,6 @@ class TileCulto extends StatelessWidget {
       );
     });
   }
-
-  /// Usuário pode ser escalado
-  bool get _podeSerEscalado =>
-      (Global.logado?.ehDirigente ?? false) ||
-      (Global.logado?.ehCoordenador ?? false) ||
-      (Global.logado?.ehComponente ?? false);
-
-  bool get _estouEscalado => culto.usuarioEscalado(Global.logadoReference);
-
-  bool get _estouDisponivel => culto.usuarioDisponivel(Global.logadoReference);
-
-  bool get _estouRestrito => culto.usuarioRestrito(Global.logadoReference);
 
   /// Equipe escalada
   Future<List<Integrante>> equipeEscalada() async {

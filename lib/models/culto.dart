@@ -20,6 +20,7 @@ class Culto {
   List<DocumentReference<Cantico>>? canticos;
   String? liturgiaUrl;
   String? obs;
+  bool emEdicao;
 
   Culto({
     required this.dataCulto,
@@ -34,6 +35,7 @@ class Culto {
     this.canticos,
     this.liturgiaUrl,
     this.obs,
+    this.emEdicao = false,
   });
 
   Culto.fromJson(Map<String, Object?> json)
@@ -50,6 +52,7 @@ class Culto {
           canticos: _getCanticos(json['canticos']),
           liturgiaUrl: json['liturgiaUrl'] as String?,
           obs: json['obs'] as String?,
+          emEdicao: (json['emEdicao'] ?? false) as bool,
         );
 
   Map<String, Object?> toJson() {
@@ -66,6 +69,7 @@ class Culto {
       'canticos': canticos,
       'liturgiaUrl': liturgiaUrl,
       'obs': obs,
+      'emEdicao': emEdicao,
     };
   }
 
@@ -166,6 +170,12 @@ class Culto {
       }
     }
     return false;
+  }
+
+  bool usuarioPodeSerEscalado(Integrante? integrante) {
+    return (integrante?.ehDirigente ?? false) ||
+        (integrante?.ehCoordenador ?? false) ||
+        (integrante?.ehComponente ?? false);
   }
 
   // FIM

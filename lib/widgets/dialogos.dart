@@ -179,7 +179,7 @@ class Dialogos {
                         context: context,
                         titulo: 'Apagar',
                         mensagem:
-                            'Deseja apagar definitivamente o registro deste culto.',
+                            'Deseja apagar definitivamente o registro deste culto?',
                         onPressed: (ok) async {
                           if (ok) {
                             Mensagem.aguardar(
@@ -278,7 +278,7 @@ class Dialogos {
                         textInputAction: TextInputAction.next,
                         decoration: const InputDecoration(
                           labelText: 'Tom',
-                          prefixIcon: Icon(Icons.scatter_plot_sharp),
+                          prefixIcon: Icon(Icons.music_note),
                           isDense: true,
                           floatingLabelBehavior: FloatingLabelBehavior.always,
                         ),
@@ -447,7 +447,7 @@ class Dialogos {
                         context: context,
                         titulo: 'Apagar',
                         mensagem:
-                            'Deseja apagar definitivamente "${cantico.nome}".',
+                            'Deseja apagar definitivamente "${cantico.nome}"?',
                         onPressed: (ok) async {
                           if (ok) {
                             Mensagem.aguardar(context: context);
