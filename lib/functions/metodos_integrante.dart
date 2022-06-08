@@ -1,4 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:escala_louvor/rotas.dart';
+import 'package:escala_louvor/utils/global.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:intl/intl.dart';
@@ -355,21 +357,46 @@ class MetodosIntegrante {
               return InkWell(
                 onTap: () async {
                   integrante.igrejas ??= [];
-                  innerState(() {
-                    inscrito
-                        ? integrante.igrejas?.removeWhere((element) =>
-                            element.toString() ==
-                            igrejas[index].reference.toString())
-                        : integrante.igrejas?.add(igrejas[index].reference);
-                  });
-                  /* if (!(integrante.igrejas?.map((e) => e.toString()).contains(
-                            Global.igrejaSelecionada.value?.reference
-                                .toString()) ??
-                        false)) {
-                      Global.igrejaSelecionada.value = null;
-                    } */
-                  await snapshot.reference
-                      .update({'igrejas': integrante.igrejas});
+                  // Caso seja o integrante logado e
+                  // se a igreja indicado já estiver inscrita
+                  if (snapshot.reference.toString() ==
+                          Global.logadoReference.toString() &&
+                      (Global.igrejaSelecionada.value?.reference.toString() ==
+                          igrejas[index].reference.toString())) {
+                    Mensagem.decisao(
+                        context: context,
+                        titulo: 'Atenção',
+                        mensagem:
+                            'Deseja se desinscrever da sua igreja atualmente selecionada?',
+                        onPressed: (ok) async {
+                          if (ok) {
+                            innerState(() {
+                              inscrito
+                                  ? integrante.igrejas?.removeWhere((element) =>
+                                      element.toString() ==
+                                      igrejas[index].reference.toString())
+                                  : integrante.igrejas
+                                      ?.add(igrejas[index].reference);
+                            });
+                            await snapshot.reference
+                                .update({'igrejas': integrante.igrejas});
+                            Global.igrejaSelecionada.value = null;
+                          }
+                        });
+                  } else {
+                    innerState(() {
+                      inscrito
+                          ? integrante.igrejas?.removeWhere((element) =>
+                              element.toString() ==
+                              igrejas[index].reference.toString())
+                          : integrante.igrejas?.add(igrejas[index].reference);
+                    });
+                    await snapshot.reference
+                        .update({'igrejas': integrante.igrejas});
+                    if (snapshot.reference == Global.logadoReference) {
+                      Global.igrejaSelecionada.notifyListeners();
+                    }
+                  }
                 },
                 // Pilha
                 child: Stack(
