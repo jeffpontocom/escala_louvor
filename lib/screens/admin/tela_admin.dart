@@ -36,7 +36,6 @@ class TelaAdmin extends StatelessWidget {
     Mensagem.bottomDialog(
         context: context,
         titulo: 'Igrejas e locais de culto',
-        icon: Icons.church,
         conteudo: StatefulBuilder(builder: (innerContext, innerState) {
           return Column(
             //mainAxisSize: MainAxisSize.min,
@@ -137,7 +136,6 @@ class TelaAdmin extends StatelessWidget {
     Mensagem.bottomDialog(
       context: context,
       titulo: novoCadastro ? 'Novo cadastro' : 'Editar Cadastro',
-      icon: Icons.church,
       conteudo: ListView(
         shrinkWrap: true,
         padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -313,7 +311,6 @@ class TelaAdmin extends StatelessWidget {
     Mensagem.bottomDialog(
       context: context,
       titulo: 'Instrumentos e equipamentos',
-      icon: Icons.music_video,
       conteudo: StatefulBuilder(builder: (innerContext, innerState) {
         return Column(
           //mainAxisSize: MainAxisSize.min,
@@ -457,7 +454,6 @@ class TelaAdmin extends StatelessWidget {
     Mensagem.bottomDialog(
       context: context,
       titulo: novoCadastro ? 'Novo cadastro' : 'Editar Cadastro',
-      icon: Icons.music_video,
       conteudo: ListView(
         shrinkWrap: true,
         padding: const EdgeInsets.symmetric(horizontal: 24),
@@ -616,7 +612,6 @@ class TelaAdmin extends StatelessWidget {
     Mensagem.bottomDialog(
         context: context,
         titulo: 'Integrantes da equipe',
-        icon: Icons.groups,
         conteudo: StatefulBuilder(builder: (innerContext, innerState) {
           return Column(
             //mainAxisSize: MainAxisSize.min,
@@ -718,7 +713,6 @@ class TelaAdmin extends StatelessWidget {
     Mensagem.bottomDialog(
       context: context,
       titulo: novoCadastro ? 'Novo cadastro' : 'Editar Cadastro',
-      icon: Icons.person,
       conteudo: ViewIntegrante(
         id: id,
         integrante: integrante,

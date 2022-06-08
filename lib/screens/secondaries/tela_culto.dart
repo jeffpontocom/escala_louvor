@@ -999,7 +999,7 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
           instrumentosIntegrantes) {
     Mensagem.bottomDialog(
       context: context,
-      icon: funcaoGetIcon(Funcao.membro),
+      leading: Icon(funcaoGetIcon(Funcao.membro)),
       titulo: 'Selecionar ${funcaoGetString(Funcao.membro).toLowerCase()}',
       // Busca por instrumentos ativos
       conteudo: FutureBuilder<QuerySnapshot<Instrumento>>(
@@ -1321,7 +1321,6 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
     Mensagem.bottomDialog(
       context: context,
       titulo: 'Cânticos do culto',
-      icon: Icons.music_note,
       conteudo: PaginaCanticos(culto: mSnapshot),
     );
   }

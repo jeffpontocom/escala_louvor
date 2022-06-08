@@ -25,6 +25,11 @@ class TileCulto extends StatelessWidget {
       this.showResumo = false})
       : super(key: key);
 
+  Color get corEscalado => Colors.green.shade600;
+  Color get corDisponivel => Colors.blue.shade600;
+  Color get corRestrito => Colors.red.shade600;
+  Color get corIndeciso => Colors.orange;
+
   @override
   Widget build(BuildContext context) {
     return Slidable(
@@ -57,10 +62,12 @@ class TileCulto extends StatelessWidget {
                           ],
                         ),
                         const Expanded(child: SizedBox()),
-                        showResumo
-                            ? chipStatusDisponibilidade
-                            : const SizedBox(),
                         igreja,
+                        showResumo
+                            ? Padding(
+                                padding: const EdgeInsets.only(left: 4, top: 2),
+                                child: chipStatusDisponibilidade)
+                            : const SizedBox(),
                       ],
                     ),
                     const SizedBox(height: 2),
@@ -111,40 +118,25 @@ class TileCulto extends StatelessWidget {
   }
 
   get chipStatusDisponibilidade {
-    var child;
-    var style = theme.textTheme.caption;
+    Image image;
+    Color color;
     if (_estouEscalado) {
-      child = Image.asset(
-        'assets/icons/ic_escalado.png',
-        height: 20,
-        color: Colors.green,
-        colorBlendMode: BlendMode.srcATop,
-      );
+      image = Image.asset('assets/icons/ic_escalado.png');
+      color = corEscalado;
     } else if (_estouDisponivel) {
-      child = Image.asset(
-        'assets/icons/ic_disponivel.png',
-        height: 20,
-        color: Colors.blue,
-        colorBlendMode: BlendMode.srcATop,
-      );
+      image = Image.asset('assets/icons/ic_disponivel.png');
+      color = corDisponivel;
     } else if (_estouRestrito) {
-      child = Image.asset(
-        'assets/icons/ic_restrito.png',
-        height: 20,
-        color: Colors.red,
-        colorBlendMode: BlendMode.srcATop,
-      );
+      image = Image.asset('assets/icons/ic_restrito.png');
+      color = corRestrito;
     } else {
-      child = Image.asset(
-        'assets/icons/ic_indeciso.png',
-        height: 20,
-        color: Colors.grey,
-        colorBlendMode: BlendMode.srcATop,
-      );
+      image = Image.asset('assets/icons/ic_indeciso.png');
+      color = corIndeciso;
     }
-    return Padding(
-      padding: const EdgeInsets.all(4),
-      child: child,
+    return CircleAvatar(
+      radius: 12,
+      backgroundColor: color,
+      child: Padding(padding: const EdgeInsets.all(4), child: image),
     );
   }
 
@@ -155,7 +147,7 @@ class TileCulto extends StatelessWidget {
       return [
         CustomSlidableAction(
           flex: 1,
-          backgroundColor: Colors.green,
+          backgroundColor: corEscalado,
           foregroundColor: Colors.white,
           onPressed: doNothing,
           child: sliderChild(
@@ -200,7 +192,7 @@ class TileCulto extends StatelessWidget {
     return [
       CustomSlidableAction(
         flex: 1,
-        backgroundColor: Colors.blue,
+        backgroundColor: corDisponivel,
         foregroundColor: Colors.white,
         onPressed: (context) async {
           await MeuFirebase.definirDisponibilidadeParaOCulto(reference);
@@ -212,7 +204,7 @@ class TileCulto extends StatelessWidget {
       ),
       CustomSlidableAction(
         flex: 1,
-        backgroundColor: Colors.red,
+        backgroundColor: corRestrito,
         foregroundColor: Colors.white,
         onPressed: (context) async {
           await MeuFirebase.definirRestricaoParaOCulto(reference);
@@ -311,13 +303,17 @@ class TileCulto extends StatelessWidget {
       builder: (context, snapshot) {
         // Shimmer de carregamento
         if (!snapshot.hasData) {
-          var cor = Theme.of(context).chipTheme.backgroundColor ?? Colors.grey;
-          return SizedBox(
-            height: 22,
-            child: Shimmer.fromColors(
-              baseColor: cor.withOpacity(0.5),
-              highlightColor: cor.withOpacity(0.25),
-              child: const RawChip(label: SizedBox(width: 48)),
+          return Shimmer.fromColors(
+            baseColor: Colors.grey.withOpacity(0.38),
+            highlightColor: Colors.grey.withOpacity(0.12),
+            child: const RawChip(
+              avatar: CircleAvatar(
+                radius: 10,
+                child: Icon(Icons.church),
+              ),
+              label: SizedBox(width: 20),
+              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              visualDensity: VisualDensity.compact,
             ),
           );
         }
@@ -468,12 +464,12 @@ class TileCulto extends StatelessWidget {
           shape: const RoundedRectangleBorder(
               borderRadius: BorderRadius.horizontal(left: Radius.circular(8))),
           backgroundColor: escalado
-              ? Colors.green[colorVar]
+              ? corEscalado
               : disponivel
-                  ? Colors.blue[colorVar]
+                  ? corDisponivel
                   : restrito
-                      ? Colors.red[colorVar]
-                      : Colors.grey[colorVar],
+                      ? corRestrito
+                      : corIndeciso,
           primary: Colors.white,
         ),
         child: Column(

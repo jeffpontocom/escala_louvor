@@ -28,22 +28,22 @@ class Dialogos {
     return Mensagem.bottomDialog(
       context: context,
       titulo: titulo,
+      leading: Chip(
+        avatar: CachedAvatar(
+          url: Global.igrejaSelecionada.value?.data()?.fotoUrl,
+          icone: Icons.church,
+          maxRadius: 10,
+        ),
+        label: Text(Global.igrejaSelecionada.value?.data()?.sigla ?? '',
+            style: Theme.of(context).textTheme.caption),
+        materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+        visualDensity: VisualDensity.compact,
+      ),
       conteudo: StatefulBuilder(builder: (context, innerState) {
         return ListView(
           shrinkWrap: true,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
           children: [
-            // IGREJA
-            Chip(
-              avatar: CachedAvatar(
-                url: Global.igrejaSelecionada.value?.data()?.fotoUrl,
-                icone: Icons.church,
-              ),
-              label: Text(Global.igrejaSelecionada.value?.data()?.sigla ?? ''),
-              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-            ),
-            const SizedBox(height: 8),
-
             // DATA E HORA
             Row(
               children: [

@@ -136,24 +136,27 @@ class Mensagem {
     required BuildContext context,
     required String titulo,
     required Widget conteudo,
+    Widget? leading,
     Widget? rodape,
-    IconData? icon,
-    ScrollController? scrollController,
     VoidCallback? onClose,
   }) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      useRootNavigator: true,
+      useRootNavigator: true, // para sobrepor a Bottom Navigation
+      // Formato do Dialog
       /* shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(0)),
       ), */
       builder: (context) {
         return OrientationBuilder(builder: (context, orientation) {
           return ConstrainedBox(
+            // Altura mínima e máxima do Dialog
             constraints: BoxConstraints(
                 minHeight: MediaQuery.of(context).size.height * 0.3,
-                maxHeight: MediaQuery.of(context).size.height * 0.9),
+                maxHeight: MediaQuery.of(context).size.height * 0.95),
+            // Padding com MediaQuery para redimensionar ao apresentar o teclado virtual
+            // Largura do conteúdo restrita ao máximo definido em Medidas
             child: Padding(
               padding: EdgeInsets.only(
                 top: MediaQuery.of(context).viewInsets.top,
@@ -161,13 +164,19 @@ class Mensagem {
                 left: Medidas.paddingListH(context),
                 right: Medidas.paddingListH(context),
               ),
+              // Interface
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Cabeçalho
+                  // CABEÇALHO
                   Row(
                     children: [
-                      const SizedBox(width: 16),
+                      // Leading
+                      Padding(
+                          padding: EdgeInsets.only(
+                              left: 16, right: leading == null ? 0 : 8),
+                          child: leading),
+                      // Título
                       Expanded(
                         child: Text(
                           titulo,
@@ -177,13 +186,16 @@ class Mensagem {
                               ?.copyWith(fontWeight: FontWeight.bold),
                         ),
                       ),
+                      // Botão para fechar
                       CloseButton(color: Colors.grey.withOpacity(0.5)),
                     ],
                   ),
                   const Divider(height: 1),
-                  // Conteúdo
+
+                  // CONTEÚDO
                   Flexible(child: conteudo),
-                  // Rodapé
+
+                  // RODAPÉ
                   rodape == null
                       ? const SizedBox()
                       : Column(
@@ -206,33 +218,14 @@ class Mensagem {
       if (onClose != null) onClose();
     });
   }
-
-  /// Apresenta popup no padrão bottom dialog
-  static void showPdf(
-      {required BuildContext context,
-      required String titulo,
-      required Widget conteudo}) {
-    ScrollController scrollController = ScrollController();
-    bottomDialog(
-      context: context,
-      titulo: titulo,
-      conteudo: SingleChildScrollView(
-        controller: scrollController,
-        child: SizedBox(
-          height: MediaQuery.of(context).size.height * 0.75,
-          child: conteudo,
-        ),
-      ),
-      scrollController: scrollController,
-    );
-  }
 }
 
 /// Caixa de diálogo de notificação por push para primeiro plano
-class DialogoMensagem extends StatelessWidget {
+class DialogoNotificacao extends StatelessWidget {
   final String titulo;
   final String corpo;
-  const DialogoMensagem({Key? key, required this.titulo, required this.corpo})
+  const DialogoNotificacao(
+      {Key? key, required this.titulo, required this.corpo})
       : super(key: key);
 
   @override

@@ -146,7 +146,7 @@ class Notificacoes {
         );
       }
       //if (kIsWeb) {
-      DialogoMensagem(
+      DialogoNotificacao(
           titulo: notification?.title ?? 'Mensagem',
           corpo: notification?.body ?? 'Sem conteúdo');
       //}
