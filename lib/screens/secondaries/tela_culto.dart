@@ -41,13 +41,13 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
   late Culto mCulto;
   late DocumentSnapshot<Culto> mSnapshot;
   Integrante? mLogado = Global.logado;
-  late bool _isPortrait;
+  //late bool _isPortrait;
 
-  bool get _podeSerEscalado {
+  /* bool get _podeSerEscalado {
     return (mLogado?.ehDirigente ?? false) ||
         (mLogado?.ehCoordenador ?? false) ||
         (mLogado?.ehComponente ?? false);
-  }
+  } */
 
   bool get _ehODirigente {
     if (mCulto.dirigente == null) {
@@ -67,7 +67,7 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
   @override
   Widget build(BuildContext context) {
     return OrientationBuilder(builder: (context, orientation) {
-      _isPortrait = orientation == Orientation.portrait;
+      //_isPortrait = orientation == Orientation.portrait;
       return Scaffold(
         appBar: AppBar(
           leading: BackButton(
@@ -78,7 +78,7 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
             },
           ),
           title: const Text('Detalhes da escala'),
-          actions: (mLogado?.adm ?? false) ? [] : null,
+          actions: [_menuSuspenso],
           //elevation: _isPortrait ? 0 : 4,
         ),
         body: StreamBuilder<DocumentSnapshot<Culto>>(
@@ -155,10 +155,10 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
                           // Canticos
                           _secaoCanticos,
                           _listaDeCanticos,
-                          const Divider(height: 16),
+                          /*const Divider(height: 16),
                           // Botões de ação
-                          _secaoAcoes,
-                          _listaDeAcoes,
+                           _secaoAcoes,
+                          _listaDeAcoes, */
                           const SizedBox(height: 16),
                           // Fim da tela
                         ],
@@ -173,6 +173,72 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
   }
 
   /* WIDGETS */
+  /// Menu Suspenso
+  get _menuSuspenso {
+    const int editar = 0;
+    const int verDisponiveis = 1;
+    const int notificarEscalados = 2;
+
+    return PopupMenuButton(
+      tooltip: 'Menu',
+      child: kIsWeb
+          ? Container(
+              alignment: Alignment.center,
+              padding: const EdgeInsets.symmetric(horizontal: 12),
+              child: Wrap(
+                spacing: 8,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [const Text('Menu'), Icon(Icons.adaptive.more)],
+              ),
+            )
+          : null,
+      itemBuilder: (context) {
+        List<PopupMenuEntry> opcoes = [];
+        // Opção editar dados do culto
+        if ((mLogado?.adm ?? false) ||
+            (mLogado?.ehRecrutador ?? false) ||
+            _ehODirigente ||
+            _ehOCoordenador) {
+          opcoes.add(const PopupMenuItem(
+            value: editar,
+            child: Text('Editar dados do culto'),
+          ));
+        }
+        // Opção notificar escalados
+        if (((mLogado?.adm ?? false) ||
+                (mLogado?.ehRecrutador ?? false) ||
+                _ehODirigente ||
+                _ehOCoordenador) &&
+            mCulto.equipe?.values != null &&
+            mCulto.equipe!.values.any((element) => element.isNotEmpty)) {
+          opcoes.add(const PopupMenuItem(
+            value: notificarEscalados,
+            child: Text('Notificar escalados'),
+          ));
+        }
+        // Opção ver disponibilidade da equipe
+        opcoes.add(const PopupMenuItem(
+          value: verDisponiveis,
+          child: Text('Ver disponibilidade da equipe'),
+        ));
+        return opcoes;
+      },
+      onSelected: (value) {
+        switch (value) {
+          case editar:
+            Dialogos.editarCulto(context,
+                culto: mCulto, reference: mSnapshot.reference);
+            break;
+          case verDisponiveis:
+            _verificarDisponibilidades();
+            break;
+          case notificarEscalados:
+            _notificarEscalados();
+            break;
+        }
+      },
+    );
+  }
 
   /// Informações sobre a data do culto
   Widget get _cultoData {
@@ -911,85 +977,7 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
               ? TextButton.icon(
                   label: const Text('Notificar escalados'),
                   icon: const Icon(Icons.notifications),
-                  onPressed: () async {
-                    Mensagem.decisao(
-                        context: context,
-                        titulo: 'Confirme',
-                        mensagem:
-                            'Deseja notificar todos os usuários escalados sobre esse culto',
-                        onPressed: (ok) async {
-                          if (ok) {
-                            // abre progresso
-                            Mensagem.aguardar(context: context);
-                            var avisados = [];
-                            // Avisar dirigente
-                            if (mCulto.dirigente?.id != null) {
-                              var token =
-                                  await MeuFirebase.obterTokenDoIntegrante(
-                                      mCulto.dirigente!.id);
-                              if (token != null) {
-                                await MeuFirebase.notificarEscalado(
-                                    token: token,
-                                    igreja:
-                                        Global.igrejaSelecionada.value?.id ??
-                                            '',
-                                    culto: mCulto,
-                                    cultoId: mSnapshot.id);
-                                dev.log('Dirigente avisado!');
-                              }
-                              avisados.add(mCulto.dirigente!.id);
-                            }
-                            // Avisar coordenador técnico
-                            if (mCulto.coordenador?.id != null &&
-                                mCulto.coordenador?.id !=
-                                    mCulto.dirigente?.id) {
-                              var token =
-                                  await MeuFirebase.obterTokenDoIntegrante(
-                                      mCulto.coordenador!.id);
-                              if (token != null) {
-                                await MeuFirebase.notificarEscalado(
-                                    token: token,
-                                    igreja:
-                                        Global.igrejaSelecionada.value?.id ??
-                                            '',
-                                    culto: mCulto,
-                                    cultoId: mSnapshot.id);
-                                dev.log('Coordenador avisado!');
-                              }
-                              avisados.add(mCulto.coordenador!.id);
-                            }
-                            // Avisar equipe
-                            for (var instrumento
-                                in mCulto.equipe!.values.toList()) {
-                              for (var integrante in instrumento) {
-                                if (!avisados.contains(integrante.id)) {
-                                  var token =
-                                      await MeuFirebase.obterTokenDoIntegrante(
-                                          integrante.id);
-                                  if (token != null) {
-                                    await MeuFirebase.notificarEscalado(
-                                        token: token,
-                                        igreja: Global
-                                                .igrejaSelecionada.value?.id ??
-                                            '',
-                                        culto: mCulto,
-                                        cultoId: mSnapshot.id);
-                                    dev.log(
-                                        'Integrante ${integrante.id} avisado!');
-                                  }
-                                }
-                                avisados.add(integrante.id);
-                              }
-                            }
-                            Modular.to.pop(); // fecha progresso
-                            Mensagem.simples(
-                                context: context,
-                                titulo: 'Sucesso!',
-                                mensagem:
-                                    'Todos os integrantes escalados foram notificados.');
-                          }
-                        });
-                  },
+                  onPressed: () => _notificarEscalados(),
                 )
               : const SizedBox(),
           // Editar evento
@@ -1484,5 +1472,72 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
                 ],
               );
             }));
+  }
+
+  void _notificarEscalados() async {
+    Mensagem.decisao(
+        context: context,
+        titulo: 'Confirme',
+        mensagem:
+            'Deseja notificar todos os usuários escalados sobre esse culto',
+        onPressed: (ok) async {
+          if (ok) {
+            // abre progresso
+            Mensagem.aguardar(context: context);
+            var avisados = [];
+            // Avisar dirigente
+            if (mCulto.dirigente?.id != null) {
+              var token = await MeuFirebase.obterTokenDoIntegrante(
+                  mCulto.dirigente!.id);
+              if (token != null) {
+                await MeuFirebase.notificarEscalado(
+                    token: token,
+                    igreja: Global.igrejaSelecionada.value?.id ?? '',
+                    culto: mCulto,
+                    cultoId: mSnapshot.id);
+                dev.log('Dirigente avisado!');
+              }
+              avisados.add(mCulto.dirigente!.id);
+            }
+            // Avisar coordenador técnico
+            if (mCulto.coordenador?.id != null &&
+                mCulto.coordenador?.id != mCulto.dirigente?.id) {
+              var token = await MeuFirebase.obterTokenDoIntegrante(
+                  mCulto.coordenador!.id);
+              if (token != null) {
+                await MeuFirebase.notificarEscalado(
+                    token: token,
+                    igreja: Global.igrejaSelecionada.value?.id ?? '',
+                    culto: mCulto,
+                    cultoId: mSnapshot.id);
+                dev.log('Coordenador avisado!');
+              }
+              avisados.add(mCulto.coordenador!.id);
+            }
+            // Avisar equipe
+            for (var instrumento in mCulto.equipe!.values.toList()) {
+              for (var integrante in instrumento) {
+                if (!avisados.contains(integrante.id)) {
+                  var token =
+                      await MeuFirebase.obterTokenDoIntegrante(integrante.id);
+                  if (token != null) {
+                    await MeuFirebase.notificarEscalado(
+                        token: token,
+                        igreja: Global.igrejaSelecionada.value?.id ?? '',
+                        culto: mCulto,
+                        cultoId: mSnapshot.id);
+                    dev.log('Integrante ${integrante.id} avisado!');
+                  }
+                }
+                avisados.add(integrante.id);
+              }
+            }
+            Modular.to.pop(); // fecha progresso
+            Mensagem.simples(
+                context: context,
+                titulo: 'Sucesso!',
+                mensagem: 'Todos os integrantes escalados foram notificados.');
+          }
+        });
   }
 }
