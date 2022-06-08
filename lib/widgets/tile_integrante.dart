@@ -1,13 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:escala_louvor/functions/metodos_firebase.dart';
-import 'package:escala_louvor/models/integrante.dart';
-import 'package:escala_louvor/utils/utils.dart';
-import 'package:escala_louvor/widgets/avatar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 
-import '../models/instrumento.dart';
-import '../rotas.dart';
+import '/functions/metodos_firebase.dart';
+import '/models/instrumento.dart';
+import '/models/integrante.dart';
+import '/rotas.dart';
+import '/utils/utils.dart';
+import '/widgets/avatar.dart';
 
 class TileIntegrante extends StatelessWidget {
   final DocumentSnapshot<Integrante> snapshot;
@@ -18,6 +18,8 @@ class TileIntegrante extends StatelessWidget {
     var integrante = snapshot.data()!;
     return ListTile(
       isThreeLine: true,
+
+      // Foto
       leading: Hero(
         tag: snapshot.id,
         child: CachedAvatar(
@@ -25,25 +27,22 @@ class TileIntegrante extends StatelessWidget {
           url: integrante.fotoUrl,
         ),
       ),
+
+      // Nome
       title: Text(
         integrante.nome,
         style: const TextStyle(fontWeight: FontWeight.bold),
       ),
+
+      // Detalhes
       subtitle: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Funções
-          /* Wrap(
-            children: List.generate(integrante.funcoes?.length ?? 0, (index) {
-              var separator =
-                  integrante.funcoes!.length - 1 == index ? '' : ' • ';
-              return Text(
-                  funcaoGetString(integrante.funcoes![index]) + separator);
-            }),
-          ), */
+          // E-mail
           Text(integrante.email),
           const SizedBox(height: 4),
+
           // Instrumentos
           Wrap(
             spacing: 4,
@@ -73,6 +72,8 @@ class TileIntegrante extends StatelessWidget {
           ),
         ],
       ),
+
+      // Whatsapp
       trailing: IconButton(
           onPressed: integrante.telefone == null
               ? null
@@ -81,6 +82,8 @@ class TileIntegrante extends StatelessWidget {
             Icons.whatsapp,
             color: Colors.green,
           )),
+
+      // Função ao tocar
       onTap: () => Modular.to.pushNamed(
           '${AppRotas.PERFIL}?id=${snapshot.id}&hero=${snapshot.id}',
           arguments: snapshot),

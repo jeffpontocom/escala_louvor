@@ -1,17 +1,15 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:escala_louvor/widgets/avatar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:intl/intl.dart';
 
-import '../widgets/tile_igreja.dart';
 import 'metodos_firebase.dart';
 import '/models/igreja.dart';
 import '/models/instrumento.dart';
 import '/models/integrante.dart';
-import '../resources/medidas.dart';
 import '/utils/mensagens.dart';
-import '/utils/utils.dart';
+import '/widgets/avatar.dart';
+import '/widgets/tile_igreja.dart';
 
 class MetodosIntegrante {
   final BuildContext context;
@@ -38,29 +36,6 @@ class MetodosIntegrante {
     await snapshot.reference.update(dados);
     // Fecha progresso
     Modular.to.pop();
-  }
-
-  /// Caixa de diálogo padrão
-  void mostrarDialogo(Widget conteudo) {
-    showModalBottomSheet(
-        context: context,
-        isScrollControlled: true,
-        useRootNavigator: true,
-        builder: (context) {
-          return OrientationBuilder(builder: (context, orientation) {
-            return Container(
-              constraints:
-                  BoxConstraints(maxHeight: MediaQuery.of(context).size.height),
-              padding: EdgeInsets.only(
-                top: MediaQuery.of(context).viewInsets.top + 16,
-                bottom: MediaQuery.of(context).viewInsets.bottom,
-                left: Medidas.bodyPadding(context),
-                right: Medidas.bodyPadding(context),
-              ),
-              child: conteudo,
-            );
-          });
-        });
   }
 
   void editarDados() {
@@ -141,9 +116,14 @@ class MetodosIntegrante {
     var widgetNome = TextFormField(
       initialValue: integrante.nome,
       keyboardType: TextInputType.name,
+      textCapitalization: TextCapitalization.words,
       textInputAction: TextInputAction.next,
       autofillHints: const [AutofillHints.name],
-      decoration: const InputDecoration(labelText: 'Nome Completo'),
+      decoration: const InputDecoration(
+        labelText: 'Nome Completo',
+        floatingLabelBehavior: FloatingLabelBehavior.always,
+        isDense: true,
+      ),
       onChanged: (value) {
         integrante.nome = value.trim();
       },
@@ -155,7 +135,11 @@ class MetodosIntegrante {
       keyboardType: TextInputType.phone,
       textInputAction: TextInputAction.next,
       autofillHints: const [AutofillHints.telephoneNumberLocal],
-      decoration: const InputDecoration(labelText: 'WhatsApp'),
+      decoration: const InputDecoration(
+        labelText: 'WhatsApp',
+        floatingLabelBehavior: FloatingLabelBehavior.always,
+        isDense: true,
+      ),
       onChanged: (value) {
         integrante.telefone = value.trim();
       },
@@ -165,7 +149,14 @@ class MetodosIntegrante {
     var widgetObs = TextFormField(
       initialValue: integrante.obs,
       keyboardType: TextInputType.multiline,
-      decoration: const InputDecoration(labelText: 'Observações'),
+      textCapitalization: TextCapitalization.sentences,
+      minLines: 5,
+      maxLines: 10,
+      decoration: const InputDecoration(
+        labelText: 'Observações',
+        floatingLabelBehavior: FloatingLabelBehavior.always,
+        isDense: true,
+      ),
       onChanged: (value) {
         integrante.obs = value;
       },
@@ -187,29 +178,29 @@ class MetodosIntegrante {
         label: const Text('ATUALIZAR'));
 
     // Conteúdo organizado
-    var conteudo = Wrap(
-      spacing: 16,
-      runSpacing: 16,
-      alignment: WrapAlignment.center,
-      crossAxisAlignment: WrapCrossAlignment.center,
-      children: [
-        widgetFoto,
-        widgetDataNascimento,
-        widgetNome,
-        widgetTelefone,
-        widgetObs,
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            btnAtualizar,
-          ],
-        ),
-        const SizedBox(),
-      ],
+    var conteudo = Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Wrap(
+        spacing: 16,
+        runSpacing: 8,
+        alignment: WrapAlignment.center,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        children: [
+          widgetFoto,
+          widgetDataNascimento,
+          const SizedBox(width: double.infinity),
+          widgetNome,
+          widgetTelefone,
+          widgetObs,
+        ],
+      ),
     );
 
-    // Mostrar diálogo
-    mostrarDialogo(conteudo);
+    Mensagem.bottomDialog(
+        context: context,
+        titulo: 'Editar dados',
+        conteudo: conteudo,
+        rodape: btnAtualizar);
   }
 
   /// Editar funções
@@ -221,11 +212,13 @@ class MetodosIntegrante {
     // Conteúdo organizado
     var conteudo = StatefulBuilder(builder: (context, innerState) {
       return Column(mainAxisSize: MainAxisSize.min, children: [
-        const Text(
-          'Selecione um ou mais funções para o integrante.',
-          textAlign: TextAlign.center,
+        const Padding(
+          padding: EdgeInsets.all(16),
+          child: Text(
+            'Selecione um ou mais funções para o integrante.',
+            textAlign: TextAlign.center,
+          ),
         ),
-        const SizedBox(height: 16),
         ListView(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
@@ -266,7 +259,8 @@ class MetodosIntegrante {
       ]);
     });
 
-    mostrarDialogo(conteudo);
+    Mensagem.bottomDialog(
+        context: context, titulo: 'Editar funções', conteudo: conteudo);
   }
 
   /// Editar instrumentos e habilidades
@@ -279,11 +273,13 @@ class MetodosIntegrante {
     // Conteúdo organizado
     var conteudo = StatefulBuilder(builder: (context, innerState) {
       return Column(mainAxisSize: MainAxisSize.min, children: [
-        const Text(
-          'Selecione um ou mais instrumentos, equipamentos ou habilidades em que pode ser escalado.',
-          textAlign: TextAlign.center,
+        const Padding(
+          padding: EdgeInsets.all(16),
+          child: Text(
+            'Selecione um ou mais instrumentos, equipamentos ou habilidades em que pode ser escalado.',
+            textAlign: TextAlign.center,
+          ),
         ),
-        const SizedBox(height: 16),
         ListView(
           shrinkWrap: true,
           physics: const NeverScrollableScrollPhysics(),
@@ -326,7 +322,8 @@ class MetodosIntegrante {
       ]);
     });
 
-    mostrarDialogo(conteudo);
+    Mensagem.bottomDialog(
+        context: context, titulo: 'Editar instrumentos', conteudo: conteudo);
   }
 
   /// Editar igrejas inscritas
@@ -338,11 +335,13 @@ class MetodosIntegrante {
     // Conteúdo organizado
     var conteudo = StatefulBuilder(builder: (context, innerState) {
       return Column(mainAxisSize: MainAxisSize.min, children: [
-        const Text(
-          'Selecione uma ou mais igrejas em que pode ser escalado.',
-          textAlign: TextAlign.center,
+        const Padding(
+          padding: EdgeInsets.all(16),
+          child: Text(
+            'Selecione uma ou mais igrejas em que pode ser escalado.',
+            textAlign: TextAlign.center,
+          ),
         ),
-        const SizedBox(height: 16),
         Wrap(
           spacing: 8,
           runSpacing: 8,
@@ -401,6 +400,7 @@ class MetodosIntegrante {
       ]);
     });
 
-    mostrarDialogo(conteudo);
+    Mensagem.bottomDialog(
+        context: context, titulo: 'Editar igrejas', conteudo: conteudo);
   }
 }

@@ -1,5 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:escala_louvor/widgets/avatar.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -7,16 +6,17 @@ import 'package:flutter_modular/flutter_modular.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 
-import '../../widgets/tile_igreja.dart';
-import '../home/tela_home.dart';
 import '/functions/metodos_firebase.dart';
 import '/functions/metodos_integrante.dart';
 import '/models/igreja.dart';
 import '/models/instrumento.dart';
 import '/models/integrante.dart';
+import '/screens/home/tela_home.dart';
 import '/utils/global.dart';
 import '/utils/mensagens.dart';
 import '/utils/utils.dart';
+import '/widgets/avatar.dart';
+import '/widgets/tile_igreja.dart';
 
 class TelaPerfil extends StatefulWidget {
   final String id;
