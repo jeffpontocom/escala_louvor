@@ -154,24 +154,29 @@ class _PaginaEquipeState extends State<PaginaEquipe> {
 
   /// Dados
   get _dados {
-    return ValueListenableBuilder<Funcao?>(
-        valueListenable: filtroFuncao,
-        builder: (context, funcao, _) {
-          String filtro =
-              funcao == null ? 'Equipe completa' : funcaoGetString(funcao);
-          return StreamBuilder<QuerySnapshot<Integrante>>(
-            stream: MeuFirebase.obterListaIntegrantes(
-                    ativo: true, funcao: filtroFuncao.value?.index)
-                .asStream(),
-            builder: (context, snapshot) {
-              int total = snapshot.data?.size ?? 0;
-              return Column(
-                children: [
-                  // Progress indicator
-                  snapshot.connectionState == ConnectionState.waiting
-                      ? const LinearProgressIndicator()
-                      : const SizedBox(),
-
+    return StreamBuilder<QuerySnapshot<Integrante>>(
+        stream: MeuFirebase.obterListaIntegrantes(
+          ativo: true,
+          igreja: Global.igrejaSelecionada.value?.reference,
+        ).asStream(),
+        builder: (context, snapshot) {
+          return ValueListenableBuilder<Funcao?>(
+              valueListenable: filtroFuncao,
+              builder: (context, funcao, _) {
+                int total = 0;
+                List<QueryDocumentSnapshot<Integrante>>? snapshotFiltrado;
+                if (snapshot.hasData) {
+                  if (funcao == null) {
+                    snapshotFiltrado = snapshot.data?.docs;
+                  } else {
+                    snapshotFiltrado = snapshot.data?.docs
+                        .where((element) =>
+                            element.data().funcoes?.contains(funcao) ?? false)
+                        .toList();
+                  }
+                  total = snapshotFiltrado?.length ?? 0;
+                }
+                return Column(children: [
                   // Filtros de função
                   Container(
                     color: Theme.of(context).colorScheme.background,
@@ -229,24 +234,29 @@ class _PaginaEquipeState extends State<PaginaEquipe> {
                   const Divider(height: 1),
                   // Integrantes,
                   Expanded(
-                    child: snapshot.hasData
-                        ? ListView.separated(
+                    child: Column(
+                      children: [
+                        snapshot.connectionState == ConnectionState.waiting
+                            ? const LinearProgressIndicator()
+                            : const SizedBox(),
+                        Flexible(
+                          child: ListView.separated(
                             shrinkWrap: true,
                             itemCount: total,
                             separatorBuilder: (context, index) {
                               return const Divider(height: 1);
                             },
                             itemBuilder: (context, index) {
-                              var snap = snapshot.data!.docs[index];
+                              var snap = snapshotFiltrado![index];
                               return TileIntegrante(snapshot: snap);
                             },
-                          )
-                        : const Center(child: CircularProgressIndicator()),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ],
-              );
-            },
-          );
+                ]);
+              });
         });
   }
 }

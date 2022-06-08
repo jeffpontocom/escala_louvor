@@ -175,11 +175,14 @@ class MeuFirebase {
 
   /// Lista de Integrantes
   static Future<QuerySnapshot<Integrante>> obterListaIntegrantes(
-      {required bool ativo, int? funcao}) async {
+      {required bool ativo,
+      int? funcao,
+      DocumentReference<Igreja>? igreja}) async {
     return FirebaseFirestore.instance
         .collection(Integrante.collection)
         .where('ativo', isEqualTo: ativo)
         .where('funcoes', arrayContains: funcao)
+        .where('igrejas', arrayContains: igreja)
         .orderBy('nome')
         .withConverter<Integrante>(
           fromFirestore: (snapshot, _) => Integrante.fromJson(snapshot.data()!),
