@@ -98,15 +98,15 @@ class _HomeState extends State<Home> {
                     FloatingActionButtonLocation.centerDocked,
               )
             : Scaffold(
+                appBar: appBar,
                 body: Row(
                   children: [
-                    SafeArea(child: railNavigation),
-                    const VerticalDivider(thickness: 1, width: 1),
-                    Expanded(
-                        child: Scaffold(
-                      appBar: appBar,
-                      body: corpo,
-                    )),
+                    railNavigation,
+                    VerticalDivider(
+                        thickness: 1,
+                        width: 1,
+                        color: Colors.grey.withOpacity(0.38)),
+                    Expanded(child: corpo),
                   ],
                 ),
               );
@@ -118,6 +118,11 @@ class _HomeState extends State<Home> {
   get appBar {
     return AppBar(
       // Ícone da aplicação
+      leading: _isPortrait
+          ? null
+          : Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
+              child: floatButton),
       /* leading: Padding(
           padding: const EdgeInsets.all(12),
           child: Image.asset('assets/icons/ic_launcher.png')), */
@@ -215,7 +220,8 @@ class _HomeState extends State<Home> {
           extended: kIsWeb ? true : false,
           groupAlignment: 0,
           minExtendedWidth: 176,
-          leading: floatButton,
+          labelType: NavigationRailLabelType.none,
+          //leading: floatButton,
           destinations: List.generate(Paginas.values.length, (index) {
             return NavigationRailDestination(
                 icon: paginaIcone(index),
