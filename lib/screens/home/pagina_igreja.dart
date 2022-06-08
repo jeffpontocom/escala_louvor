@@ -173,63 +173,69 @@ class _PaginaEquipeState extends State<PaginaEquipe> {
                       : const SizedBox(),
 
                   // Filtros de função
-                  Row(
-                    children: [
-                      const SizedBox(width: 16),
-                      // Filtro
-                      const Icon(Icons.filter_alt),
-                      const SizedBox(width: 4),
-                      DropdownButton<Funcao?>(
-                          value: funcao,
-                          underline: const SizedBox(),
-                          items: [
-                            const DropdownMenuItem(
-                              value: null,
-                              child: Text('Todos'),
-                            ),
-                            DropdownMenuItem(
-                              value: Funcao.dirigente,
-                              child: Text(funcaoGetString(Funcao.dirigente)),
-                            ),
-                            DropdownMenuItem(
-                              value: Funcao.coordenador,
-                              child: Text(funcaoGetString(Funcao.coordenador)),
-                            ),
-                            DropdownMenuItem(
-                              value: Funcao.recrutador,
-                              child: Text(funcaoGetString(Funcao.recrutador)),
-                            ),
-                            DropdownMenuItem(
-                              value: Funcao.liturgo,
-                              child: Text(funcaoGetString(Funcao.liturgo)),
-                            ),
-                            DropdownMenuItem(
-                              value: Funcao.membro,
-                              child: Text(funcaoGetString(Funcao.membro)),
-                            ),
-                          ],
-                          onChanged: (value) {
-                            filtroFuncao.value = value;
-                          }),
-                      //
-                      const Expanded(child: SizedBox()),
-                      Text(
-                        snapshot.connectionState == ConnectionState.waiting
-                            ? 'Carregando lista...'
-                            : '$total MEMBROS ATIVOS',
-                        style:
-                            const TextStyle(color: Colors.grey, fontSize: 13),
-                      ),
-                      const SizedBox(width: 16),
-                    ],
+                  Container(
+                    color: Theme.of(context).colorScheme.background,
+                    child: Row(
+                      children: [
+                        const SizedBox(width: 16),
+                        // Filtro
+                        const Icon(Icons.filter_alt),
+                        const SizedBox(width: 4),
+                        DropdownButton<Funcao?>(
+                            value: funcao,
+                            underline: const SizedBox(),
+                            items: [
+                              const DropdownMenuItem(
+                                value: null,
+                                child: Text('Todos'),
+                              ),
+                              DropdownMenuItem(
+                                value: Funcao.dirigente,
+                                child: Text(funcaoGetString(Funcao.dirigente)),
+                              ),
+                              DropdownMenuItem(
+                                value: Funcao.coordenador,
+                                child:
+                                    Text(funcaoGetString(Funcao.coordenador)),
+                              ),
+                              DropdownMenuItem(
+                                value: Funcao.recrutador,
+                                child: Text(funcaoGetString(Funcao.recrutador)),
+                              ),
+                              DropdownMenuItem(
+                                value: Funcao.liturgo,
+                                child: Text(funcaoGetString(Funcao.liturgo)),
+                              ),
+                              DropdownMenuItem(
+                                value: Funcao.membro,
+                                child: Text(funcaoGetString(Funcao.membro)),
+                              ),
+                            ],
+                            onChanged: (value) {
+                              filtroFuncao.value = value;
+                            }),
+                        //
+                        const Expanded(child: SizedBox()),
+                        Text(
+                          snapshot.connectionState == ConnectionState.waiting
+                              ? 'Carregando lista...'
+                              : '$total membros ativos',
+                          style: Theme.of(context).textTheme.caption,
+                        ),
+                        const SizedBox(width: 16),
+                      ],
+                    ),
                   ),
                   const Divider(height: 1),
                   // Integrantes,
                   Expanded(
                     child: snapshot.hasData
-                        ? ListView.builder(
+                        ? ListView.separated(
                             shrinkWrap: true,
                             itemCount: total,
+                            separatorBuilder: (context, index) {
+                              return const Divider(height: 1);
+                            },
                             itemBuilder: (context, index) {
                               var snap = snapshot.data!.docs[index];
                               return TileIntegrante(snapshot: snap);
