@@ -175,12 +175,22 @@ class Dialogos {
                   label: const Text('APAGAR'),
                   style: ElevatedButton.styleFrom(primary: Colors.red),
                   onPressed: () async {
-                    // Abre progresso
-                    Mensagem.aguardar(context: context);
-                    await MeuFirebase.apagarCulto(culto, id: reference.id);
-                    Modular.to.pop(); // Fecha progresso
-                    Modular.to.maybePop(); // Fecha dialog
-                    Modular.to.navigate('/${Paginas.values[0].name}');
+                    Mensagem.decisao(
+                        context: context,
+                        titulo: 'Apagar',
+                        mensagem:
+                            'Deseja apagar definitivamente o registro deste culto.',
+                        onPressed: (ok) async {
+                          if (ok) {
+                            Mensagem.aguardar(
+                                context: context); // Abre progresso
+                            await MeuFirebase.apagarCulto(culto,
+                                id: reference.id);
+                            Modular.to.pop(); // Fecha progresso
+                            Modular.to.maybePop(); // Fecha dialog
+                            Modular.to.navigate('/${Paginas.values[0].name}');
+                          }
+                        });
                   },
                 ),
           const Expanded(child: SizedBox()),
@@ -444,9 +454,9 @@ class Dialogos {
                             await MeuFirebase.apagarCantico(cantico,
                                 id: reference.id);
                             Modular.to.pop(); // Fecha progresso
-                            Modular.to.maybePop();
+                            Modular.to.maybePop(); // Fecha dialog
                           }
-                        }); // Fecha dialog
+                        });
                   },
                 ),
           const Expanded(child: SizedBox()),
