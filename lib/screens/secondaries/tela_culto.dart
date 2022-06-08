@@ -1330,7 +1330,8 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
         context: context,
         titulo: 'Disponibilidades dos integrantes',
         conteudo: FutureBuilder<QuerySnapshot<Integrante>>(
-            future: MeuFirebase.obterListaIntegrantes(ativo: true),
+            future: MeuFirebase.obterListaIntegrantes(
+                ativo: true, igreja: mCulto.igreja),
             builder: (context, snapshot) {
               if (!snapshot.hasData) {
                 return const CircularProgressIndicator();
@@ -1376,17 +1377,18 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
                   }
                 }
               }
-              //indecisos.removeWhere((element) => disponiveis.contains(element));
-              //indecisos.removeWhere((element) => restritos.contains(element));
 
               return ListView(
                 padding:
-                    const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                 shrinkWrap: true,
                 children: [
                   Text(
                     'Disponíveis',
-                    style: Theme.of(context).textTheme.subtitle1,
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleMedium
+                        ?.copyWith(fontWeight: FontWeight.bold),
                   ),
                   Wrap(
                     spacing: 8,
@@ -1398,7 +1400,10 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
                   const SizedBox(height: 12),
                   Text(
                     'Restritos',
-                    style: Theme.of(context).textTheme.subtitle1,
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleMedium
+                        ?.copyWith(fontWeight: FontWeight.bold),
                   ),
                   Wrap(
                     spacing: 8,
@@ -1410,7 +1415,10 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
                   const SizedBox(height: 12),
                   Text(
                     'Indecisos',
-                    style: Theme.of(context).textTheme.subtitle1,
+                    style: Theme.of(context)
+                        .textTheme
+                        .titleMedium
+                        ?.copyWith(fontWeight: FontWeight.bold),
                   ),
                   Wrap(
                     spacing: 8,
