@@ -15,7 +15,7 @@ import 'resources/behaviors/app_scroll_behavior.dart';
 import 'resources/temas.dart';
 import 'screens/home/tela_home.dart';
 import 'screens/secondaries/tela_selecao.dart';
-import 'views/view_carregamento.dart';
+import 'widgets/tela_carregamento.dart';
 import 'views/scaffold_falha.dart';
 import 'views/scaffold_user_inativo.dart';
 import 'utils/global.dart';
@@ -33,7 +33,7 @@ class LoadApp extends StatelessWidget {
         builder: (context, snapshot) {
           // CARREGAMENTO DO APP
           if (!snapshot.hasData) {
-            return const ViewCarregamento();
+            return const TelaCarregamento();
             /* return MaterialApp(
                 title: 'Escala do Louvor',
                 theme: Temas.claro(),
@@ -120,7 +120,7 @@ class App extends StatelessWidget {
             // CARREGAMENTO DA INTERFACE
             if (!logado.hasData) {
               if (logado.connectionState == ConnectionState.waiting) {
-                return const ViewCarregamento();
+                return const TelaCarregamento();
               } else {
                 return const ViewFalha(
                     mensagem:
