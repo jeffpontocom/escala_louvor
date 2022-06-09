@@ -420,19 +420,7 @@ class MeuFirebase {
     });
   }
 
-  /// Atualizar ou Criar Culto
-  static Future apagarCulto(Culto culto, {String? id}) async {
-    FirebaseFirestore.instance
-        .collection(Culto.collection)
-        .withConverter<Culto>(
-          fromFirestore: (snapshot, _) => Culto.fromJson(snapshot.data()!),
-          toFirestore: (model, _) => model.toJson(),
-        )
-        .doc(id)
-        .delete();
-  }
-
-  /// Criar Culto
+  /// Criar Cântico
   static Future criarCantico(Cantico cantico) async {
     FirebaseFirestore.instance
         .collection(Cantico.collection)
@@ -444,22 +432,10 @@ class MeuFirebase {
         .set(cantico);
   }
 
-  /// Atualizar Culto
+  /// Atualizar Cântico
   static Future atualizarCantico(
       Cantico cantico, DocumentReference<Cantico> reference) async {
     reference.set(cantico);
-  }
-
-  /// Atualizar ou Criar Culto
-  static Future apagarCantico(Cantico culto, {String? id}) async {
-    FirebaseFirestore.instance
-        .collection(Cantico.collection)
-        .withConverter<Cantico>(
-          fromFirestore: (snapshot, _) => Cantico.fromJson(snapshot.data()!),
-          toFirestore: (model, _) => model.toJson(),
-        )
-        .doc(id)
-        .delete();
   }
 
   /// Criar novo usuário

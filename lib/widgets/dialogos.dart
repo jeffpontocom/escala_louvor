@@ -182,13 +182,12 @@ class Dialogos {
                             'Deseja apagar definitivamente o registro deste culto?',
                         onPressed: (ok) async {
                           if (ok) {
+                            Modular.to.pop(); // Fecha dialog
                             Mensagem.aguardar(
                                 context: context); // Abre progresso
-                            await MeuFirebase.apagarCulto(culto,
-                                id: reference.id);
+                            await reference.delete();
                             Modular.to.pop(); // Fecha progresso
-                            Modular.to.maybePop(); // Fecha dialog
-                            Modular.to.navigate('/${Paginas.values[0].name}');
+                            Modular.to.maybePop(); // Volta para página anterior
                           }
                         });
                   },
@@ -336,7 +335,7 @@ class Dialogos {
                     isDense: true,
                     floatingLabelBehavior: FloatingLabelBehavior.always,
                     hintText: cantico.cifraUrl == null
-                        ? 'Carregar arquivo em PDF'
+                        ? 'Carregar arquivo PDF >>>'
                         : cantico.cifraUrl?.split('=').last ??
                             'Arquivo sem nome!',
                     hintStyle: Theme.of(context).textTheme.caption,
@@ -376,21 +375,19 @@ class Dialogos {
                       flex: 3,
                       child: DropdownButtonHideUnderline(
                         child: DropdownButtonFormField<String>(
-                            hint: const Text('Selecione o tema'),
+                            hint: Text(
+                              'Em breve',
+                              style: Theme.of(context).textTheme.caption,
+                            ),
                             isDense: true,
-                            items: const [
-                              DropdownMenuItem(
-                                  value: 'Contrição', child: Text('Contrição')),
-                              DropdownMenuItem(
-                                  value: 'Jubilo', child: Text('Jubilo')),
-                            ],
+                            items: const [],
                             decoration: const InputDecoration(
                               labelText: 'Tema',
                               isDense: true,
                               floatingLabelBehavior:
                                   FloatingLabelBehavior.always,
                             ),
-                            onChanged: (value) {}),
+                            onChanged: null),
                       ),
                     ),
                     const SizedBox(width: 8),
@@ -404,9 +401,14 @@ class Dialogos {
                               .colorScheme
                               .secondary
                               .withOpacity(0.12),
+                          selectedTileColor: Theme.of(context)
+                              .colorScheme
+                              .primary
+                              .withOpacity(0.12),
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(32)),
                           value: cantico.isHino,
+                          selected: cantico.isHino,
                           onChanged: (value) {
                             innerState((() => cantico.isHino = value ?? false));
                           }),
@@ -450,11 +452,11 @@ class Dialogos {
                             'Deseja apagar definitivamente "${cantico.nome}"?',
                         onPressed: (ok) async {
                           if (ok) {
+                            Modular.to.pop(); // Fecha dialog
                             Mensagem.aguardar(context: context);
-                            await MeuFirebase.apagarCantico(cantico,
-                                id: reference.id);
+                            await reference.delete();
                             Modular.to.pop(); // Fecha progresso
-                            Modular.to.maybePop(); // Fecha dialog
+                            Modular.to.maybePop(); // Volta para pagina anterior
                           }
                         });
                   },

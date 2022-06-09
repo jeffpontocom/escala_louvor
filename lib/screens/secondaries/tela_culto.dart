@@ -38,7 +38,6 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
   late Culto mCulto;
   late DocumentSnapshot<Culto> mSnapshot;
   Integrante? mLogado = Global.logado;
-  //late bool _isPortrait;
 
   bool get _ehODirigente {
     if (mCulto.dirigente == null) {
@@ -57,109 +56,185 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
   /* SISTEMA */
   @override
   Widget build(BuildContext context) {
-    return OrientationBuilder(builder: (context, orientation) {
-      //_isPortrait = orientation == Orientation.portrait;
-      return Scaffold(
-        appBar: AppBar(
-          leading: BackButton(
-            onPressed: () async {
-              if (!await Modular.to.maybePop()) {
-                Modular.to.pushNamed('/${Paginas.values[0].name}');
-              }
-            },
-          ),
-          title: const Text('Detalhes da escala'),
-          actions: [_menuSuspenso],
-          //elevation: _isPortrait ? 0 : 4,
+    return Scaffold(
+      appBar: AppBar(
+        // TODO: Copiar esse backbutton para todas as telas secundárias
+        leading: BackButton(
+          onPressed: () async {
+            if (!await Modular.to.maybePop()) {
+              Modular.to.pushNamed('/${Paginas.values[0].name}');
+            }
+          },
         ),
-        body: StreamBuilder<DocumentSnapshot<Culto>>(
-            initialData: widget.snapCulto,
-            stream: MeuFirebase.obterStreamCulto(widget.id),
-            builder: ((context, snapshot) {
-              // Progresso
-              if (!snapshot.hasData) {
-                return const Center(child: CircularProgressIndicator());
-              }
-              // Erro
-              if (snapshot.hasError || snapshot.data?.data() == null) {
-                return const Center(
-                    child: Text('Falha ao carregar dados do culto.'));
-              }
-              // Conteúdo
-              mSnapshot = snapshot.data!;
-              mCulto = mSnapshot.data()!;
-              return Column(
-                children: [
-                  // Cabeçalho
-                  TileCulto(
-                    culto: mCulto,
-                    reference: mSnapshot.reference,
-                    theme: Theme.of(context),
-                  ),
-                  const Divider(height: 1, color: Colors.grey),
-                  // Corpo
-                  Expanded(
-                    child: Material(
-                      child: ListView(
-                        shrinkWrap: true,
-                        children: [
-                          // Dados sobre o ensaio
-                          _secaoEnsaio,
-                          // Dados sobre a liturgia
-                          _secaoLiturgia,
-                          // Observações (só aparece se houver alguma)
-                          mCulto.obs == null || mCulto.obs!.isEmpty
-                              ? const SizedBox()
-                              : _rowObservacoes,
-                          // Informação sobre a composição da equipe
-                          _secaoOqueFalta,
-                          // Escalados (Responsáveis)
-                          Flex(
-                            direction: Axis.horizontal,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              // Dirigente
-                              Flexible(
-                                child: _secaoResponsavel(
-                                  Funcao.dirigente,
-                                  mCulto.dirigente,
-                                  () => _escalarResponsavel(Funcao.dirigente),
-                                ),
-                              ),
-                              // Coordenador
-                              Flexible(
-                                child: _secaoResponsavel(
-                                  Funcao.coordenador,
-                                  mCulto.coordenador,
-                                  () => _escalarResponsavel(Funcao.coordenador),
-                                ),
-                              ),
-                            ],
-                          ),
-                          // Escalados (Equipe)
-                          _secaoEquipe(
-                            'Equipe',
-                            mCulto.equipe ?? {},
-                            () => _escalarIntegrante(mCulto.equipe),
-                          ),
-                          const Divider(height: 16),
-                          // Canticos
-                          _secaoCanticos,
-                          _listaDeCanticos,
-                          const SizedBox(height: 16),
-                          // Fim da tela
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              );
-            })),
-      );
+        title: const Text('Escala'),
+        actions: [_menuSuspenso],
+      ),
+      body: StreamBuilder<DocumentSnapshot<Culto>>(
+          initialData: widget.snapCulto,
+          stream: MeuFirebase.obterStreamCulto(widget.id),
+          builder: (context, snapshot) {
+            // Progresso
+            if (!snapshot.hasData) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            // Erro
+            if (snapshot.hasError || snapshot.data?.data() == null) {
+              return const Center(
+                  child: Text('Falha ao carregar dados do culto.'));
+            }
+            // Conteúdo
+            mSnapshot = snapshot.data!;
+            mCulto = mSnapshot.data()!;
+            return _layout;
+          }),
+    );
+  }
+
+  /// LAYOUT DA TELA
+  get _layout {
+    return OrientationBuilder(builder: (context, orientation) {
+      // MODO RETRATO
+      if (orientation == Orientation.portrait) {
+        return Column(
+          children: [
+            // Cabeçalho
+            _tileCulto,
+            const Divider(height: 1, color: Colors.grey),
+            // Corpo
+            _secaoEnsaio,
+            _secaoLiturgia,
+            // Observações (só aparece se houver alguma)
+            mCulto.obs == null || mCulto.obs!.isEmpty
+                ? const SizedBox()
+                : _rowObservacoes,
+            Expanded(child: _tabs),
+            _secaoOqueFalta,
+          ],
+        );
+      }
+      // MODO PAISAGEM
+      return LayoutBuilder(builder: (context, constraints) {
+        return Wrap(children: [
+          SizedBox(
+            height: constraints.maxHeight,
+            width: constraints.maxWidth * 0.4 - 1,
+            child: Column(
+              children: [
+                _tileCulto,
+                const Divider(height: 1),
+                _secaoEnsaio,
+                _secaoLiturgia,
+                // Observações (só aparece se houver alguma)
+                mCulto.obs == null || mCulto.obs!.isEmpty
+                    ? const SizedBox()
+                    : _rowObservacoes,
+                const Expanded(child: SizedBox()),
+                _secaoOqueFalta,
+              ],
+            ),
+          ),
+          Container(
+              height: constraints.maxHeight, width: 1, color: Colors.grey),
+          SizedBox(
+              height: constraints.maxHeight,
+              width: constraints.maxWidth * 0.6,
+              child: Expanded(child: _tabs)),
+        ]);
+      });
     });
   }
 
   /* WIDGETS */
+
+  get _tileCulto {
+    return TileCulto(
+      culto: mCulto,
+      reference: mSnapshot.reference,
+      theme: Theme.of(context),
+    );
+  }
+
+  get _tabs {
+    return DefaultTabController(
+        length: 2,
+        child: Column(
+          children: [
+            TabBar(
+                //isScrollable: true,
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                labelPadding: const EdgeInsets.symmetric(horizontal: 12),
+                indicator: BoxDecoration(
+                  borderRadius: BorderRadius.circular(40), // Creates border
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                splashBorderRadius: BorderRadius.circular(40),
+                indicatorSize: TabBarIndicatorSize.label,
+                indicatorWeight: 1,
+                //indicatorColor: Theme.of(context).colorScheme.primary,
+                automaticIndicatorColorAdjustment: false,
+                indicatorPadding:
+                    const EdgeInsets.symmetric(horizontal: -12, vertical: 8),
+                unselectedLabelColor:
+                    Theme.of(context).colorScheme.onBackground,
+                tabs: const [
+                  Tab(text: 'ESCALADOS'),
+                  Tab(text: 'CÂNTICOS'),
+                ]),
+            /* Row(
+              children: [
+                
+                const Expanded(
+                  child: SizedBox(),
+                ),
+                const SizedBox(width: 16),
+              ],
+            ), */
+            Expanded(
+              child: TabBarView(children: [
+                // ESCALADOS
+                ListView(
+                  shrinkWrap: true,
+                  children: [
+                    // Escalados (Responsáveis)
+                    Flex(
+                      direction: Axis.horizontal,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        // Dirigente
+                        Flexible(
+                          child: _secaoResponsavel(
+                            Funcao.dirigente,
+                            mCulto.dirigente,
+                            () => _escalarResponsavel(Funcao.dirigente),
+                          ),
+                        ),
+                        // Coordenador
+                        Flexible(
+                          child: _secaoResponsavel(
+                            Funcao.coordenador,
+                            mCulto.coordenador,
+                            () => _escalarResponsavel(Funcao.coordenador),
+                          ),
+                        ),
+                      ],
+                    ),
+                    // Escalados (Equipe)
+                    _secaoEquipe(
+                      'Equipe',
+                      mCulto.equipe ?? {},
+                      () => _escalarIntegrante(mCulto.equipe),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
+                ),
+                // CÂNTICOS
+                _listaDeCanticos,
+              ]),
+            ),
+          ],
+        ));
+  }
+
   /// Menu Suspenso
   get _menuSuspenso {
     const int editar = 0;
@@ -386,21 +461,23 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
                       style: Theme.of(context).textTheme.bodySmall);
                 }),
           ),
-          mCulto.emEdicao
-              ? OutlinedButton.icon(
-                  onPressed: () {
-                    mSnapshot.reference.update({'emEdicao': false});
-                  },
-                  icon: const Icon(Icons.lock_outline),
-                  label: const Text('FECHAR'),
-                )
-              : OutlinedButton.icon(
-                  onPressed: () {
-                    mSnapshot.reference.update({'emEdicao': true});
-                  },
-                  icon: const Icon(Icons.lock_open),
-                  label: const Text('ESCALAR'),
-                ),
+          (mLogado?.adm ?? false) || (mLogado?.ehRecrutador ?? false)
+              ? mCulto.emEdicao
+                  ? OutlinedButton.icon(
+                      onPressed: () {
+                        mSnapshot.reference.update({'emEdicao': false});
+                      },
+                      icon: const Icon(Icons.lock_outline),
+                      label: const Text('FECHAR'),
+                    )
+                  : OutlinedButton.icon(
+                      onPressed: () {
+                        mSnapshot.reference.update({'emEdicao': true});
+                      },
+                      icon: const Icon(Icons.lock_open),
+                      label: const Text('RECRUTAR'),
+                    )
+              : const SizedBox(),
         ],
       ),
     );
