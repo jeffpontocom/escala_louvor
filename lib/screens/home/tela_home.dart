@@ -75,6 +75,10 @@ class _HomeState extends State<Home> {
 
   @override
   void initState() {
+    if (Modular.routerDelegate.path == '/') {
+      Modular.to.navigate('/${Paginas.values[0].name}');
+    }
+    dev.log(Modular.routerDelegate.path, name: 'teste');
     setPage(Modular.routerDelegate.path);
     super.initState();
   }

@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:escala_louvor/rotas.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -461,6 +462,6 @@ class _TelaPerfilState extends State<TelaPerfil> {
     Mensagem.aguardar(context: context, mensagem: 'Saindo...');
     await Global.preferences?.clear();
     await FirebaseAuth.instance.signOut();
-    Modular.to.navigate('/${Paginas.values[0].name}');
+    Modular.to.navigate(AppRotas.HOME);
   }
 }

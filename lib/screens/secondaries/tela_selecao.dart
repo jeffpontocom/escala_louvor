@@ -200,7 +200,7 @@ class _TelaContextoState extends State<TelaContexto> {
                                   await MeuFirebase.obterSnapshotIgreja(id);
                               Modular.to.pop(); // fecha progresso
                               Modular.to.maybePop(true); // fecha dialog
-                              Global.igreja = id;
+                              Global.prefIgrejaId = id;
                               Global.igrejaSelecionada.value = igreja;
                               Global.notificarAlteracaoEmIgrejas();
                             },
@@ -273,13 +273,13 @@ class _TelaContextoState extends State<TelaContexto> {
   /// Opção mostrar todos os cultos
   get opcaoMostrarTudo {
     return CheckboxListTile(
-      value: Global.mostrarTodosOsCultos,
+      value: Global.prefMostrarTodosOsCultos,
       tristate: false,
       contentPadding:
           const EdgeInsets.only(left: 72, right: 16, top: 8, bottom: 8),
       onChanged: (value) {
         setState(() {
-          Global.mostrarTodosOsCultos = value!;
+          Global.prefMostrarTodosOsCultos = value!;
         });
       },
       activeColor: Theme.of(context).colorScheme.secondary,

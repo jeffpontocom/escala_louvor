@@ -1,6 +1,7 @@
 import 'dart:developer' as dev;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:escala_louvor/widgets/tela_mensagem.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
@@ -62,7 +63,7 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
         leading: BackButton(
           onPressed: () async {
             if (!await Modular.to.maybePop()) {
-              Modular.to.pushNamed('/${Paginas.values[0].name}');
+              Modular.to.pushNamed(AppRotas.HOME);
             }
           },
         ),
@@ -156,83 +157,80 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
 
   get _tabs {
     return DefaultTabController(
-        length: 2,
-        child: Column(
-          children: [
-            TabBar(
-                //isScrollable: true,
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                labelPadding: const EdgeInsets.symmetric(horizontal: 12),
-                indicator: BoxDecoration(
-                  borderRadius: BorderRadius.circular(40), // Creates border
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                splashBorderRadius: BorderRadius.circular(40),
-                indicatorSize: TabBarIndicatorSize.label,
-                indicatorWeight: 1,
-                //indicatorColor: Theme.of(context).colorScheme.primary,
-                automaticIndicatorColorAdjustment: false,
-                indicatorPadding:
-                    const EdgeInsets.symmetric(horizontal: -12, vertical: 8),
-                unselectedLabelColor:
-                    Theme.of(context).colorScheme.onBackground,
-                tabs: const [
-                  Tab(text: 'ESCALADOS'),
-                  Tab(text: 'CÂNTICOS'),
-                ]),
-            /* Row(
-              children: [
-                
-                const Expanded(
-                  child: SizedBox(),
-                ),
-                const SizedBox(width: 16),
-              ],
-            ), */
-            Expanded(
-              child: TabBarView(children: [
-                // ESCALADOS
-                ListView(
-                  shrinkWrap: true,
-                  children: [
-                    // Escalados (Responsáveis)
-                    Flex(
-                      direction: Axis.horizontal,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Dirigente
-                        Flexible(
-                          child: _secaoResponsavel(
-                            Funcao.dirigente,
-                            mCulto.dirigente,
-                            () => _escalarResponsavel(Funcao.dirigente),
-                          ),
-                        ),
-                        // Coordenador
-                        Flexible(
-                          child: _secaoResponsavel(
-                            Funcao.coordenador,
-                            mCulto.coordenador,
-                            () => _escalarResponsavel(Funcao.coordenador),
-                          ),
-                        ),
-                      ],
-                    ),
-                    // Escalados (Equipe)
-                    _secaoEquipe(
-                      'Equipe',
-                      mCulto.equipe ?? {},
-                      () => _escalarIntegrante(mCulto.equipe),
-                    ),
-                    const SizedBox(height: 16),
-                  ],
-                ),
-                // CÂNTICOS
-                _listaDeCanticos,
+      length: 2,
+      child: Column(
+        children: [
+          TabBar(
+              padding: const EdgeInsets.symmetric(horizontal: 16),
+              labelPadding: const EdgeInsets.symmetric(horizontal: 16),
+              indicator: BoxDecoration(
+                borderRadius: BorderRadius.circular(40), // Creates border
+                color: Theme.of(context).colorScheme.secondary,
+              ),
+              splashBorderRadius: BorderRadius.circular(40),
+              splashFactory: NoSplash.splashFactory,
+              overlayColor: MaterialStateProperty.resolveWith<Color?>(
+                (Set<MaterialState> states) {
+                  return states.contains(MaterialState.focused)
+                      ? null
+                      : Colors.transparent;
+                },
+              ),
+              indicatorSize: TabBarIndicatorSize.label,
+              automaticIndicatorColorAdjustment: false,
+              indicatorPadding:
+                  const EdgeInsets.symmetric(horizontal: -16, vertical: 8),
+              unselectedLabelColor: Theme.of(context).colorScheme.onBackground,
+              tabs: const [
+                Tab(text: 'ESCALADOS'),
+                Tab(text: 'CÂNTICOS'),
               ]),
-            ),
-          ],
-        ));
+          const Divider(height: 1),
+          Expanded(
+            child: TabBarView(children: [
+              // ESCALADOS
+              ListView(
+                shrinkWrap: true,
+                children: [
+                  // Escalados (Responsáveis)
+                  Flex(
+                    direction: Axis.horizontal,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Dirigente
+                      Flexible(
+                        child: _secaoResponsavel(
+                          Funcao.dirigente,
+                          mCulto.dirigente,
+                          () => _escalarResponsavel(Funcao.dirigente),
+                        ),
+                      ),
+                      // Coordenador
+                      Flexible(
+                        child: _secaoResponsavel(
+                          Funcao.coordenador,
+                          mCulto.coordenador,
+                          () => _escalarResponsavel(Funcao.coordenador),
+                        ),
+                      ),
+                    ],
+                  ),
+                  // Escalados (Equipe)
+                  _secaoEquipe(
+                    'Equipe',
+                    mCulto.equipe ?? {},
+                    () => _escalarIntegrante(mCulto.equipe),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+              ),
+              // CÂNTICOS
+              _listaDeCanticos,
+            ]),
+          ),
+        ],
+      ),
+    );
   }
 
   /// Menu Suspenso
@@ -795,56 +793,33 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
 
   /// Acesso ao arquivo da liturgia do culto
   Widget get _secaoCanticos {
-    return ListTile(
-      dense: true,
-      minLeadingWidth: 64,
-      leading: const Text('CÂNTICOS'),
-      /* title: TextButton.icon(
-                                icon: const Icon(Icons.picture_as_pdf),
-                                label: const Text('Todas as cifras'),
-                                onPressed: mCulto.canticos == null ||
-                                        mCulto.canticos!.isEmpty
-                                    ? null
-                                    : () async {
-                                        Mensagem.aguardar(context: context);
-                                        List<String> canticosUrls = [];
-                                        for (var cantico in mCulto.canticos!) {
-                                          var snap = await MeuFirebase
-                                              .obterSnapshotCantico(cantico.id);
-                                          if (snap?.data()?.cifraUrl != null) {
-                                            canticosUrls
-                                                .add(snap!.data()!.cifraUrl!);
-                                          }
-                                        }
-                                        Modular.to.pop();
-                                        MeuFirebase.abrirArquivosPdf(
-                                            context, canticosUrls);
-                                      },
-                              ), */
-      subtitle: (mLogado?.adm ?? false) || _ehODirigente
-          ? Padding(
-              padding: EdgeInsets.zero,
-              child: Text(
-                'Segure e arraste para reordenar\n(somente dirigente)',
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-            )
-          : null,
-      trailing: (mLogado?.adm ?? false) || _ehODirigente
-          ? IconButton(
-              onPressed: () => _adicionarCanticos(),
-              icon: const Icon(Icons.edit_note),
-            )
-          : null,
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              'Segure e arraste para reordenar',
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ),
+          OutlinedButton.icon(
+            onPressed: () => _adicionarCanticos(),
+            icon: const Icon(Icons.edit_note),
+            label: const Text('Editar lista'),
+          )
+        ],
+      ),
     );
   }
 
   Widget get _listaDeCanticos {
     List<Widget> lista = [];
     if (mCulto.canticos == null || mCulto.canticos!.isEmpty) {
-      return const Padding(
-        padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-        child: Text('Nenhum cântico selecionado'),
+      return const TelaMensagem(
+        'Nenhum cântico selecionado',
+        icone: Icons.queue_music,
       );
     }
     lista = List.generate(mCulto.canticos!.length, (index) {
@@ -886,36 +861,43 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
             );
           });
     });
-    return ReorderableListView(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      buildDefaultDragHandles: _ehODirigente || (mLogado?.adm ?? false),
-      onReorder: (int old, int current) async {
-        dev.log('${old.toString()} | ${current.toString()}');
-        // dragging from top to bottom
-        Widget startItem = lista[old];
-        var startCantico = mCulto.canticos![old];
-        if (old < current) {
-          for (int i = old; i < current - 1; i++) {
-            lista[i] = lista[i + 1];
-            mCulto.canticos![i] = mCulto.canticos![i + 1];
-          }
-          lista[current - 1] = startItem;
-          mCulto.canticos![current - 1] = startCantico;
-        }
-        // dragging from bottom to top
-        else if (old > current) {
-          for (int i = old; i > current; i--) {
-            lista[i] = lista[i - 1];
-            mCulto.canticos![i] = mCulto.canticos![i - 1];
-          }
-          lista[current] = startItem;
-          mCulto.canticos![current] = startCantico;
-        }
-        mSnapshot.reference.update({'canticos': mCulto.canticos});
-      },
-      children: lista,
-    );
+    return ListView(shrinkWrap: true, children: [
+      (mLogado?.adm ?? false) || _ehODirigente
+          ? _secaoCanticos
+          : const SizedBox(),
+      Expanded(
+        child: ReorderableListView(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          buildDefaultDragHandles: _ehODirigente || (mLogado?.adm ?? false),
+          onReorder: (int old, int current) async {
+            dev.log('${old.toString()} | ${current.toString()}');
+            // dragging from top to bottom
+            Widget startItem = lista[old];
+            var startCantico = mCulto.canticos![old];
+            if (old < current) {
+              for (int i = old; i < current - 1; i++) {
+                lista[i] = lista[i + 1];
+                mCulto.canticos![i] = mCulto.canticos![i + 1];
+              }
+              lista[current - 1] = startItem;
+              mCulto.canticos![current - 1] = startCantico;
+            }
+            // dragging from bottom to top
+            else if (old > current) {
+              for (int i = old; i > current; i--) {
+                lista[i] = lista[i - 1];
+                mCulto.canticos![i] = mCulto.canticos![i - 1];
+              }
+              lista[current] = startItem;
+              mCulto.canticos![current] = startCantico;
+            }
+            mSnapshot.reference.update({'canticos': mCulto.canticos});
+          },
+          children: lista,
+        ),
+      ),
+    ]);
   }
 
   /* FUNÇÕES */

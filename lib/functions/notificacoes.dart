@@ -162,7 +162,7 @@ class Notificacoes {
         String pagina = message.data['pagina'];
         String conteudo = message.data['conteudo'];
         dev.log('Abrindo app pela mensagem: /$pagina?id=$conteudo');
-        Global.igreja = contexto;
+        Global.prefIgrejaId = contexto;
         //Global.igrejaSelecionada.value =
         //    await MeuFirebase.obterSnapshotIgreja(contexto);
         Modular.to.navigate('/$pagina?id=$conteudo');
@@ -176,7 +176,7 @@ class Notificacoes {
       String pagina = message.data['pagina'];
       String conteudo = message.data['conteudo'];
       dev.log('Abrindo app pela mensagem: /$pagina?id=$conteudo');
-      Global.igreja = contexto;
+      Global.prefIgrejaId = contexto;
       //Global.igrejaSelecionada.value =
       //    await MeuFirebase.obterSnapshotIgreja(contexto);
       Modular.to.navigate('/$pagina?id=$conteudo');

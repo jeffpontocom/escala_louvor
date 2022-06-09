@@ -111,63 +111,68 @@ class _TelaLoginState extends State<TelaLogin> {
 
   /// Formulário de Login
   get formularioLogin {
-    return Form(
-      key: _formKey,
-      autovalidateMode: AutovalidateMode.disabled,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          // Campo Usuário
-          TextFormField(
-            controller: _formUsuario,
-            validator: MyInputs.validarEmail,
-            keyboardType: TextInputType.emailAddress,
-            textInputAction: TextInputAction.next,
-            autofillHints: const [AutofillHints.username, AutofillHints.email],
-            inputFormatters: <TextInputFormatter>[
-              FilteringTextInputFormatter.deny(' ')
-            ],
-            decoration: const InputDecoration(
-              labelText: 'E-mail',
-              prefixIcon: Icon(Icons.email),
-            ),
-          ),
-          const SizedBox(height: 12),
-          // Campo Senha
-          TextFormField(
-            controller: _formSenha,
-            validator: MyInputs.validarSenha,
-            obscureText: true,
-            keyboardType: TextInputType.visiblePassword,
-            textInputAction: TextInputAction.done,
-            autofillHints: const [AutofillHints.password],
-            enableSuggestions: false,
-            decoration: const InputDecoration(
-              labelText: 'Senha',
-              prefixIcon: Icon(Icons.password),
-            ),
-            onFieldSubmitted: (_) => _logar(),
-          ),
-          const SizedBox(height: 12),
-          // Advertência
-          advertencia,
-          const SizedBox(height: 24),
-          // Botão Login
-          ElevatedButton.icon(
-            icon: const Icon(Icons.login),
-            label: const Text('Entrar'),
-            style: ElevatedButton.styleFrom(minimumSize: const Size(172, 40)),
-            onPressed: _logar,
-          ),
-          const SizedBox(height: 16),
-          // Botão esqueci minha senha
-          TextButton(
-            onPressed: _esqueciMinhaSenha,
-            child: const Text('Esqueci minha senha',
-                style: TextStyle(color: Colors.red)),
-          ),
-        ],
+    return AutofillGroup(
+      child: Form(
+        key: _formKey,
+        autovalidateMode: AutovalidateMode.disabled,
+        child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              // Campo Usuário
+              TextFormField(
+                controller: _formUsuario,
+                validator: MyInputs.validarEmail,
+                keyboardType: TextInputType.emailAddress,
+                textInputAction: TextInputAction.next,
+                autofillHints: const [
+                  AutofillHints.username,
+                  AutofillHints.email
+                ],
+                inputFormatters: <TextInputFormatter>[
+                  FilteringTextInputFormatter.deny(' ')
+                ],
+                decoration: const InputDecoration(
+                  labelText: 'E-mail',
+                  prefixIcon: Icon(Icons.email),
+                ),
+              ),
+              const SizedBox(height: 12),
+              // Campo Senha
+              TextFormField(
+                controller: _formSenha,
+                validator: MyInputs.validarSenha,
+                obscureText: true,
+                keyboardType: TextInputType.visiblePassword,
+                textInputAction: TextInputAction.done,
+                autofillHints: const [AutofillHints.password],
+                enableSuggestions: false,
+                decoration: const InputDecoration(
+                  labelText: 'Senha',
+                  prefixIcon: Icon(Icons.password),
+                ),
+                onFieldSubmitted: (_) => _logar(),
+              ),
+              const SizedBox(height: 12),
+              // Advertência
+              advertencia,
+              const SizedBox(height: 24),
+              // Botão Login
+              ElevatedButton.icon(
+                icon: const Icon(Icons.login),
+                label: const Text('Entrar'),
+                style:
+                    ElevatedButton.styleFrom(minimumSize: const Size(172, 40)),
+                onPressed: _logar,
+              ),
+              const SizedBox(height: 16),
+              // Botão esqueci minha senha
+              TextButton(
+                onPressed: _esqueciMinhaSenha,
+                child: const Text('Esqueci minha senha',
+                    style: TextStyle(color: Colors.red)),
+              ),
+            ]),
       ),
     );
   }

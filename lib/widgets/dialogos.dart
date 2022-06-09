@@ -1,15 +1,14 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:escala_louvor/widgets/avatar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:intl/intl.dart';
 
-import '../../functions/metodos_firebase.dart';
-import '../../utils/global.dart';
-import '../../models/cantico.dart';
-import '../../models/culto.dart';
-import '../../utils/mensagens.dart';
-import '../screens/home/tela_home.dart';
+import '/functions/metodos_firebase.dart';
+import '/models/cantico.dart';
+import '/models/culto.dart';
+import '/utils/global.dart';
+import '/utils/mensagens.dart';
+import '/widgets/avatar.dart';
 
 class Dialogos {
   /// DIÁLOGO

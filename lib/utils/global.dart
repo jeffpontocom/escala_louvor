@@ -10,10 +10,10 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../functions/metodos_firebase.dart';
-import '../models/igreja.dart';
-import '../models/integrante.dart';
 import '/firebase_options.dart';
+import '/functions/metodos_firebase.dart';
+import '/models/igreja.dart';
+import '/models/integrante.dart';
 
 /// Classe com métodos e variáveis de interesse Global
 class Global {
@@ -22,9 +22,11 @@ class Global {
   static DocumentSnapshot<Integrante>? logadoSnapshot;
   static SharedPreferences? preferences;
 
+  /* PREFERÊNCIAS */
+
   /// ID da Igreja em contexto
-  static String? get igreja => preferences?.getString('igreja_atual');
-  static set igreja(String? id) {
+  static String? get prefIgrejaId => preferences?.getString('igreja_atual');
+  static set prefIgrejaId(String? id) {
     if (id != null && id.isNotEmpty) {
       preferences?.setString('igreja_atual', id);
     } else {
@@ -33,16 +35,16 @@ class Global {
   }
 
   /// Mostrar todos os cultos
-  static bool get mostrarTodosOsCultos =>
+  static bool get prefMostrarTodosOsCultos =>
       preferences?.getBool('mostrar_todos_cultos') ?? false;
-  static set mostrarTodosOsCultos(bool value) {
+  static set prefMostrarTodosOsCultos(bool value) {
     preferences?.setBool('mostrar_todos_cultos', value);
     notificarAlteracaoEmIgrejas();
   }
 
   /// Notificar alteração em igrejas selecionadas
   static void notificarAlteracaoEmIgrejas() {
-    meusFiltros.value.igrejas = mostrarTodosOsCultos
+    meusFiltros.value.igrejas = prefMostrarTodosOsCultos
         ? logado?.igrejas
         : [igrejaSelecionada.value?.reference];
     meusFiltros.notifyListeners();
@@ -68,6 +70,9 @@ class Global {
       // Em caso de erros não previstos
       dev.log('Main: ${e.toString()}');
     }
+    if (kIsWeb) {
+      FirebaseAuth.instance.setPersistence(Persistence.SESSION);
+    }
     // Recupera os dados salvos na seção anterior
     preferences = await SharedPreferences.getInstance();
     // Carrega igreja pré-selecionada
@@ -77,7 +82,7 @@ class Global {
 
   static _carregarIgrejaPreSelecionada() async {
     if (FirebaseAuth.instance.currentUser == null) return;
-    var value = await MeuFirebase.obterSnapshotIgreja(igreja);
+    var value = await MeuFirebase.obterSnapshotIgreja(prefIgrejaId);
     Global.igrejaSelecionada.value = value;
   }
 
@@ -112,7 +117,7 @@ class Global {
       ValueNotifier(null);
   static ValueNotifier<FiltroAgenda> meusFiltros = ValueNotifier(FiltroAgenda(
     dataMinima: DateTime.now().subtract(const Duration(hours: 4)),
-    igrejas: mostrarTodosOsCultos
+    igrejas: prefMostrarTodosOsCultos
         ? Global.logadoSnapshot!.data()!.igrejas
         : [Global.igrejaSelecionada.value?.reference],
   ));

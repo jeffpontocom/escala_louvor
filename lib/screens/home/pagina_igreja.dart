@@ -26,8 +26,8 @@ class _PaginaEquipeState extends State<PaginaEquipe> {
   Widget build(BuildContext context) {
     return StreamBuilder<DocumentSnapshot<Igreja>>(
         initialData: Global.igrejaSelecionada.value,
-        stream: MeuFirebase.obterStreamIgreja(
-            Global.igreja ?? Global.igrejaSelecionada.value!.reference.id),
+        stream: MeuFirebase.obterStreamIgreja(Global.prefIgrejaId ??
+            Global.igrejaSelecionada.value!.reference.id),
         builder: (context, snapshot) {
           // Tela em carregamento
           if (!snapshot.hasData) {
@@ -39,12 +39,12 @@ class _PaginaEquipeState extends State<PaginaEquipe> {
           }
           // Tela carregada
           _igreja = snapshot.data!.data()!;
-          return _corpo;
+          return _layout;
         });
   }
 
   /// Corpo
-  get _corpo {
+  get _layout {
     return OrientationBuilder(builder: (context, orientation) {
       _isPortrait = orientation == Orientation.portrait;
       return LayoutBuilder(

@@ -202,7 +202,7 @@ class _PaginaCanticosState extends State<PaginaCanticos> {
                 )
               ],
             ))
-        : const SizedBox();
+        : const SizedBox(height: 64);
   }
 
   /// TEXTO DE CÂNTICOS SELECIONADOS

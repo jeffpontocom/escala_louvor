@@ -13,6 +13,7 @@ import 'models/igreja.dart';
 import 'models/integrante.dart';
 import 'resources/behaviors/app_scroll_behavior.dart';
 import 'resources/temas.dart';
+import 'rotas.dart';
 import 'screens/home/tela_home.dart';
 import 'screens/secondaries/tela_selecao.dart';
 import 'widgets/tela_carregamento.dart';
@@ -25,25 +26,17 @@ class LoadApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Rota inicial
-    //Modular.setInitialRoute('/${Paginas.values[0].name}');
-
     return FutureBuilder<bool>(
         future: Global.iniciar(),
         builder: (context, snapshot) {
           // CARREGAMENTO DO APP
           if (!snapshot.hasData) {
             return const TelaCarregamento();
-            /* return MaterialApp(
-                title: 'Escala do Louvor',
-                theme: Temas.claro(),
-                darkTheme: Temas.escuro(),
-                home: const ViewCarregamento()); */
           }
           // FALHA AO CARREGAR
           if (snapshot.data == false) {
             return MaterialApp(
-                title: 'Escala do Louvor',
+                title: Global.nomeDoApp,
                 theme: Temas.claro(),
                 darkTheme: Temas.escuro(),
                 home: const ViewFalha(
@@ -54,41 +47,53 @@ class LoadApp extends StatelessWidget {
           // Escuta alterações no usuário autenticado
           // pelas configurações de rota os usuários não logados são
           // direcionados a tela de login
-          return StreamBuilder<User?>(
-              stream: FirebaseAuth.instance.userChanges(),
-              builder: (_, snapshotUser) {
-                // Log: FirebaseUser logado
-                if (snapshotUser.connectionState == ConnectionState.active) {
-                  dev.log(
-                      'Firebase Auth: ${snapshotUser.data?.email ?? 'não logado!'}',
-                      name: 'log:Load');
-                }
-                // Carrega sistema de notificações
-                // Esse carregamento deve ser feito sempre após runApp() para evitar erros
-                // e para o melhor uso do app apenas quando o usuário estiver logado.
-                if (snapshotUser.data?.email != null) {
-                  Notificacoes.carregarInstancia();
-                }
-                // APP
-                return MaterialApp.router(
-                  title: 'Escala do Louvor',
-                  // Temas
-                  theme: Temas.claro(),
-                  darkTheme: Temas.escuro(),
-                  // Behaviors
-                  scrollBehavior: MyCustomScrollBehavior(),
-                  // Suporte a lingua português nos elementos globais
-                  localizationsDelegates: const [
-                    GlobalMaterialLocalizations.delegate,
-                    GlobalCupertinoLocalizations.delegate,
-                  ],
-                  supportedLocales: const [Locale('pt')],
-                  locale: const Locale('pt_BR'),
-                  // Navegação Modular
-                  routeInformationParser: Modular.routeInformationParser,
-                  routerDelegate: Modular.routerDelegate,
-                );
-              });
+
+          // Rota inicial
+          Modular.setInitialRoute('/${Paginas.values[0].name}');
+          return ModularApp(
+              module: AppRotas(),
+              child:
+                  //return
+                  StreamBuilder<User?>(
+                      initialData: FirebaseAuth.instance.currentUser,
+                      stream: FirebaseAuth.instance.userChanges(),
+                      builder: (_, snapshotUser) {
+                        // Log: FirebaseUser logado
+                        if (snapshotUser.connectionState ==
+                            ConnectionState.active) {
+                          dev.log(
+                              'Firebase Auth: ${snapshotUser.data?.email ?? 'não logado!'}',
+                              name: 'log:Load');
+                        }
+                        // Carrega sistema de notificações
+                        // Esse carregamento deve ser feito sempre após runApp() para evitar erros
+                        // e para o melhor uso do app apenas quando o usuário estiver logado.
+                        if (snapshotUser.data?.email != null) {
+                          Notificacoes.carregarInstancia();
+                        }
+                        // APP
+                        return MaterialApp.router(
+                          title: Global.nomeDoApp,
+                          // Temas
+                          theme: Temas.claro(),
+                          darkTheme: Temas.escuro(),
+                          // Behaviors
+                          scrollBehavior: MyCustomScrollBehavior(),
+                          // Suporte a lingua português nos elementos globais
+                          localizationsDelegates: const [
+                            GlobalMaterialLocalizations.delegate,
+                            GlobalCupertinoLocalizations.delegate,
+                          ],
+                          supportedLocales: const [Locale('pt')],
+                          locale: const Locale('pt_BR'),
+                          // Navegação Modular
+                          routeInformationParser:
+                              Modular.routeInformationParser,
+                          routerDelegate: Modular.routerDelegate,
+                        );
+                      })
+              //test
+              );
         });
   }
 }

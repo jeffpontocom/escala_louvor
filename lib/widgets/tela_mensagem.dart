@@ -39,8 +39,8 @@ class TelaMensagem extends StatelessWidget {
                             height: 256,
                           )
                         : icone != null
-                            ? Icon(icone!, size: 256)
-                            : const SizedBox(height: 256),
+                            ? Icon(icone!, size: 64)
+                            : const SizedBox(),
                   ),
                   const SizedBox(height: 24),
                   title != null
