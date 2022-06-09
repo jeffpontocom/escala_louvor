@@ -802,7 +802,6 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
                     'Falha ao carregar dados do cântico\nID:  ${snapshot.data?.id ?? '[nulo]'}'),
               );
             }
-            var cantico = snapshot.data!.data();
             return TileCantico(
               snapshot: snapshot.data!,
               selecionado: null,
@@ -839,57 +838,6 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
         mSnapshot.reference.update({'canticos': mCulto.canticos});
       },
       children: lista,
-    );
-  }
-
-  Widget get _secaoAcoes {
-    return const ListTile(
-      dense: true,
-      minLeadingWidth: 64,
-      leading: Text('AÇÕES'),
-    );
-  }
-
-  Widget get _listaDeAcoes {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Verificar disponibilidade da equipe
-          TextButton.icon(
-            onPressed: () => _verificarDisponibilidades(),
-            label: const Text('Verificar disponibilidades da equipe'),
-            icon: const Icon(Icons.groups),
-          ),
-          // Enviar notificação aos escalados
-          ((mLogado?.adm ?? false) ||
-                      (mLogado?.ehRecrutador ?? false) ||
-                      _ehODirigente ||
-                      _ehOCoordenador) &&
-                  mCulto.equipe?.values != null &&
-                  mCulto.equipe!.values.any((element) => element.isNotEmpty)
-              ? TextButton.icon(
-                  label: const Text('Notificar escalados'),
-                  icon: const Icon(Icons.notifications),
-                  onPressed: () => _notificarEscalados(),
-                )
-              : const SizedBox(),
-          // Editar evento
-          (mLogado?.adm ?? false) ||
-                  (mLogado?.ehRecrutador ?? false) ||
-                  _ehODirigente ||
-                  _ehOCoordenador
-              ? TextButton.icon(
-                  label: const Text('Editar dados do evento'),
-                  icon: const Icon(Icons.edit_calendar),
-                  onPressed: () => Dialogos.editarCulto(context,
-                      culto: mCulto, reference: mSnapshot.reference),
-                )
-              : const SizedBox(),
-        ],
-      ),
     );
   }
 

@@ -456,12 +456,6 @@ class _TelaPerfilState extends State<TelaPerfil> {
 
   /* MÉTODOS */
 
-  void _editarFuncoesDoIntegrante() {}
-
-  void _editarInstrumentosDoIntegrante() {}
-
-  void _editarIgrejasDoIntegrante() {}
-
   /// Logout
   Future _sair() async {
     Mensagem.aguardar(context: context, mensagem: 'Saindo...');

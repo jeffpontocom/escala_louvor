@@ -11,20 +11,18 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_modular/flutter_modular.dart';
-import 'package:http/http.dart' as http;
-import 'package:http/http.dart';
 import 'package:intl/intl.dart';
 
-import '../utils/utils.dart';
 import 'notificacoes.dart';
-import '../utils/global.dart';
 import '/models/cantico.dart';
 import '/models/culto.dart';
 import '/models/igreja.dart';
 import '/models/instrumento.dart';
 import '/models/integrante.dart';
+import '/utils/global.dart';
 import '/utils/mensagens.dart';
-import '../rotas.dart';
+import '/utils/utils.dart';
+import '/rotas.dart';
 
 class MeuFirebase {
   /* STREAMS  */

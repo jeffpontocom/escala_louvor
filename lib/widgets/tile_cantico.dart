@@ -3,11 +3,10 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
-import '../functions/metodos_firebase.dart';
-import '../models/cantico.dart';
-import '../rotas.dart';
+import '/models/cantico.dart';
+import '/rotas.dart';
 
 class TileCantico extends StatelessWidget {
   final DocumentSnapshot<Cantico> snapshot;
@@ -99,7 +98,7 @@ class TileCantico extends StatelessWidget {
                     padding: EdgeInsets.zero,
                     visualDensity: VisualDensity.compact,
                     onPressed: () async {
-                      if (!await launch(cantico.youTubeUrl ?? '')) {
+                      if (!await launchUrlString(cantico.youTubeUrl ?? '')) {
                         throw 'Could not launch youTubeUrl';
                       }
                     },

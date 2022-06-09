@@ -1,9 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:escala_louvor/utils/mensagens.dart';
 import 'package:escala_louvor/views/scaffold_falha.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 import 'package:wakelock/wakelock.dart';
 
 import '../../functions/metodos_firebase.dart';
@@ -176,8 +177,12 @@ class _TelaLetrasViewState extends State<TelaLetrasView> {
                                     padding: EdgeInsets.zero,
                                     visualDensity: VisualDensity.compact,
                                     onPressed: () async {
-                                      if (!await launch(
-                                          mCantico.youTubeUrl ?? '')) {
+                                      if (!await launchUrlString(
+                                          mCantico.youTubeUrl!)) {
+                                        Mensagem.simples(
+                                            context: context,
+                                            mensagem:
+                                                'Não foi possível abrir o link');
                                         throw 'Could not launch youTubeUrl';
                                       }
                                     },

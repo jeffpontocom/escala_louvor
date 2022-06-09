@@ -1,6 +1,4 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:escala_louvor/rotas.dart';
-import 'package:escala_louvor/utils/global.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:intl/intl.dart';
@@ -10,6 +8,7 @@ import '/models/igreja.dart';
 import '/models/instrumento.dart';
 import '/models/integrante.dart';
 import '/utils/mensagens.dart';
+import '/utils/global.dart';
 import '/widgets/avatar.dart';
 import '/widgets/tile_igreja.dart';
 

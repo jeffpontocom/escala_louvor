@@ -8,7 +8,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
-import 'package:url_launcher/url_launcher.dart';
+import 'package:url_launcher/url_launcher_string.dart';
 
 class MyStrings {
   static String isPlural(int valor) {
@@ -63,7 +63,7 @@ class MyActions {
     } else {
       url = 'https://wa.me/55$value';
     }
-    if (!await launch(url)) {
+    if (!await launchUrlString(url)) {
       throw 'Não é possível abrir o Whatsapp';
     }
   }
@@ -71,8 +71,8 @@ class MyActions {
   /// Iniciar Telefone
   static void openPhoneCall(String value) async {
     var url = 'tel:$value';
-    if (await canLaunch(url)) {
-      await launch(url);
+    if (await canLaunchUrlString(url)) {
+      await launchUrlString(url);
     } else {
       throw 'Não é possível realizar ligações nesse aparelho';
     }
@@ -80,7 +80,7 @@ class MyActions {
 
   /// Iniciar Site ou App web
   static void openSite(String url) async {
-    if (!await launch(url)) {
+    if (!await launchUrlString(url)) {
       throw 'Não foi possível abrir o site';
     }
   }
@@ -211,11 +211,11 @@ class MapsLauncher {
   }
 
   static Future<bool> launchQuery(String query) {
-    return launch(createQueryUrl(query));
+    return launchUrlString(createQueryUrl(query));
   }
 
   static Future<bool> launchCoordinates(double latitude, double longitude,
       [String? label]) {
-    return launch(createCoordinatesUrl(latitude, longitude, label));
+    return launchUrlString(createCoordinatesUrl(latitude, longitude, label));
   }
 }

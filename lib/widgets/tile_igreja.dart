@@ -1,8 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 
-import '../../models/igreja.dart';
-import '../../utils/utils.dart';
+import '/models/igreja.dart';
 
 class TileIgrejaSmall extends StatelessWidget {
   final Igreja igreja;

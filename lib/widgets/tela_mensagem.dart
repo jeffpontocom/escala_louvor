@@ -45,7 +45,7 @@ class TelaMensagem extends StatelessWidget {
                   const SizedBox(height: 24),
                   title != null
                       ? Padding(
-                          padding: EdgeInsets.all(8),
+                          padding: const EdgeInsets.all(8),
                           child: Text(
                             title!,
                             textAlign: TextAlign.center,
