@@ -36,7 +36,7 @@ class TileCulto extends StatelessWidget {
   Color get _corEscalado => Colors.green.shade600;
   Color get _corDisponivel => Colors.blue.shade600;
   Color get _corRestrito => Colors.red.shade600;
-  Color get _corIndeciso => Colors.orange;
+  Color get _corIndeciso => Colors.grey.shade600;
 
   @override
   Widget build(BuildContext context) {
@@ -372,7 +372,7 @@ class TileCulto extends StatelessWidget {
           avatar: Icon(
             Icons.lock_open,
             size: 16,
-            color: _corIndeciso,
+            color: theme.colorScheme.secondary,
           ),
           label: Text('Em recrutamento', style: theme.textTheme.caption),
           backgroundColor: Colors.grey.withOpacity(0.12),

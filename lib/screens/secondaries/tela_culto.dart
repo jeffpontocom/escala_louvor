@@ -139,7 +139,7 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
           SizedBox(
               height: constraints.maxHeight,
               width: constraints.maxWidth * 0.6,
-              child: Expanded(child: _tabs)),
+              child: _tabs),
         ]);
       });
     });
