@@ -1,6 +1,8 @@
 // ignore_for_file: constant_identifier_names
 
+import 'package:escala_louvor/models/integrante.dart';
 import 'package:escala_louvor/screens/home/pagina_igreja.dart';
+import 'package:escala_louvor/utils/global.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 
@@ -28,7 +30,7 @@ class AppRotas extends Module {
   static const String CULTO = '/culto';
 
   @override
-  final List<Bind> binds = [];
+  List<Bind> get binds => [];
 
   @override
   final List<ModularRoute> routes = [
@@ -106,7 +108,7 @@ class AppRotas extends Module {
       transition: TransitionType.downToUp,
       guards: [AuthGuard(), QueryGuard()],
     ),
-    WildcardRoute(child: (_, __) => const App()),
+    WildcardRoute(child: (_, __) => const Home()),
   ];
 }
 
@@ -116,7 +118,12 @@ class AuthGuard extends RouteGuard {
   @override
   // ignore: avoid_renaming_method_parameters
   Future<bool> canActivate(String path, ModularRoute router) async {
-    return FirebaseAuth.instance.currentUser != null;
+    var test = Modular.get<FirebaseAuth>(defaultValue: FirebaseAuth.instance)
+            .currentUser !=
+        null;
+    print('AuthGuard: $test');
+    return test;
+    //return FirebaseAuth.instance.currentUser != null;
   }
 }
 
@@ -127,7 +134,11 @@ class LoginGuard extends RouteGuard {
   @override
   // ignore: avoid_renaming_method_parameters
   Future<bool> canActivate(String path, ModularRoute router) async {
-    return FirebaseAuth.instance.currentUser == null;
+    var test = Modular.get<FirebaseAuth>(defaultValue: FirebaseAuth.instance)
+            .currentUser ==
+        null;
+    print('LoginGuard: $test');
+    return test;
   }
 }
 

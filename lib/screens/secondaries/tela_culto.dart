@@ -1,7 +1,6 @@
 import 'dart:developer' as dev;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:escala_louvor/widgets/tela_mensagem.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
@@ -15,11 +14,11 @@ import '/models/instrumento.dart';
 import '/models/integrante.dart';
 import '/resources/animations/shimmer.dart';
 import '/screens/home/pagina_canticos.dart';
-import '/screens/home/tela_home.dart';
 import '/utils/global.dart';
 import '/utils/mensagens.dart';
 import '/widgets/avatar.dart';
 import '/widgets/dialogos.dart';
+import '/widgets/tela_mensagem.dart';
 import '/widgets/tile_cantico.dart';
 import '/widgets/tile_culto.dart';
 

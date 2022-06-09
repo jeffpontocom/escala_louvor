@@ -30,8 +30,16 @@ class LoadApp extends StatelessWidget {
         future: Global.iniciar(),
         builder: (context, snapshot) {
           // CARREGAMENTO DO APP
-          if (!snapshot.hasData) {
-            return const TelaCarregamento();
+          dev.log('(${snapshot.connectionState.name})', name: 'log:Load');
+          if (snapshot.data == null &&
+              snapshot.connectionState == ConnectionState.waiting) {
+            //return const TelaCarregamento();
+            return MaterialApp(
+              theme: Temas.claro(),
+              darkTheme: Temas.escuro(),
+              themeMode: ThemeMode.system,
+              home: const TelaCarregamento(),
+            );
           }
           // FALHA AO CARREGAR
           if (snapshot.data == false) {
@@ -49,7 +57,6 @@ class LoadApp extends StatelessWidget {
           // direcionados a tela de login
 
           // Rota inicial
-          Modular.setInitialRoute('/${Paginas.values[0].name}');
           return ModularApp(
               module: AppRotas(),
               child:
@@ -59,17 +66,24 @@ class LoadApp extends StatelessWidget {
                       stream: FirebaseAuth.instance.userChanges(),
                       builder: (_, snapshotUser) {
                         // Log: FirebaseUser logado
-                        if (snapshotUser.connectionState ==
-                            ConnectionState.active) {
-                          dev.log(
-                              'Firebase Auth: ${snapshotUser.data?.email ?? 'não logado!'}',
-                              name: 'log:Load');
+                        dev.log(
+                            'Firebase Auth: ${snapshotUser.data?.email ?? 'não logado!'} (${snapshotUser.connectionState.name})',
+                            name: 'log:Load');
+
+                        if (snapshotUser.data == null &&
+                            snapshotUser.connectionState ==
+                                ConnectionState.waiting) {
+                          //return const TelaCarregamento();
                         }
                         // Carrega sistema de notificações
                         // Esse carregamento deve ser feito sempre após runApp() para evitar erros
                         // e para o melhor uso do app apenas quando o usuário estiver logado.
                         if (snapshotUser.data?.email != null) {
-                          Notificacoes.carregarInstancia();
+                          //Notificacoes.carregarInstancia();
+                        }
+                        if (Modular.to.path.endsWith(AppRotas.LOGIN) &&
+                            snapshotUser.data?.email != null) {
+                          Modular.to.navigate(AppRotas.HOME);
                         }
                         // APP
                         return MaterialApp.router(
@@ -123,17 +137,12 @@ class App extends StatelessWidget {
                   name: 'log:App');
             }
             // CARREGAMENTO DA INTERFACE
-            if (!logado.hasData) {
-              if (logado.connectionState == ConnectionState.waiting) {
-                return const TelaCarregamento();
-              } else {
-                return const ViewFalha(
-                    mensagem:
-                        'Falha ao carregar dados do integrante.\nFeche o aplicativo e tente novamente.');
-              }
+            if (logado.data == null &&
+                logado.connectionState == ConnectionState.waiting) {
+              return const TelaCarregamento();
             }
             // FALHA AO CARREGAR COM DADOS DO INTEGRANTE
-            if (logado.hasError) {
+            if (logado.hasError && !logado.hasData) {
               return const ViewFalha(
                   mensagem:
                       'Falha ao carregar dados do integrante.\nFeche o aplicativo e tente novamente.');
@@ -150,7 +159,7 @@ class App extends StatelessWidget {
                 valueListenable: Global.igrejaSelecionada,
                 child: const TelaContexto(),
                 builder: (context, igreja, child) {
-                  dev.log('Igreja: ${igreja?.id}');
+                  dev.log('Igreja: ${igreja?.id}', name: 'log:App');
                   if (igreja == null) {
                     return child!;
                   }

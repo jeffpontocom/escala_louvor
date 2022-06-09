@@ -7,9 +7,11 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_modular/flutter_modular.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../screens/home/tela_home.dart';
 import '/firebase_options.dart';
 import '/functions/metodos_firebase.dart';
 import '/models/igreja.dart';
@@ -54,6 +56,8 @@ class Global {
 
   /// Carrega tudo o que for necessário para iniciar o aplicativo.
   static Future<bool> iniciar() async {
+    WidgetsFlutterBinding.ensureInitialized();
+    Modular.setInitialRoute('/${Paginas.values[0].name}');
     // Carrega o arquivo de chaves (a extensão .txt é para poder ser lida na web)
     await dotenv.load(fileName: 'dotenv.txt');
     // Carrega as informações básicas do aplicativo e da plataforma
@@ -70,8 +74,9 @@ class Global {
       // Em caso de erros não previstos
       dev.log('Main: ${e.toString()}');
     }
+    FirebaseAuth.instance;
     if (kIsWeb) {
-      FirebaseAuth.instance.setPersistence(Persistence.SESSION);
+      await FirebaseAuth.instance.setPersistence(Persistence.LOCAL);
     }
     // Recupera os dados salvos na seção anterior
     preferences = await SharedPreferences.getInstance();
