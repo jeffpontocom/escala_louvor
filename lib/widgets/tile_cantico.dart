@@ -32,6 +32,7 @@ class TileCantico extends StatelessWidget {
               ? const Icon(Icons.check_circle, color: Colors.green)
               : Icon(Icons.circle_outlined,
                   color: Colors.grey.withOpacity(0.38)),
+      horizontalTitleGap: 0,
       // NOME DO CÂNTICO + TOM
       title: Row(
         mainAxisSize: MainAxisSize.min,

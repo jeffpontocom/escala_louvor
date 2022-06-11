@@ -153,8 +153,8 @@ class Mensagem {
           return ConstrainedBox(
             // Altura mínima e máxima do Dialog
             constraints: BoxConstraints(
-                minHeight: MediaQuery.of(context).size.height * 0.3,
-                maxHeight: MediaQuery.of(context).size.height * 0.95),
+                minHeight: MediaQuery.of(context).size.height * 0.25,
+                maxHeight: MediaQuery.of(context).size.height * 0.90),
             // Padding com MediaQuery para redimensionar ao apresentar o teclado virtual
             // Largura do conteúdo restrita ao máximo definido em Medidas
             child: Padding(

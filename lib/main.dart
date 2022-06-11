@@ -1,6 +1,5 @@
 //import 'dart:developer' as dev;
 
-import 'package:escala_louvor/screens/home/tela_home.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_modular/flutter_modular.dart';
