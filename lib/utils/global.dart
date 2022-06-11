@@ -11,6 +11,7 @@ import 'package:flutter_modular/flutter_modular.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import '../modulos.dart';
 import '../screens/home/tela_home.dart';
 import '/firebase_options.dart';
 import '/functions/metodos_firebase.dart';
@@ -21,8 +22,8 @@ import '/models/integrante.dart';
 class Global {
   /* VARIÁVEIS */
   static PackageInfo? appInfo;
-  static DocumentSnapshot<Integrante>? logadoSnapshot;
   static SharedPreferences? preferences;
+  static DocumentSnapshot<Integrante>? logadoSnapshot;
 
   /* PREFERÊNCIAS */
 
@@ -55,9 +56,17 @@ class Global {
   /* MÉTODOS  */
 
   /// Carrega tudo o que for necessário para iniciar o aplicativo.
+  /// - Widgets Binding
+  /// - PackageInfo
+  /// - Firebase initialize (return false on error)
+  ///   -  Auth com persistência local (web)
+  /// - Shared Preferences
+  /// - Igreja em contexto
+  /// - Integrante logado
   static Future<bool> iniciar() async {
     WidgetsFlutterBinding.ensureInitialized();
-    Modular.setInitialRoute('/${Paginas.values[0].name}');
+    //Modular.setInitialRoute('/${Paginas.values[0].name}');
+    Modular.setInitialRoute(rotaInicial);
     // Carrega o arquivo de chaves (a extensão .txt é para poder ser lida na web)
     await dotenv.load(fileName: 'dotenv.txt');
     // Carrega as informações básicas do aplicativo e da plataforma
@@ -74,26 +83,29 @@ class Global {
       // Em caso de erros não previstos
       dev.log('Main: ${e.toString()}');
     }
-    FirebaseAuth.instance;
+    //FirebaseAuth.instance;
     if (kIsWeb) {
       await FirebaseAuth.instance.setPersistence(Persistence.LOCAL);
     }
     // Recupera os dados salvos na seção anterior
     preferences = await SharedPreferences.getInstance();
-    // Carrega igreja pré-selecionada
-    await _carregarIgrejaPreSelecionada();
+    if (FirebaseAuth.instance.currentUser != null) {
+      // Carrega o integrante logado
+      var userId = FirebaseAuth.instance.currentUser!.uid;
+      Global.logadoSnapshot = await MeuFirebase.obterSnapshotIntegrante(userId);
+      // Carrega igreja pré-selecionada
+      Global.igrejaSelecionada.value =
+          await MeuFirebase.obterSnapshotIgreja(prefIgrejaId);
+    }
     return true;
-  }
-
-  static _carregarIgrejaPreSelecionada() async {
-    if (FirebaseAuth.instance.currentUser == null) return;
-    var value = await MeuFirebase.obterSnapshotIgreja(prefIgrejaId);
-    Global.igrejaSelecionada.value = value;
   }
 
   /// Nome do aplicativo
   static get nomeDoApp =>
       kIsWeb ? 'Escala do Louvor' : appInfo?.appName ?? 'Escala do Louvor';
+
+  /// Rota inicial
+  static get rotaInicial => '${AppModule.HOME}/${Paginas.agenda.name}';
 
   /// Dados do integrante logado
   static Integrante? get logado => logadoSnapshot?.data();

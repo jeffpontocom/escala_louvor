@@ -8,7 +8,7 @@ import 'package:url_launcher/url_launcher_string.dart';
 import 'package:wakelock/wakelock.dart';
 
 import '../../functions/metodos_firebase.dart';
-import '../../rotas.dart';
+import '../../modulos.dart';
 import '../../utils/global.dart';
 import '../../widgets/dialogos.dart';
 import '../../widgets/tela_mensagem.dart';
@@ -148,7 +148,7 @@ class _TelaLetrasViewState extends State<TelaLetrasView> {
                                       var url = mCantico.cifraUrl!;
                                       var name =
                                           '${mCantico.nome.toUpperCase()} (${mCantico.tom ?? "_"})';
-                                      Modular.to.pushNamed(AppRotas.ARQUIVOS,
+                                      Modular.to.pushNamed(AppModule.ARQUIVOS,
                                           arguments: [url, name]);
                                       /* MeuFirebase.abrirArquivosPdf(
                                           context, [mCantico.cifraUrl!]); */

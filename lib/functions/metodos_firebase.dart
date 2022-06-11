@@ -22,7 +22,7 @@ import '/models/integrante.dart';
 import '/utils/global.dart';
 import '/utils/mensagens.dart';
 import '/utils/utils.dart';
-import '/rotas.dart';
+import '../modulos.dart';
 
 class MeuFirebase {
   /* STREAMS  */
@@ -328,7 +328,7 @@ class MeuFirebase {
       corpo:
           '${culto.ocasiao}: ${DateFormat("EEE, d/MMM 'às' HH:mm", "pt_BR").format(culto.dataCulto.toDate())}\nVerifique a data de ensaio e estude os cânticos selecionados 😉',
       conteudo: cultoId,
-      pagina: AppRotas.CULTO,
+      pagina: AppModule.CULTO,
     );
   }
 
@@ -344,7 +344,7 @@ class MeuFirebase {
       corpo:
           '${culto.ocasiao}: ${DateFormat("EEE, d/MMM 'às' HH:mm", "pt_BR").format(culto.dataCulto.toDate())}\nClique aqui para abrir o app do Louvor 😉',
       conteudo: cultoId,
-      pagina: AppRotas.CULTO,
+      pagina: AppModule.CULTO,
     );
   }
 

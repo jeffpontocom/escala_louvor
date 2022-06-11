@@ -5,7 +5,7 @@ import 'package:flutter_modular/flutter_modular.dart';
 import '/functions/metodos_firebase.dart';
 import '/models/instrumento.dart';
 import '/models/integrante.dart';
-import '/rotas.dart';
+import '../modulos.dart';
 import '/utils/utils.dart';
 import '/widgets/avatar.dart';
 
@@ -85,7 +85,7 @@ class TileIntegrante extends StatelessWidget {
 
       // Função ao tocar
       onTap: () => Modular.to.pushNamed(
-          '${AppRotas.PERFIL}?id=${snapshot.id}&hero=${snapshot.id}',
+          '${AppModule.PERFIL}?id=${snapshot.id}&hero=${snapshot.id}',
           arguments: snapshot),
     );
   }

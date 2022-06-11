@@ -6,7 +6,7 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
 import '/models/cantico.dart';
-import '/rotas.dart';
+import '../modulos.dart';
 
 class TileCantico extends StatelessWidget {
   final DocumentSnapshot<Cantico> snapshot;
@@ -79,8 +79,8 @@ class TileCantico extends StatelessWidget {
                       var url = cantico.cifraUrl!;
                       var name =
                           '${cantico.nome.toUpperCase()} (${cantico.tom ?? "_"})';
-                      Modular.to
-                          .pushNamed(AppRotas.ARQUIVOS, arguments: [url, name]);
+                      Modular.to.pushNamed(AppModule.ARQUIVOS,
+                          arguments: [url, name]);
                     },
                   ),
                 ),
@@ -109,7 +109,7 @@ class TileCantico extends StatelessWidget {
         ],
       ),
       onTap: onTap ??
-          () => Modular.to.pushNamed('${AppRotas.CANTICO}?id=${snapshot.id}',
+          () => Modular.to.pushNamed('${AppModule.CANTICO}?id=${snapshot.id}',
               arguments: snapshot),
       /* onTap: widget.culto == null
           ? null

@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:intl/intl.dart';
 
-import '/rotas.dart';
+import '../../modulos.dart';
 import '/functions/metodos_firebase.dart';
 import '/models/cantico.dart';
 import '/models/culto.dart';
@@ -62,7 +62,7 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
         leading: BackButton(
           onPressed: () async {
             if (!await Modular.to.maybePop()) {
-              Modular.to.pushNamed(AppRotas.HOME);
+              Modular.to.pushNamed(AppModule.HOME);
             }
           },
         ),
@@ -224,7 +224,22 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
                 ],
               ),
               // CÂNTICOS
-              _listaDeCanticos,
+              Column(
+                children: [
+                  OutlinedButton.icon(
+                    icon: const Icon(Icons.queue_music),
+                    label: const Text('Selecionar canticos'),
+                    onPressed: () => _adicionarCanticos(),
+                  ),
+                  Text(
+                    'Segure e arraste para reordenar',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  Expanded(child: _listaDeCanticos),
+                ],
+              )
+              //_listaDeCanticos,
             ]),
           ),
         ],
@@ -407,7 +422,7 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
       // Ação de toque
       onTap: mCulto.liturgiaUrl == null
           ? null
-          : () => Modular.to.pushNamed(AppRotas.ARQUIVOS,
+          : () => Modular.to.pushNamed(AppModule.ARQUIVOS,
               arguments: [mCulto.liturgiaUrl!, 'Liturgia']),
 
       /* MeuFirebase.abrirArquivosPdf(context, [mCulto.liturgiaUrl!]), */
@@ -630,7 +645,7 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
               : '$nomePrimeiro $nomeSegundo';
           return InkWell(
             onTap: () => Modular.to.pushNamed(
-                '${AppRotas.PERFIL}?id=${integrante?.id}&hero=$hero',
+                '${AppModule.PERFIL}?id=${integrante?.id}&hero=$hero',
                 arguments: integrante),
             child: Container(
               width: 128,
@@ -707,7 +722,7 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
                 // Box
                 return InkWell(
                   onTap: () => Modular.to.pushNamed(
-                      '${AppRotas.PERFIL}?id=${integrante?.id}&hero=$hero',
+                      '${AppModule.PERFIL}?id=${integrante?.id}&hero=$hero',
                       arguments: integrante),
                   child: Container(
                     // Tamanho

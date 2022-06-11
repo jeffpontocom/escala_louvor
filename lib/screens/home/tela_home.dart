@@ -1,12 +1,15 @@
 import 'dart:developer' as dev;
 
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:stylish_bottom_bar/stylish_bottom_bar.dart';
 
-import '/rotas.dart';
+import '../../models/igreja.dart';
+import '../../modulos.dart';
+import '../secondaries/tela_selecao.dart';
 import '/utils/global.dart';
 import '/widgets/avatar.dart';
 
@@ -75,9 +78,9 @@ class _HomeState extends State<Home> {
 
   @override
   void initState() {
-    if (Modular.routerDelegate.path == '/') {
-      Modular.to.navigate('/${Paginas.values[0].name}');
-    }
+    /* if (Modular.routerDelegate.path == '/home') {
+      Modular.to.navigate('/home/${Paginas.values[0].name}');
+    } */
     dev.log(Modular.routerDelegate.path, name: 'teste');
     setPage(Modular.routerDelegate.path);
     super.initState();
@@ -85,37 +88,51 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
-    return OrientationBuilder(
-      builder: (context, orientation) {
-        _isPortrait = orientation == Orientation.portrait;
-        return _isPortrait
-            ? Scaffold(
-                extendBody: true,
-                appBar: appBar,
-                body: corpo,
-                bottomNavigationBar: bottomNavigation,
-                floatingActionButton: Visibility(
-                  visible: MediaQuery.of(context).viewInsets.bottom == 0.0,
-                  child: floatButton,
-                ),
-                floatingActionButtonLocation:
-                    FloatingActionButtonLocation.centerDocked,
-              )
-            : Scaffold(
-                appBar: appBar,
-                body: Row(
-                  children: [
-                    railNavigation,
-                    VerticalDivider(
-                        thickness: 1,
-                        width: 1,
-                        color: Colors.grey.withOpacity(0.38)),
-                    Expanded(child: corpo),
-                  ],
-                ),
-              );
-      },
-    );
+    return ValueListenableBuilder<DocumentSnapshot<Igreja>?>(
+        valueListenable: Global.igrejaSelecionada,
+        builder: (context, igreja, _) {
+          dev.log('Igreja: ${igreja?.id}', name: 'log:App');
+          // Verifica se usuário logado está inscrito na igreja
+          bool inscrito = Global.logado?.igrejas
+                  ?.map((e) => e.toString())
+                  .contains(igreja?.reference.toString()) ??
+              false;
+          if (inscrito) {
+            return OrientationBuilder(
+              builder: (context, orientation) {
+                _isPortrait = orientation == Orientation.portrait;
+                return _isPortrait
+                    ? Scaffold(
+                        extendBody: true,
+                        appBar: appBar,
+                        body: corpo,
+                        bottomNavigationBar: bottomNavigation,
+                        floatingActionButton: Visibility(
+                          visible:
+                              MediaQuery.of(context).viewInsets.bottom == 0.0,
+                          child: floatButton,
+                        ),
+                        floatingActionButtonLocation:
+                            FloatingActionButtonLocation.centerDocked,
+                      )
+                    : Scaffold(
+                        appBar: appBar,
+                        body: Row(
+                          children: [
+                            railNavigation,
+                            VerticalDivider(
+                                thickness: 1,
+                                width: 1,
+                                color: Colors.grey.withOpacity(0.38)),
+                            Expanded(child: corpo),
+                          ],
+                        ),
+                      );
+              },
+            );
+          }
+          return const TelaContexto();
+        });
   }
 
   /// AppBar
@@ -168,7 +185,7 @@ class _HomeState extends State<Home> {
             ),
           ),
           onPressed: () => Modular.to.pushNamed(
-              '${AppRotas.PERFIL}?id=${FirebaseAuth.instance.currentUser?.uid ?? ''}&hero=logado',
+              '${AppModule.PERFIL}?id=${FirebaseAuth.instance.currentUser?.uid ?? ''}&hero=logado',
               arguments: Global.logadoSnapshot),
         ),
       ],
@@ -206,7 +223,7 @@ class _HomeState extends State<Home> {
           }),
           onTap: (index) {
             _pagina.value = index ?? 0;
-            Modular.to.navigate('/${Paginas.values[index ?? 0].name}');
+            Modular.to.navigate('/home/${Paginas.values[index ?? 0].name}');
           },
         );
       },
@@ -233,7 +250,7 @@ class _HomeState extends State<Home> {
           }),
           onDestinationSelected: (index) {
             _pagina.value = index;
-            Modular.to.navigate('/${Paginas.values[index].name}');
+            Modular.to.navigate('/home/${Paginas.values[index].name}');
           },
         );
       },
@@ -255,7 +272,7 @@ class _HomeState extends State<Home> {
         ),
       ]),
       onPressed: () {
-        Modular.to.pushNamed(AppRotas.CONTEXTO);
+        Modular.to.pushNamed(AppModule.CONTEXTO);
       },
     );
   }

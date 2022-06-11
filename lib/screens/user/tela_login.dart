@@ -1,6 +1,7 @@
 import 'dart:developer' as dev;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:escala_louvor/modulos.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -8,7 +9,6 @@ import 'package:flutter_modular/flutter_modular.dart';
 
 import '/models/integrante.dart';
 import '/resources/medidas.dart';
-import '/screens/home/tela_home.dart';
 import '/utils/global.dart';
 import '/utils/mensagens.dart';
 import '/utils/utils.dart';
@@ -218,7 +218,7 @@ class _TelaLoginState extends State<TelaLogin> {
           Modular.to.pop(); // Fecha progresso
           if (documentSnapshot.exists) {
             // Integrante já registrado. Vai para home page
-            Modular.to.navigate('/${Paginas.values[0].name}');
+            Modular.to.navigate(Global.rotaInicial);
           } else {
             // Cria novo registro de integrante
             // Abre progresso
@@ -235,7 +235,7 @@ class _TelaLoginState extends State<TelaLogin> {
                   .doc(user.uid)
                   .set(integrante.toJson());
               // Sucesso. Vai para home
-              Modular.to.navigate('/${Paginas.values[0].name}');
+              Modular.to.navigate(Global.rotaInicial);
             } catch (e) {
               dev.log("Não foi possível criar o perfil do integrante: $e.");
               Modular.to.pop(); // Fecha progresso

@@ -5,7 +5,7 @@ import 'package:flutter_modular/flutter_modular.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 
-import '/rotas.dart';
+import '../../modulos.dart';
 import '/functions/metodos_firebase.dart';
 import '/models/culto.dart';
 import '/models/integrante.dart';
@@ -393,7 +393,7 @@ class _PaginaAgendaState extends State<PaginaAgenda> {
             // Tile do culto
             InkWell(
               onTap: () => Modular.to.pushNamed(
-                  '${AppRotas.CULTO}?id=${cultos[index].id}',
+                  '${AppModule.CULTO}?id=${cultos[index].id}',
                   arguments: cultos[index]),
               child: TileCulto(
                 culto: culto,
@@ -402,6 +402,13 @@ class _PaginaAgendaState extends State<PaginaAgenda> {
                 showResumo: true,
               ),
             ),
+            index == cultos.length - 1
+                ? Divider(
+                    height: 8,
+                    thickness: 8,
+                    color: Theme.of(context).highlightColor,
+                  )
+                : const SizedBox(),
           ],
         );
       },
@@ -500,7 +507,7 @@ class _PaginaAgendaState extends State<PaginaAgenda> {
                         ),
                       ),
                       onPressed: () => Modular.to.pushNamed(
-                          '${AppRotas.PERFIL}?id=${aniversariantes[index].id}&hero=$hero',
+                          '${AppModule.PERFIL}?id=${aniversariantes[index].id}&hero=$hero',
                           arguments: aniversariantes[index]),
                     );
                   },
