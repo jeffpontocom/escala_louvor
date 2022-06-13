@@ -1,13 +1,13 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:escala_louvor/models/integrante.dart';
-import 'package:escala_louvor/utils/global.dart';
-import 'package:escala_louvor/widgets/avatar.dart';
-import 'package:escala_louvor/widgets/tile_integrante.dart';
 import 'package:flutter/material.dart';
 
-import '../../functions/metodos_firebase.dart';
-import '../../models/igreja.dart';
-import '../../utils/utils.dart';
+import '/functions/metodos_firebase.dart';
+import '/models/igreja.dart';
+import '/models/integrante.dart';
+import '/utils/global.dart';
+import '/utils/utils.dart';
+import '/widgets/avatar.dart';
+import '/widgets/tile_integrante.dart';
 
 class PaginaEquipe extends StatefulWidget {
   const PaginaEquipe({Key? key}) : super(key: key);
@@ -18,9 +18,7 @@ class PaginaEquipe extends StatefulWidget {
 
 class _PaginaEquipeState extends State<PaginaEquipe> {
   /* VARIÁVEIS */
-  late bool _isPortrait;
   late Igreja _igreja;
-  ValueNotifier<Funcao?> filtroFuncao = ValueNotifier(null);
 
   @override
   Widget build(BuildContext context) {
@@ -45,99 +43,97 @@ class _PaginaEquipeState extends State<PaginaEquipe> {
 
   /// Corpo
   get _layout {
-    return OrientationBuilder(builder: (context, orientation) {
-      _isPortrait = orientation == Orientation.portrait;
-      return LayoutBuilder(
-        builder: (context, constraints) {
-          return Stack(
-            children: [
-              Wrap(
-                children: [
-                  // Cabeçalho
-                  Material(
-                    //elevation: _isPortrait ? 4 : 0,
-                    color: Theme.of(context).colorScheme.background,
-                    child: Container(
-                      height: _isPortrait
-                          ? constraints.maxHeight * 0.35
-                          : constraints.maxHeight,
-                      width: _isPortrait
-                          ? constraints.maxWidth
-                          : constraints.maxWidth * 0.35,
-                      padding: const EdgeInsets.all(16),
-                      child: _cabecalho,
-                    ),
-                  ),
-                  // Conteúdo
-                  SizedBox(
-                    height: _isPortrait
-                        ? constraints.maxHeight * 0.65
-                        : constraints.maxHeight,
-                    width: _isPortrait
-                        ? constraints.maxWidth
-                        : constraints.maxWidth * 0.65,
-                    child: _dados,
-                  ),
-                ],
-              ),
-            ],
-          );
-        },
-      );
-    });
+    return OrientationBuilder(
+      builder: (context, orientation) {
+        // MODO RETRATO
+        if (orientation == Orientation.portrait) {
+          return Column(children: [
+            Container(
+              color: Colors.grey.withOpacity(0.12),
+              height: 300,
+              child: _cabecalho,
+            ),
+            Expanded(child: _dados),
+          ]);
+        }
+        // MODO PAISAGEM
+        return LayoutBuilder(builder: (context, constraints) {
+          return Wrap(children: [
+            Container(
+              height: constraints.maxHeight,
+              width: constraints.maxWidth * 0.4 - 1,
+              color: Colors.grey.withOpacity(0.12),
+              child: _cabecalho,
+            ),
+            Container(
+                height: constraints.maxHeight,
+                width: 1,
+                color: Colors.grey.withOpacity(0.38)),
+            SizedBox(
+                height: constraints.maxHeight,
+                width: constraints.maxWidth * 0.6,
+                child: _dados),
+          ]);
+        });
+      },
+    );
   }
 
   /// Cabeçalho
   get _cabecalho {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        // Foto
-        Flexible(
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              var dimension = constraints.maxHeight < constraints.maxWidth
-                  ? constraints.maxHeight
-                  : constraints.maxWidth;
-              return ConstrainedBox(
-                constraints:
-                    BoxConstraints(maxWidth: dimension, maxHeight: dimension),
-                child: _foto,
-              );
-            },
+    return Container(
+      padding: const EdgeInsets.all(16),
+      width: double.infinity,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // Foto
+          Flexible(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                var dimension = constraints.maxHeight < constraints.maxWidth
+                    ? constraints.maxHeight
+                    : constraints.maxWidth;
+                return ConstrainedBox(
+                  constraints:
+                      BoxConstraints(maxWidth: dimension, maxHeight: dimension),
+                  child: _foto,
+                );
+              },
+            ),
           ),
-        ),
-        const SizedBox(height: 16),
-        // Sigla
-        Text(
-          _igreja.sigla,
-          textAlign: TextAlign.center,
-          style: const TextStyle(
-            fontFamily: 'Offside',
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
+          const SizedBox(height: 16),
+          // Sigla
+          Text(
+            _igreja.sigla,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontFamily: 'Offside',
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+            ),
           ),
-        ),
-        const SizedBox(height: 4),
-        // Nome Completo
-        Text(
-          _igreja.nome,
-          textAlign: TextAlign.center,
-          style: const TextStyle(color: Colors.grey, fontSize: 16),
-        ),
-        const SizedBox(height: 16),
-        // Mapa
-        _igreja.endereco == null || _igreja.endereco!.isEmpty
-            ? const Text('Sem endereço cadastrado')
-            : ActionChip(
-                avatar: const Icon(Icons.place, size: 20),
-                label: const Text('Localização'),
-                elevation: 0,
-                onPressed: () {
-                  MyActions.openGoogleMaps(street: _igreja.endereco ?? '');
-                }),
-      ],
+          const SizedBox(height: 4),
+          // Nome Completo
+          Text(
+            _igreja.nome,
+            textAlign: TextAlign.center,
+            style: const TextStyle(fontSize: 16),
+          ),
+          const SizedBox(height: 16),
+          // Mapa
+          _igreja.endereco == null || _igreja.endereco!.isEmpty
+              ? const Text('Sem endereço cadastrado')
+              : ActionChip(
+                  avatar: const Icon(Icons.place, size: 20),
+                  label: const Text('Localização'),
+                  elevation: 0,
+                  onPressed: () {
+                    MyActions.openGoogleMaps(street: _igreja.endereco ?? '');
+                  }),
+        ],
+      ),
     );
   }
 
@@ -162,7 +158,7 @@ class _PaginaEquipeState extends State<PaginaEquipe> {
         ).asStream(),
         builder: (context, snapshot) {
           return ValueListenableBuilder<Funcao?>(
-              valueListenable: filtroFuncao,
+              valueListenable: Global.filtroEquipe,
               builder: (context, funcao, _) {
                 int total = 0;
                 List<QueryDocumentSnapshot<Integrante>>? snapshotFiltrado;
@@ -180,10 +176,10 @@ class _PaginaEquipeState extends State<PaginaEquipe> {
                 return Column(children: [
                   // Filtros de função
                   Container(
-                    color: Theme.of(context).colorScheme.background,
+                    color: Colors.grey.withOpacity(0.12),
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: Row(
                       children: [
-                        const SizedBox(width: 16),
                         // Filtro
                         const Icon(Icons.filter_alt),
                         const SizedBox(width: 4),
@@ -218,7 +214,7 @@ class _PaginaEquipeState extends State<PaginaEquipe> {
                               ),
                             ],
                             onChanged: (value) {
-                              filtroFuncao.value = value;
+                              Global.filtroEquipe.value = value;
                             }),
                         //
                         const Expanded(child: SizedBox()),
@@ -228,11 +224,10 @@ class _PaginaEquipeState extends State<PaginaEquipe> {
                               : '$total membros ativos',
                           style: Theme.of(context).textTheme.caption,
                         ),
-                        const SizedBox(width: 16),
                       ],
                     ),
                   ),
-                  const Divider(height: 1),
+                  const Divider(height: 1, thickness: 1),
                   // Integrantes,
                   Expanded(
                     child: Column(

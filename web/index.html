@@ -84,14 +84,14 @@
           document.getElementById('mStatus').innerText = 'Carregando app...';
         } else {
           document.getElementById('mStatus').innerText = 'Não é possível acessar o sistema!\nVerifique sua conexão com a Internet ou tente em outro navegador mais atualizado.';
-          document.getElementById('mStatus').style.color = 'red';
+          //document.getElementById('mStatus').style.color = 'red';
         }
       })
       .catch(function(error) {
         console.log('Conexão falhou', error)
         status = 'Não é possível acessar o sistema!\nVerifique sua conexão com a Internet.';
         document.getElementById('mStatus').innerText = status;
-        document.getElementById('mStatus').style.color = 'amber';
+        //document.getElementById('mStatus').style.color = 'amber';
       });
   </script>
 

@@ -10,7 +10,11 @@ class TelaCarregamento extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(64),
       alignment: Alignment.center,
-      color: Theme.of(context).scaffoldBackgroundColor,
+      color: MediaQueryData.fromWindow(WidgetsBinding.instance.window)
+                  .platformBrightness ==
+              Brightness.dark
+          ? const Color(0xFF121212)
+          : const Color(0xFF2094f3),
       // Animação
       child: AnimacaoPulando(
         objectToAnimate: Image.asset('assets/icons/ic_launcher.png'),

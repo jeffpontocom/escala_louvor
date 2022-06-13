@@ -172,7 +172,7 @@ class _TelaContextoState extends State<TelaContexto> {
                                     .toString();
                         if (selecionada) {
                           WidgetsBinding.instance
-                              .scheduleFrameCallback((timeStamp) {
+                              .scheduleFrameCallback((duration) {
                             carouselController.animateToPage(index);
                           });
                         }
@@ -202,7 +202,7 @@ class _TelaContextoState extends State<TelaContexto> {
                               Modular.to.maybePop(true); // fecha dialog
                               Global.prefIgrejaId = id;
                               Global.igrejaSelecionada.value = igreja;
-                              Global.notificarAlteracaoEmIgrejas();
+                              //Global.notificarAlteracaoEmIgrejas();
                             },
                             child: Container(
                               padding: const EdgeInsets.all(16),
@@ -280,6 +280,8 @@ class _TelaContextoState extends State<TelaContexto> {
       onChanged: (value) {
         setState(() {
           Global.prefMostrarTodosOsCultos = value!;
+          Global.filtroMostrarTodosCultos.value =
+              Global.prefMostrarTodosOsCultos;
         });
       },
       activeColor: Theme.of(context).colorScheme.secondary,

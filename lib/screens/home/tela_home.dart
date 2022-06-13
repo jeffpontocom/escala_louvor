@@ -7,13 +7,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:stylish_bottom_bar/stylish_bottom_bar.dart';
 
-import '../../models/igreja.dart';
-import '../../modulos.dart';
-import '../secondaries/tela_selecao.dart';
+import '/models/igreja.dart';
+import '/modulos.dart';
+import '/screens/secondaries/tela_selecao.dart';
 import '/utils/global.dart';
 import '/widgets/avatar.dart';
 
-enum Paginas {
+enum HomePages {
   agenda,
   equipe,
   avisos,
@@ -21,29 +21,29 @@ enum Paginas {
 }
 
 String paginaNome(int index) {
-  var pagina = Paginas.values[index];
+  var pagina = HomePages.values[index];
   switch (pagina) {
-    case Paginas.agenda:
+    case HomePages.agenda:
       return 'Agenda de cultos';
-    case Paginas.avisos:
+    case HomePages.avisos:
       return 'Avisos importantes';
-    case Paginas.canticos:
+    case HomePages.canticos:
       return 'Repertório musical';
-    case Paginas.equipe:
+    case HomePages.equipe:
       return 'Membros da equipe';
   }
 }
 
 Icon paginaIcone(int index) {
-  var pagina = Paginas.values[index];
+  var pagina = HomePages.values[index];
   switch (pagina) {
-    case Paginas.agenda:
+    case HomePages.agenda:
       return const Icon(Icons.today);
-    case Paginas.avisos:
+    case HomePages.avisos:
       return const Icon(Icons.campaign);
-    case Paginas.canticos:
+    case HomePages.canticos:
       return const Icon(Icons.music_note);
-    case Paginas.equipe:
+    case HomePages.equipe:
       return const Icon(Icons.groups);
   }
 }
@@ -64,11 +64,12 @@ class _HomeState extends State<Home> {
 
   /// Define a página conforme o nome da Rota (#Modular)
   int setPage(String rota) {
-    rota = rota.substring(1, rota.contains('?') ? rota.indexOf('?') : null);
-    dev.log(rota, name: 'log:Rota');
+    rota = rota.substring(rota.lastIndexOf('/') + 1,
+        rota.contains('?') ? rota.indexOf('?') : null);
+    dev.log('Rota: $rota', name: 'log:Home');
     var index = 0;
     try {
-      index = Paginas.values.indexWhere((element) => element.name == rota);
+      index = HomePages.values.indexWhere((element) => element.name == rota);
     } catch (e) {
       index = 0;
     }
@@ -78,61 +79,66 @@ class _HomeState extends State<Home> {
 
   @override
   void initState() {
-    /* if (Modular.routerDelegate.path == '/home') {
-      Modular.to.navigate('/home/${Paginas.values[0].name}');
-    } */
-    dev.log(Modular.routerDelegate.path, name: 'teste');
     setPage(Modular.routerDelegate.path);
     super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
+    // Ouvinte para igreja selecionada
+    // se houver alguma alteração nos dados essa tela é recarregada
     return ValueListenableBuilder<DocumentSnapshot<Igreja>?>(
         valueListenable: Global.igrejaSelecionada,
         builder: (context, igreja, _) {
-          dev.log('Igreja: ${igreja?.id}', name: 'log:App');
-          // Verifica se usuário logado está inscrito na igreja
+          dev.log('Igreja selecionada: ${igreja?.id}', name: 'log:Home');
+
+          // Verifica se usuário logado está inscrito na igreja selecionada
           bool inscrito = Global.logado?.igrejas
                   ?.map((e) => e.toString())
                   .contains(igreja?.reference.toString()) ??
               false;
-          if (inscrito) {
-            return OrientationBuilder(
-              builder: (context, orientation) {
-                _isPortrait = orientation == Orientation.portrait;
-                return _isPortrait
-                    ? Scaffold(
-                        extendBody: true,
-                        appBar: appBar,
-                        body: corpo,
-                        bottomNavigationBar: bottomNavigation,
-                        floatingActionButton: Visibility(
-                          visible:
-                              MediaQuery.of(context).viewInsets.bottom == 0.0,
-                          child: floatButton,
-                        ),
-                        floatingActionButtonLocation:
-                            FloatingActionButtonLocation.centerDocked,
-                      )
-                    : Scaffold(
-                        appBar: appBar,
-                        body: Row(
-                          children: [
-                            railNavigation,
-                            VerticalDivider(
-                                thickness: 1,
-                                width: 1,
-                                color: Colors.grey.withOpacity(0.38)),
-                            Expanded(child: corpo),
-                          ],
-                        ),
-                      );
-              },
-            );
+
+          if (!inscrito) {
+            return const TelaContexto();
           }
-          return const TelaContexto();
+
+          return _layout;
         });
+  }
+
+  /// Layout
+  get _layout {
+    return OrientationBuilder(
+      builder: (context, orientation) {
+        _isPortrait = orientation == Orientation.portrait;
+        return _isPortrait
+            ? Scaffold(
+                extendBody: true,
+                appBar: appBar,
+                body: corpo,
+                bottomNavigationBar: bottomNavigation,
+                floatingActionButton: Visibility(
+                  visible: MediaQuery.of(context).viewInsets.bottom == 0.0,
+                  child: floatButton,
+                ),
+                floatingActionButtonLocation:
+                    FloatingActionButtonLocation.centerDocked,
+              )
+            : Scaffold(
+                appBar: appBar,
+                body: Row(
+                  children: [
+                    railNavigation,
+                    VerticalDivider(
+                        thickness: 1,
+                        width: 1,
+                        color: Colors.grey.withOpacity(0.12)),
+                    Expanded(child: corpo),
+                  ],
+                ),
+              );
+      },
+    );
   }
 
   /// AppBar
@@ -141,12 +147,8 @@ class _HomeState extends State<Home> {
       // Ícone da aplicação
       leading: _isPortrait
           ? null
-          : Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
-              child: floatButton),
-      /* leading: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Image.asset('assets/icons/ic_launcher.png')), */
+          : Padding(padding: const EdgeInsets.all(4), child: floatButton),
+      leadingWidth: 64,
       // Título da aplicação
       title: ValueListenableBuilder<int>(
           valueListenable: _pagina,
@@ -165,7 +167,6 @@ class _HomeState extends State<Home> {
                 ]);
           }),
       centerTitle: false,
-      elevation: _isPortrait ? null : 0,
       // Ações
       actions: [
         // Tela administrador
@@ -215,7 +216,7 @@ class _HomeState extends State<Home> {
           hasNotch: true,
           fabLocation: StylishBarFabLocation.center,
           backgroundColor: Theme.of(context).colorScheme.background,
-          items: List.generate(Paginas.values.length, (index) {
+          items: List.generate(HomePages.values.length, (index) {
             return AnimatedBarItems(
                 icon: paginaIcone(index),
                 selectedColor: Theme.of(context).colorScheme.primary,
@@ -223,7 +224,8 @@ class _HomeState extends State<Home> {
           }),
           onTap: (index) {
             _pagina.value = index ?? 0;
-            Modular.to.navigate('/home/${Paginas.values[index ?? 0].name}');
+            Modular.to.navigate(
+                '${AppModule.HOME}/${HomePages.values[_pagina.value].name}');
           },
         );
       },
@@ -243,14 +245,15 @@ class _HomeState extends State<Home> {
           minExtendedWidth: 176,
           labelType: NavigationRailLabelType.none,
           //leading: floatButton,
-          destinations: List.generate(Paginas.values.length, (index) {
+          destinations: List.generate(HomePages.values.length, (index) {
             return NavigationRailDestination(
                 icon: paginaIcone(index),
                 label: Text(paginaNome(index).split(' ').first));
           }),
           onDestinationSelected: (index) {
             _pagina.value = index;
-            Modular.to.navigate('/home/${Paginas.values[index].name}');
+            Modular.to.navigate(
+                '${AppModule.HOME}/${HomePages.values[_pagina.value].name}');
           },
         );
       },

@@ -52,9 +52,15 @@ class _TelaPerfilState extends State<TelaPerfil> {
       _isPortrait = orientation == Orientation.portrait;
       return Scaffold(
         appBar: AppBar(
+          leading: BackButton(
+            onPressed: () async {
+              if (!await Modular.to.maybePop()) {
+                Modular.to.pushNamed(Global.rotaInicial);
+              }
+            },
+          ),
           title: const Text('Perfil'),
           actions: _ehMeuPerfil || _ehAdm ? [_menuSuspenso] : null,
-          elevation: _isPortrait ? 0 : 4,
         ),
         body: StreamBuilder<DocumentSnapshot<Integrante>>(
           initialData: widget.snapIntegrante,
@@ -72,7 +78,7 @@ class _TelaPerfilState extends State<TelaPerfil> {
             // Tela carregada
             _integrante = snapshot.data!.data()!;
             _metodos = MetodosIntegrante(context, snapshot.data!);
-            return _corpo;
+            return _layout;
           },
         ),
       );
@@ -80,112 +86,118 @@ class _TelaPerfilState extends State<TelaPerfil> {
   }
 
   /// Corpo
-  get _corpo {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        return Stack(
-          children: [
-            Wrap(
-              children: [
-                // Cabeçalho
-                Material(
-                  elevation: _isPortrait ? 4 : 0,
-                  color: Theme.of(context).primaryColor,
-                  child: Container(
-                    height: _isPortrait
-                        ? constraints.maxHeight * 0.35
-                        : constraints.maxHeight,
-                    width: _isPortrait
-                        ? constraints.maxWidth
-                        : constraints.maxWidth * 0.35,
-                    padding: const EdgeInsets.all(16),
-                    child: _cabecalho,
+  get _layout {
+    // MODO RETRATO
+    return LayoutBuilder(builder: (context, constraints) {
+      var flutuante = // Botão flutuante
+          _integrante.telefone != null && _integrante.telefone!.isNotEmpty
+              ? Positioned(
+                  top: _isPortrait ? 300 - 28 : null,
+                  bottom: _isPortrait ? null : 28,
+                  right: 16,
+                  child: FloatingActionButton(
+                    backgroundColor: Colors.green,
+                    onPressed: () =>
+                        MyActions.openWhatsApp(_integrante.telefone!),
+                    child: const FaIcon(FontAwesomeIcons.whatsapp),
                   ),
-                ),
-                // Conteúdo
-                SizedBox(
-                  height: _isPortrait
-                      ? constraints.maxHeight * 0.65
-                      : constraints.maxHeight,
-                  width: _isPortrait
-                      ? constraints.maxWidth
-                      : constraints.maxWidth * 0.65,
-                  child: _dados,
-                ),
-              ],
+                )
+              : const SizedBox();
+      if (_isPortrait) {
+        return Stack(children: [
+          Column(children: [
+            Container(
+              color: Colors.grey.withOpacity(0.12),
+              height: 300,
+              child: _cabecalho,
             ),
-            // Botão flutuante
-            _integrante.telefone != null && _integrante.telefone!.isNotEmpty
-                ? Positioned(
-                    top: _isPortrait ? constraints.maxHeight * 0.35 - 28 : null,
-                    bottom: _isPortrait ? null : 28,
-                    right: 16,
-                    child: FloatingActionButton(
-                      backgroundColor: Colors.green,
-                      onPressed: () =>
-                          MyActions.openWhatsApp(_integrante.telefone!),
-                      child: const FaIcon(FontAwesomeIcons.whatsapp),
-                    ),
-                  )
-                : const SizedBox(),
-          ],
-        );
-      },
-    );
+            Expanded(child: _dados),
+          ]),
+          flutuante,
+        ]);
+      }
+      // MODO PAISAGEM
+      return LayoutBuilder(builder: (context, constraints) {
+        return Stack(children: [
+          Wrap(children: [
+            SizedBox(
+              height: constraints.maxHeight,
+              width: constraints.maxWidth * 0.4 - 1,
+              child: _cabecalho,
+            ),
+            Container(
+                height: constraints.maxHeight,
+                width: 1,
+                color: Colors.grey.withOpacity(0.38)),
+            SizedBox(
+                height: constraints.maxHeight,
+                width: constraints.maxWidth * 0.6,
+                child: _dados),
+          ]),
+          flutuante,
+        ]);
+      });
+    });
   }
 
   /// Cabeçalho
   get _cabecalho {
     var nascimento = _integrante.dataNascimento == null
-        ? '?'
+        ? '... ? ...'
         : DateFormat.MMMd('pt_BR').format(_integrante.dataNascimento!.toDate());
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        // Foto
-        Flexible(
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              var dimension = constraints.maxHeight < constraints.maxWidth
-                  ? constraints.maxHeight
-                  : constraints.maxWidth;
-              return ConstrainedBox(
-                constraints:
-                    BoxConstraints(maxWidth: dimension, maxHeight: dimension),
-                child: _foto,
-              );
-            },
+    return Container(
+      padding: const EdgeInsets.all(16),
+      width: double.infinity,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // Foto
+          Flexible(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                var dimension = constraints.maxHeight < constraints.maxWidth
+                    ? constraints.maxHeight
+                    : constraints.maxWidth;
+                return ConstrainedBox(
+                  constraints:
+                      BoxConstraints(maxWidth: dimension, maxHeight: dimension),
+                  child: _foto,
+                );
+              },
+            ),
           ),
-        ),
-        const SizedBox(height: 16),
-        // Nome
-        Text(
-          _integrante.nome,
-          textAlign: TextAlign.center,
-          style: const TextStyle(
-            color: Colors.white,
-            fontFamily: 'Offside',
-            fontSize: 22,
-            fontWeight: FontWeight.bold,
+          const SizedBox(height: 16),
+          // Nome
+          Text(
+            _integrante.nome,
+            textAlign: TextAlign.center,
+            style: const TextStyle(
+              fontFamily: 'Offside',
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+            ),
           ),
-        ),
-        const SizedBox(height: 4),
-        // E-mail
-        Text(
-          _integrante.email,
-          textAlign: TextAlign.center,
-          style: TextStyle(color: Colors.white.withOpacity(0.5)),
-        ),
-        const SizedBox(height: 16),
-        // Aniversário
-        const Icon(Icons.cake, color: Colors.white, size: 20),
-        Text(
-          nascimento,
-          textAlign: TextAlign.center,
-          style: const TextStyle(color: Colors.white, fontSize: 18),
-        ),
-      ],
+          const SizedBox(height: 4),
+          // E-mail
+          Text(
+            _integrante.email,
+            textAlign: TextAlign.center,
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+          const SizedBox(height: 16),
+          // Aniversário
+          RawChip(
+            avatar: const Icon(Icons.cake, size: 20),
+            labelPadding: const EdgeInsets.only(right: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 8),
+            label: Text(
+              nascimento,
+              style: const TextStyle(fontSize: 18),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -213,29 +225,35 @@ class _TelaPerfilState extends State<TelaPerfil> {
         _tileIgrejas,
         const Divider(height: 12),
         _tileObservacoes,
+        const SizedBox(height: 16),
       ],
     );
   }
 
   /// Tile Funções
   get _tileFuncoes {
-    var conteudo = Wrap(
-      spacing: 4,
-      runSpacing: 4,
-      children: List.generate(
-        _integrante.funcoes?.length ?? 0,
-        (index) => Tooltip(
-          message: funcaoGetString(_integrante.funcoes![index]),
-          child: CircleAvatar(
-            backgroundColor: Theme.of(context).colorScheme.secondary,
-            child: Icon(
-              funcaoGetIcon(_integrante.funcoes![index]),
-              color: Colors.black,
+    var conteudo;
+    if (_integrante.funcoes == null || _integrante.funcoes!.isEmpty) {
+      conteudo = const Text('Nenhuma função atribuída');
+    } else {
+      conteudo = Wrap(
+        spacing: 4,
+        runSpacing: 4,
+        children: List.generate(
+          _integrante.funcoes?.length ?? 0,
+          (index) => Tooltip(
+            message: funcaoGetString(_integrante.funcoes![index]),
+            child: CircleAvatar(
+              backgroundColor: Theme.of(context).colorScheme.secondary,
+              child: Icon(
+                funcaoGetIcon(_integrante.funcoes![index]),
+                color: Colors.black,
+              ),
             ),
           ),
         ),
-      ),
-    );
+      );
+    }
 
     return ListTile(
       dense: true,

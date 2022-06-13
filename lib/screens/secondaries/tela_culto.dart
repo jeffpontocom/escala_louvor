@@ -6,12 +6,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:intl/intl.dart';
 
-import '../../modulos.dart';
 import '/functions/metodos_firebase.dart';
 import '/models/cantico.dart';
 import '/models/culto.dart';
 import '/models/instrumento.dart';
 import '/models/integrante.dart';
+import '/modulos.dart';
 import '/resources/animations/shimmer.dart';
 import '/screens/home/pagina_canticos.dart';
 import '/utils/global.dart';
@@ -58,11 +58,10 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        // TODO: Copiar esse backbutton para todas as telas secundárias
         leading: BackButton(
           onPressed: () async {
             if (!await Modular.to.maybePop()) {
-              Modular.to.pushNamed(AppModule.HOME);
+              Modular.to.pushNamed(Global.rotaInicial);
             }
           },
         ),
@@ -134,7 +133,9 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
             ),
           ),
           Container(
-              height: constraints.maxHeight, width: 1, color: Colors.grey),
+              height: constraints.maxHeight,
+              width: 1,
+              color: Colors.grey.withOpacity(0.38)),
           SizedBox(
               height: constraints.maxHeight,
               width: constraints.maxWidth * 0.6,
@@ -157,35 +158,41 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
   get _tabs {
     return DefaultTabController(
       length: 2,
-      child: Column(
+      child: Flex(
+        direction: Axis.vertical,
         children: [
-          TabBar(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              labelPadding: const EdgeInsets.symmetric(horizontal: 16),
-              indicator: BoxDecoration(
-                borderRadius: BorderRadius.circular(40), // Creates border
-                color: Theme.of(context).colorScheme.secondary,
-              ),
-              splashBorderRadius: BorderRadius.circular(40),
-              splashFactory: NoSplash.splashFactory,
-              overlayColor: MaterialStateProperty.resolveWith<Color?>(
-                (Set<MaterialState> states) {
-                  return states.contains(MaterialState.focused)
-                      ? null
-                      : Colors.transparent;
-                },
-              ),
-              indicatorSize: TabBarIndicatorSize.label,
-              automaticIndicatorColorAdjustment: false,
-              indicatorPadding:
-                  const EdgeInsets.symmetric(horizontal: -16, vertical: 8),
-              unselectedLabelColor: Theme.of(context).colorScheme.onBackground,
-              tabs: const [
-                Tab(text: 'ESCALADOS'),
-                Tab(text: 'CÂNTICOS'),
-              ]),
-          const Divider(height: 1),
-          Expanded(
+          Container(
+            color: Colors.grey.withOpacity(0.05),
+            child: TabBar(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                labelPadding: const EdgeInsets.symmetric(horizontal: 16),
+                indicator: BoxDecoration(
+                  borderRadius: BorderRadius.circular(40), // Creates border
+                  color: Theme.of(context).colorScheme.secondary,
+                ),
+                splashBorderRadius: BorderRadius.circular(40),
+                splashFactory: NoSplash.splashFactory,
+                overlayColor: MaterialStateProperty.resolveWith<Color?>(
+                  (Set<MaterialState> states) {
+                    return states.contains(MaterialState.focused)
+                        ? null
+                        : Colors.transparent;
+                  },
+                ),
+                indicatorSize: TabBarIndicatorSize.label,
+                automaticIndicatorColorAdjustment: false,
+                indicatorPadding:
+                    const EdgeInsets.symmetric(horizontal: -16, vertical: 8),
+                unselectedLabelColor:
+                    Theme.of(context).colorScheme.onBackground,
+                tabs: const [
+                  Tab(text: 'ESCALADOS'),
+                  Tab(text: 'CÂNTICOS'),
+                ]),
+          ),
+          //const Divider(height: 1),
+          Flexible(
+            flex: 1,
             child: TabBarView(children: [
               // ESCALADOS
               ListView(
@@ -224,21 +231,40 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
                 ],
               ),
               // CÂNTICOS
-              Column(
+              Flex(
+                direction: Axis.vertical,
                 children: [
-                  OutlinedButton.icon(
-                    icon: const Icon(Icons.queue_music),
-                    label: const Text('Selecionar canticos'),
-                    onPressed: () => _adicionarCanticos(),
+                  (mLogado?.adm ?? false) || _ehODirigente || _ehOCoordenador
+                      ? Container(
+                          width: double.infinity,
+                          color: Colors.grey.withOpacity(0.05),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 8),
+                          child: Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
+                            alignment: WrapAlignment.spaceBetween,
+                            crossAxisAlignment: WrapCrossAlignment.center,
+                            children: [
+                              OutlinedButton.icon(
+                                icon: const Icon(Icons.queue_music),
+                                label: const Text('Selecionar canticos'),
+                                onPressed: () => _adicionarCanticos(),
+                              ),
+                              Text(
+                                'Dica: Segure e arraste para reordenar',
+                                textAlign: TextAlign.center,
+                                style: Theme.of(context).textTheme.bodySmall,
+                              ),
+                            ],
+                          ),
+                        )
+                      : const SizedBox(),
+                  Flexible(
+                    child: _listaDeCanticos,
                   ),
-                  Text(
-                    'Segure e arraste para reordenar',
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.bodySmall,
-                  ),
-                  Expanded(child: _listaDeCanticos),
                 ],
-              )
+              ),
               //_listaDeCanticos,
             ]),
           ),
@@ -448,8 +474,8 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
   /// Seção o que falta
   Widget get _secaoOqueFalta {
     return Container(
-      color: Theme.of(context).colorScheme.secondary.withOpacity(0.15),
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      color: Theme.of(context).colorScheme.secondary.withOpacity(0.25),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: Row(
         children: [
           Expanded(
@@ -480,13 +506,13 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
                         mSnapshot.reference.update({'emEdicao': false});
                       },
                       icon: const Icon(Icons.lock_outline),
-                      label: const Text('FECHAR'),
+                      label: const Text('FECHAR ESCALA'),
                     )
                   : OutlinedButton.icon(
                       onPressed: () {
                         mSnapshot.reference.update({'emEdicao': true});
                       },
-                      icon: const Icon(Icons.lock_open),
+                      icon: const Icon(Icons.hail),
                       label: const Text('RECRUTAR'),
                     )
               : const SizedBox(),
@@ -560,7 +586,8 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
                 ),
               ),
               // Botão de edição (somente para recrutadores)
-              (mLogado?.adm ?? false) || (mLogado?.ehRecrutador ?? false)
+              ((mLogado?.adm ?? false) || (mLogado?.ehRecrutador ?? false)) &&
+                      mCulto.emEdicao
                   ? IconButton(
                       onPressed: funcaoEditar,
                       icon: const Icon(Icons.edit_note,
@@ -615,7 +642,9 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
                     // Título
                     Text(titulo.toUpperCase()),
                     // Botão de edição
-                    (mLogado?.adm ?? false) || (mLogado?.ehRecrutador ?? false)
+                    ((mLogado?.adm ?? false) ||
+                                (mLogado?.ehRecrutador ?? false)) &&
+                            mCulto.emEdicao
                         ? IconButton(
                             onPressed: funcaoEditar,
                             icon: const Icon(Icons.edit_note,
@@ -846,17 +875,12 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
                 title: Shimmer.fromColors(
                   baseColor: Colors.grey.withOpacity(0.38),
                   highlightColor: Colors.grey.withOpacity(0.12),
-                  child: const Text('          '),
+                  child: const SizedBox(width: 72, height: 16),
                 ),
                 subtitle: Shimmer.fromColors(
                   baseColor: Colors.grey.withOpacity(0.38),
                   highlightColor: Colors.grey.withOpacity(0.12),
-                  child: const Text('          '),
-                ),
-                trailing: Shimmer.fromColors(
-                  baseColor: Colors.grey.withOpacity(0.38),
-                  highlightColor: Colors.grey.withOpacity(0.12),
-                  child: const CircleAvatar(radius: 12),
+                  child: const SizedBox(width: 64, height: 10),
                 ),
               );
             }
@@ -875,43 +899,36 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
             );
           });
     });
-    return ListView(shrinkWrap: true, children: [
-      (mLogado?.adm ?? false) || _ehODirigente
-          ? _secaoCanticos
-          : const SizedBox(),
-      Expanded(
-        child: ReorderableListView(
-          shrinkWrap: true,
-          physics: const NeverScrollableScrollPhysics(),
-          buildDefaultDragHandles: _ehODirigente || (mLogado?.adm ?? false),
-          onReorder: (int old, int current) async {
-            dev.log('${old.toString()} | ${current.toString()}');
-            // dragging from top to bottom
-            Widget startItem = lista[old];
-            var startCantico = mCulto.canticos![old];
-            if (old < current) {
-              for (int i = old; i < current - 1; i++) {
-                lista[i] = lista[i + 1];
-                mCulto.canticos![i] = mCulto.canticos![i + 1];
-              }
-              lista[current - 1] = startItem;
-              mCulto.canticos![current - 1] = startCantico;
-            }
-            // dragging from bottom to top
-            else if (old > current) {
-              for (int i = old; i > current; i--) {
-                lista[i] = lista[i - 1];
-                mCulto.canticos![i] = mCulto.canticos![i - 1];
-              }
-              lista[current] = startItem;
-              mCulto.canticos![current] = startCantico;
-            }
-            mSnapshot.reference.update({'canticos': mCulto.canticos});
-          },
-          children: lista,
-        ),
-      ),
-    ]);
+    return ReorderableListView(
+      shrinkWrap: true,
+      //physics: const NeverScrollableScrollPhysics(),
+      buildDefaultDragHandles: _ehODirigente || (mLogado?.adm ?? false),
+      onReorder: (int old, int current) async {
+        dev.log('${old.toString()} | ${current.toString()}');
+        // dragging from top to bottom
+        Widget startItem = lista[old];
+        var startCantico = mCulto.canticos![old];
+        if (old < current) {
+          for (int i = old; i < current - 1; i++) {
+            lista[i] = lista[i + 1];
+            mCulto.canticos![i] = mCulto.canticos![i + 1];
+          }
+          lista[current - 1] = startItem;
+          mCulto.canticos![current - 1] = startCantico;
+        }
+        // dragging from bottom to top
+        else if (old > current) {
+          for (int i = old; i > current; i--) {
+            lista[i] = lista[i - 1];
+            mCulto.canticos![i] = mCulto.canticos![i - 1];
+          }
+          lista[current] = startItem;
+          mCulto.canticos![current] = startCantico;
+        }
+        mSnapshot.reference.update({'canticos': mCulto.canticos});
+      },
+      children: lista,
+    );
   }
 
   /* FUNÇÕES */
@@ -1108,7 +1125,10 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
           // CHIP
           return ChoiceChip(
             avatar: loading
-                ? const CircularProgressIndicator(strokeWidth: 1)
+                ? const Padding(
+                    padding: EdgeInsets.all(4),
+                    child: CircularProgressIndicator(
+                        strokeWidth: 1, color: Colors.white))
                 : null,
             label: Text(nomeCurto),
             materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -1250,7 +1270,7 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
   void _verificarDisponibilidades() {
     Mensagem.bottomDialog(
         context: context,
-        titulo: 'Disponibilidades dos integrantes',
+        titulo: 'Disponibilidade dos integrantes',
         conteudo: FutureBuilder<QuerySnapshot<Integrante>>(
             future: MeuFirebase.obterListaIntegrantes(
                 ativo: true, igreja: mCulto.igreja),
@@ -1349,43 +1369,45 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
                         (index) => Text(
                             '${index + 1}. ${indecisos.values.elementAt(index)}')),
                   ),
-                  const SizedBox(height: 12),
-                  ElevatedButton.icon(
-                    onPressed: indecisos.isEmpty
-                        ? null
-                        : () async {
-                            Mensagem.aguardar(context: context);
-                            var avisados = [];
-                            // Avisar dirigente
-                            for (var id in indecisos.keys) {
-                              if (!avisados.contains(id)) {
-                                var token =
-                                    await MeuFirebase.obterTokenDoIntegrante(
-                                        id);
-                                if (token != null) {
-                                  MeuFirebase.notificarIndecisos(
-                                      token: token,
-                                      igreja:
-                                          Global.igrejaSelecionada.value?.id ??
-                                              '',
-                                      culto: mCulto,
-                                      cultoId: mSnapshot.id);
-                                  dev.log('Integrante $id avisado!');
-                                }
-                              }
-                              avisados.add(id);
-                            }
-                            Modular.to.pop();
-                            Mensagem.simples(
-                                context: context,
-                                titulo: 'Sucesso!',
-                                mensagem:
-                                    'Todos os integrantes indecisos foram notificados.');
-                          },
-                    icon: const Icon(Icons.notification_important),
-                    label: const Text('Notificar indecisos'),
-                  ),
-                  const SizedBox(height: 24),
+                  (mLogado?.adm ?? false) || (mLogado?.ehRecrutador ?? false)
+                      ? Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 12),
+                          child: ElevatedButton.icon(
+                            onPressed: indecisos.isEmpty
+                                ? null
+                                : () async {
+                                    Mensagem.aguardar(context: context);
+                                    var avisados = [];
+                                    // Avisar dirigente
+                                    for (var id in indecisos.keys) {
+                                      if (!avisados.contains(id)) {
+                                        var token = await MeuFirebase
+                                            .obterTokenDoIntegrante(id);
+                                        if (token != null) {
+                                          MeuFirebase.notificarIndecisos(
+                                              token: token,
+                                              igreja: Global.igrejaSelecionada
+                                                      .value?.id ??
+                                                  '',
+                                              culto: mCulto,
+                                              cultoId: mSnapshot.id);
+                                          dev.log('Integrante $id avisado!');
+                                        }
+                                      }
+                                      avisados.add(id);
+                                    }
+                                    Modular.to.pop();
+                                    Mensagem.simples(
+                                        context: context,
+                                        titulo: 'Sucesso!',
+                                        mensagem:
+                                            'Todos os integrantes indecisos foram notificados.');
+                                  },
+                            icon: const Icon(Icons.notification_important),
+                            label: const Text('Notificar indecisos'),
+                          ),
+                        )
+                      : const SizedBox(height: 12),
                 ],
               );
             }));

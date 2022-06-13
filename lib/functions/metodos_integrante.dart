@@ -212,55 +212,53 @@ class MetodosIntegrante {
 
     // Conteúdo organizado
     var conteudo = StatefulBuilder(builder: (context, innerState) {
-      return Flexible(
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          const Padding(
-            padding: EdgeInsets.all(16),
-            child: Text(
-              'Selecione um ou mais funções para o integrante.',
-              textAlign: TextAlign.center,
-            ),
+      return Column(mainAxisSize: MainAxisSize.min, children: [
+        const Padding(
+          padding: EdgeInsets.all(16),
+          child: Text(
+            'Selecione um ou mais funções para o integrante.',
+            textAlign: TextAlign.center,
           ),
-          Expanded(
-            child: ListView(
-              shrinkWrap: true,
-              children: List.generate(
-                Funcao.values.length,
-                (index) {
-                  Funcao funcao = Funcao.values[index];
-                  bool inscrito = integrante.funcoes
-                          ?.map((e) => e.index)
-                          .contains(funcao.index) ??
-                      false;
-                  return CheckboxListTile(
-                      title: Row(
-                        children: [
-                          Icon(funcaoGetIcon(funcao)),
-                          const SizedBox(width: 8),
-                          Text(funcaoGetString(funcao)),
-                        ],
-                      ),
-                      tristate: false,
-                      value: inscrito,
-                      onChanged: (value) async {
-                        integrante.funcoes ??= [];
-                        innerState(() {
-                          value == false
-                              ? integrante.funcoes
-                                  ?.removeWhere((element) => element == funcao)
-                              : integrante.funcoes?.add(funcao);
-                        });
-                        await snapshot.reference.update(
-                            {'funcoes': funcaoParseList(integrante.funcoes)});
+        ),
+        Flexible(
+          child: ListView(
+            shrinkWrap: true,
+            padding: const EdgeInsets.only(bottom: 16),
+            children: List.generate(
+              Funcao.values.length,
+              (index) {
+                Funcao funcao = Funcao.values[index];
+                bool inscrito = integrante.funcoes
+                        ?.map((e) => e.index)
+                        .contains(funcao.index) ??
+                    false;
+                return CheckboxListTile(
+                    title: Row(
+                      children: [
+                        Icon(funcaoGetIcon(funcao)),
+                        const SizedBox(width: 8),
+                        Text(funcaoGetString(funcao)),
+                      ],
+                    ),
+                    tristate: false,
+                    value: inscrito,
+                    onChanged: (value) async {
+                      integrante.funcoes ??= [];
+                      innerState(() {
+                        value == false
+                            ? integrante.funcoes
+                                ?.removeWhere((element) => element == funcao)
+                            : integrante.funcoes?.add(funcao);
                       });
-                },
-                growable: false,
-              ),
+                      await snapshot.reference.update(
+                          {'funcoes': funcaoParseList(integrante.funcoes)});
+                    });
+              },
+              growable: false,
             ),
           ),
-          const SizedBox(height: 16),
-        ]),
-      );
+        ),
+      ]);
     });
 
     Mensagem.bottomDialog(
@@ -276,59 +274,59 @@ class MetodosIntegrante {
 
     // Conteúdo organizado
     var conteudo = StatefulBuilder(builder: (context, innerState) {
-      return Flexible(
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          const Padding(
-            padding: EdgeInsets.all(16),
-            child: Text(
-              'Selecione um ou mais instrumentos, equipamentos ou habilidades em que pode ser escalado.',
-              textAlign: TextAlign.center,
-            ),
+      return Column(mainAxisSize: MainAxisSize.min, children: [
+        const Padding(
+          padding: EdgeInsets.all(16),
+          child: Text(
+            'Selecione um ou mais instrumentos, equipamentos ou habilidades em que pode ser escalado.',
+            textAlign: TextAlign.center,
           ),
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.only(bottom: 16),
-              shrinkWrap: true,
-              //physics: const NeverScrollableScrollPhysics(),
-              children: List.generate(
-                instrumentos.length,
-                (index) {
-                  bool inscrito = integrante.instrumentos
-                          ?.map((e) => e.toString())
-                          .contains(instrumentos[index].reference.toString()) ??
-                      false;
-                  return CheckboxListTile(
-                      title: Row(
-                        children: [
-                          Image.asset(instrumentos[index].data().iconAsset,
-                              width: 24),
-                          const SizedBox(width: 8),
-                          Text(instrumentos[index].data().nome),
-                        ],
-                      ),
-                      tristate: false,
-                      value: inscrito,
-                      onChanged: (value) async {
-                        integrante.instrumentos ??= [];
-                        innerState(() {
-                          value == false
-                              ? integrante.instrumentos?.removeWhere(
-                                  (element) =>
-                                      element.toString() ==
-                                      instrumentos[index].reference.toString())
-                              : integrante.instrumentos
-                                  ?.add(instrumentos[index].reference);
-                        });
-                        await snapshot.reference
-                            .update({'instrumentos': integrante.instrumentos});
+        ),
+        Flexible(
+          child: ListView(
+            padding: const EdgeInsets.only(bottom: 16),
+            shrinkWrap: true,
+            children: List.generate(
+              instrumentos.length,
+              (index) {
+                bool inscrito = integrante.instrumentos
+                        ?.map((e) => e.toString())
+                        .contains(instrumentos[index].reference.toString()) ??
+                    false;
+                return CheckboxListTile(
+                    title: Row(
+                      children: [
+                        Image.asset(
+                          instrumentos[index].data().iconAsset,
+                          width: 20,
+                          color: Theme.of(context).colorScheme.onBackground,
+                          colorBlendMode: BlendMode.srcATop,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(instrumentos[index].data().nome),
+                      ],
+                    ),
+                    tristate: false,
+                    value: inscrito,
+                    onChanged: (value) async {
+                      integrante.instrumentos ??= [];
+                      innerState(() {
+                        value == false
+                            ? integrante.instrumentos?.removeWhere((element) =>
+                                element.toString() ==
+                                instrumentos[index].reference.toString())
+                            : integrante.instrumentos
+                                ?.add(instrumentos[index].reference);
                       });
-                },
-                growable: false,
-              ),
+                      await snapshot.reference
+                          .update({'instrumentos': integrante.instrumentos});
+                    });
+              },
+              growable: false,
             ),
           ),
-        ]),
-      );
+        ),
+      ]);
     });
 
     Mensagem.bottomDialog(
@@ -351,86 +349,97 @@ class MetodosIntegrante {
             textAlign: TextAlign.center,
           ),
         ),
-        Wrap(
-          spacing: 8,
-          runSpacing: 8,
-          children: List.generate(
-            igrejas.length,
-            (index) {
-              bool inscrito = integrante.igrejas
-                      ?.map((e) => e.toString())
-                      .contains(igrejas[index].reference.toString()) ??
-                  false;
-              return InkWell(
-                onTap: () async {
-                  integrante.igrejas ??= [];
-                  // Caso seja o integrante logado e
-                  // se a igreja indicado já estiver inscrita
-                  if (snapshot.reference.toString() ==
-                          Global.logadoReference.toString() &&
-                      (Global.igrejaSelecionada.value?.reference.toString() ==
-                          igrejas[index].reference.toString())) {
-                    Mensagem.decisao(
-                        context: context,
-                        titulo: 'Atenção',
-                        mensagem:
-                            'Deseja se desinscrever da sua igreja atualmente selecionada?',
-                        onPressed: (ok) async {
-                          if (ok) {
-                            innerState(() {
-                              inscrito
-                                  ? integrante.igrejas?.removeWhere((element) =>
-                                      element.toString() ==
-                                      igrejas[index].reference.toString())
-                                  : integrante.igrejas
-                                      ?.add(igrejas[index].reference);
+        Flexible(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.only(bottom: 16),
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: List.generate(
+                igrejas.length,
+                (index) {
+                  bool inscrito = integrante.igrejas
+                          ?.map((e) => e.toString())
+                          .contains(igrejas[index].reference.toString()) ??
+                      false;
+                  return InkWell(
+                    onTap: () async {
+                      integrante.igrejas ??= [];
+                      // Caso seja o integrante logado e
+                      // se a igreja indicado já estiver inscrita
+                      if (snapshot.reference.toString() ==
+                              Global.logadoReference.toString() &&
+                          (Global.igrejaSelecionada.value?.reference
+                                  .toString() ==
+                              igrejas[index].reference.toString())) {
+                        Mensagem.decisao(
+                            context: context,
+                            titulo: 'Atenção',
+                            mensagem:
+                                'Deseja se desinscrever da sua igreja atualmente selecionada?',
+                            onPressed: (ok) async {
+                              if (ok) {
+                                innerState(() {
+                                  inscrito
+                                      ? integrante.igrejas?.removeWhere(
+                                          (element) =>
+                                              element.toString() ==
+                                              igrejas[index]
+                                                  .reference
+                                                  .toString())
+                                      : integrante.igrejas
+                                          ?.add(igrejas[index].reference);
+                                });
+                                await snapshot.reference
+                                    .update({'igrejas': integrante.igrejas});
+                                Global.igrejaSelecionada.value = null;
+                              }
                             });
-                            await snapshot.reference
-                                .update({'igrejas': integrante.igrejas});
-                            Global.igrejaSelecionada.value = null;
-                          }
+                      } else {
+                        innerState(() {
+                          inscrito
+                              ? integrante.igrejas?.removeWhere((element) =>
+                                  element.toString() ==
+                                  igrejas[index].reference.toString())
+                              : integrante.igrejas
+                                  ?.add(igrejas[index].reference);
                         });
-                  } else {
-                    innerState(() {
-                      inscrito
-                          ? integrante.igrejas?.removeWhere((element) =>
-                              element.toString() ==
-                              igrejas[index].reference.toString())
-                          : integrante.igrejas?.add(igrejas[index].reference);
-                    });
-                    await snapshot.reference
-                        .update({'igrejas': integrante.igrejas});
-                    if (snapshot.reference == Global.logadoReference) {
-                      Global.igrejaSelecionada.notifyListeners();
-                    }
-                  }
+                        await snapshot.reference
+                            .update({'igrejas': integrante.igrejas});
+                        if (snapshot.reference.toString() ==
+                            Global.logadoReference.toString()) {
+                          Global.igrejaSelecionada.notifyListeners();
+                        }
+                      }
+                    },
+                    // Pilha
+                    child: Stack(
+                      alignment: AlignmentDirectional.topEnd,
+                      children: [
+                        // Card da Igreja
+                        Padding(
+                          padding: const EdgeInsets.only(top: 4, right: 4),
+                          child: TileIgrejaSmall(igreja: igrejas[index].data()),
+                        ),
+                        // Checkbox inscrito
+                        CircleAvatar(
+                          radius: 12,
+                          backgroundColor: Colors.white,
+                          child: inscrito
+                              ? Icon(Icons.check_circle,
+                                  color: Theme.of(context).colorScheme.primary)
+                              : const Icon(Icons.remove_circle,
+                                  color: Colors.grey),
+                        ),
+                      ],
+                    ),
+                  );
                 },
-                // Pilha
-                child: Stack(
-                  alignment: AlignmentDirectional.topEnd,
-                  children: [
-                    // Card da Igreja
-                    Padding(
-                      padding: const EdgeInsets.only(top: 4, right: 4),
-                      child: TileIgrejaSmall(igreja: igrejas[index].data()),
-                    ),
-                    // Checkbox inscrito
-                    CircleAvatar(
-                      radius: 12,
-                      backgroundColor: Colors.white,
-                      child: inscrito
-                          ? Icon(Icons.check_circle,
-                              color: Theme.of(context).colorScheme.primary)
-                          : const Icon(Icons.remove_circle, color: Colors.grey),
-                    ),
-                  ],
-                ),
-              );
-            },
-            growable: false,
-          ).toList(),
+                growable: false,
+              ).toList(),
+            ),
+          ),
         ),
-        const SizedBox(height: 16),
       ]);
     });
 

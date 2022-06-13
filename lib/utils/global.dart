@@ -1,5 +1,4 @@
 import 'dart:developer' as dev;
-import 'dart:typed_data';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -11,12 +10,23 @@ import 'package:flutter_modular/flutter_modular.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-import '../modulos.dart';
-import '../screens/home/tela_home.dart';
 import '/firebase_options.dart';
 import '/functions/metodos_firebase.dart';
 import '/models/igreja.dart';
 import '/models/integrante.dart';
+import '/modulos.dart';
+import '/screens/home/tela_home.dart';
+
+enum FiltroAgenda {
+  historico,
+  proximos,
+  mesAtual,
+}
+
+enum FiltroAvisos {
+  atuais,
+  vencidos,
+}
 
 /// Classe com métodos e variáveis de interesse Global
 class Global {
@@ -25,87 +35,101 @@ class Global {
   static SharedPreferences? preferences;
   static DocumentSnapshot<Integrante>? logadoSnapshot;
 
-  /* PREFERÊNCIAS */
-
-  /// ID da Igreja em contexto
-  static String? get prefIgrejaId => preferences?.getString('igreja_atual');
-  static set prefIgrejaId(String? id) {
-    if (id != null && id.isNotEmpty) {
-      preferences?.setString('igreja_atual', id);
-    } else {
-      preferences?.remove('igreja_atual');
-    }
-  }
-
-  /// Mostrar todos os cultos
-  static bool get prefMostrarTodosOsCultos =>
-      preferences?.getBool('mostrar_todos_cultos') ?? false;
-  static set prefMostrarTodosOsCultos(bool value) {
-    preferences?.setBool('mostrar_todos_cultos', value);
-    notificarAlteracaoEmIgrejas();
-  }
-
-  /// Notificar alteração em igrejas selecionadas
-  static void notificarAlteracaoEmIgrejas() {
-    meusFiltros.value.igrejas = prefMostrarTodosOsCultos
-        ? logado?.igrejas
-        : [igrejaSelecionada.value?.reference];
-    meusFiltros.notifyListeners();
-  }
-
   /* MÉTODOS  */
 
-  /// Carrega tudo o que for necessário para iniciar o aplicativo.
+  /// INICIAR
+  /// Carrega tudo o que é necessário para utilizar o aplicativo:
   /// - Widgets Binding
+  /// - Rota inicial
   /// - PackageInfo
   /// - Firebase initialize (return false on error)
-  ///   -  Auth com persistência local (web)
+  ///   -  Persistência da autenticação
   /// - Shared Preferences
-  /// - Igreja em contexto
-  /// - Integrante logado
+  ///   - Integrante logado
+  ///   - Igreja em contexto
   static Future<bool> iniciar() async {
     WidgetsFlutterBinding.ensureInitialized();
-    //Modular.setInitialRoute('/${Paginas.values[0].name}');
+
     Modular.setInitialRoute(rotaInicial);
+    //Modular.setNavigatorKey(myNavigatorKey);
+    //Modular.setObservers([myObserver]);
+
     // Carrega o arquivo de chaves (a extensão .txt é para poder ser lida na web)
     await dotenv.load(fileName: 'dotenv.txt');
+
     // Carrega as informações básicas do aplicativo e da plataforma
     appInfo = await PackageInfo.fromPlatform();
+
     // Inicializa a aplicação Firebase
     try {
       await Firebase.initializeApp(
           options: DefaultFirebaseOptions.currentPlatform);
-    } on UnsupportedError catch (e) {
-      // Em caso de plataforma não suportada
+    }
+    // Em caso de plataforma não suportada
+    on UnsupportedError catch (e) {
       dev.log('Main: ${e.toString()}');
       return false;
-    } catch (e) {
-      // Em caso de erros não previstos
+    }
+    // Em caso de erros não previstos
+    catch (e) {
       dev.log('Main: ${e.toString()}');
     }
-    //FirebaseAuth.instance;
+
+    // Persistência da autenticação (somente web)
     if (kIsWeb) {
       await FirebaseAuth.instance.setPersistence(Persistence.LOCAL);
     }
+
     // Recupera os dados salvos na seção anterior
     preferences = await SharedPreferences.getInstance();
+
+    // Dados do usuário logado
     if (FirebaseAuth.instance.currentUser != null) {
-      // Carrega o integrante logado
       var userId = FirebaseAuth.instance.currentUser!.uid;
-      Global.logadoSnapshot = await MeuFirebase.obterSnapshotIntegrante(userId);
+
+      // Carrega o integrante logado
+      logadoSnapshot = await MeuFirebase.obterSnapshotIntegrante(userId);
+
       // Carrega igreja pré-selecionada
-      Global.igrejaSelecionada.value =
+      igrejaSelecionada.value =
           await MeuFirebase.obterSnapshotIgreja(prefIgrejaId);
     }
+
     return true;
   }
+
+  /* PREFERÊNCIAS */
+
+  /// Getter: ID da Igreja em contexto
+  static String? get prefIgrejaId => preferences?.getString('igreja_atual');
+
+  /// Setter: ID da Igreja em contexto
+  static set prefIgrejaId(String? id) {
+    if (id == null || !id.isNotEmpty) {
+      preferences?.remove('igreja_atual');
+    } else {
+      preferences?.setString('igreja_atual', id);
+    }
+  }
+
+  /// Getter: Mostrar cultos de todas as igrejas inscritas
+  static bool get prefMostrarTodosOsCultos =>
+      preferences?.getBool('mostrar_todos_cultos') ?? false;
+
+  /// Setter: Mostrar cultos de todas as igrejas inscritas
+  static set prefMostrarTodosOsCultos(bool value) {
+    preferences?.setBool('mostrar_todos_cultos', value);
+    //notificarAlteracaoEmIgrejas();
+  }
+
+  /* GETTERS */
 
   /// Nome do aplicativo
   static get nomeDoApp =>
       kIsWeb ? 'Escala do Louvor' : appInfo?.appName ?? 'Escala do Louvor';
 
   /// Rota inicial
-  static get rotaInicial => '${AppModule.HOME}/${Paginas.agenda.name}';
+  static get rotaInicial => '${AppModule.HOME}/${HomePages.agenda.name}';
 
   /// Dados do integrante logado
   static Integrante? get logado => logadoSnapshot?.data();
@@ -129,30 +153,27 @@ class Global {
     );
   }
 
-  // Notificadores
+  /* NOTIFICADORES */
+
+  // Igreja selecionada para o contexto
   static ValueNotifier<DocumentSnapshot<Igreja>?> igrejaSelecionada =
       ValueNotifier(null);
-  static ValueNotifier<FiltroAgenda> meusFiltros = ValueNotifier(FiltroAgenda(
-    dataMinima: DateTime.now().subtract(const Duration(hours: 4)),
-    igrejas: prefMostrarTodosOsCultos
-        ? Global.logadoSnapshot!.data()!.igrejas
-        : [Global.igrejaSelecionada.value?.reference],
-  ));
-}
 
-class FiltroAgenda {
-  DateTime? dataMinima;
-  DateTime? dataMaxima;
-  List<DocumentReference?>? igrejas;
+  // Filtros para apresentar apenas uma igreja ou todas as inscritas
+  static ValueNotifier<bool> filtroMostrarTodosCultos =
+      ValueNotifier(prefMostrarTodosOsCultos);
 
-  FiltroAgenda({this.dataMinima, this.dataMaxima, this.igrejas});
+  // Filtro da pagina agenda
+  static ValueNotifier<FiltroAgenda> filtroAgenda =
+      ValueNotifier(FiltroAgenda.proximos);
 
-  Timestamp? get timeStampMin =>
-      dataMinima == null ? null : Timestamp.fromDate(dataMinima!);
-  Timestamp? get timeStampMax =>
-      dataMaxima == null ? null : Timestamp.fromDate(dataMaxima!);
-}
+  // Filtro da pagina equipe
+  static ValueNotifier<Funcao?> filtroEquipe = ValueNotifier(null);
 
-class Cache {
-  static Map<String, Uint8List> arquivos = {};
+  // Filtros da pagina avisos
+  static ValueNotifier<FiltroAvisos> filtroAvisos =
+      ValueNotifier(FiltroAvisos.atuais);
+
+  // Filtros da pagina repertorio
+  static ValueNotifier<bool?> filtroHinos = ValueNotifier(null);
 }

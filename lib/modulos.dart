@@ -1,7 +1,6 @@
 // ignore_for_file: constant_identifier_names
 
-import 'package:escala_louvor/main.dart';
-import 'package:escala_louvor/screens/home/pagina_igreja.dart';
+import 'package:escala_louvor/utils/global.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 
@@ -10,6 +9,7 @@ import 'screens/admin/tela_admin.dart';
 import 'screens/home/pagina_agenda.dart';
 import 'screens/home/pagina_avisos.dart';
 import 'screens/home/pagina_canticos.dart';
+import 'screens/home/pagina_igreja.dart';
 import 'screens/home/tela_home.dart';
 import 'screens/secondaries/tela_cantico.dart';
 import 'screens/secondaries/tela_culto.dart';
@@ -19,61 +19,71 @@ import 'screens/user/tela_login.dart';
 import 'screens/user/tela_perfil.dart';
 
 class AppModule extends Module {
-  static const String HOME = '/home';
-  static const String LOGIN = '/login';
-  static const String CONTEXTO = '/contexto';
-  static const String PERFIL = '/perfil';
   static const String ADMIN = '/admin';
   static const String ARQUIVOS = '/arquivos';
   static const String CANTICO = '/cantico';
+  static const String CONTEXTO = '/contexto';
   static const String CULTO = '/culto';
+  static const String HOME = '/home';
+  static const String LOGIN = '/login';
+  static const String PERFIL = '/perfil';
 
   @override
   List<Bind> get binds => [];
 
   @override
   List<ModularRoute> get routes => [
+        // RAIZ
         ChildRoute(
           '/',
           child: (_, args) => const MyApp(),
           guards: [AuthGuard()],
         ),
+
+        // CONTEXTO
+        ChildRoute(
+          CONTEXTO,
+          child: (_, __) => const TelaContexto(),
+          guards: [AuthGuard()],
+        ),
+
+        // HOME + Paginas
         ChildRoute(
           HOME,
           child: (_, args) => const MyApp(),
           guards: [AuthGuard()],
           children: [
             ChildRoute(
-              '/${Paginas.agenda.name}',
+              '/${HomePages.agenda.name}',
               child: (context, args) => const PaginaAgenda(),
               transition: TransitionType.downToUp,
             ),
             ChildRoute(
-              '/${Paginas.canticos.name}',
+              '/${HomePages.canticos.name}',
               child: (context, args) => const PaginaCanticos(),
               transition: TransitionType.downToUp,
             ),
             ChildRoute(
-              '/${Paginas.avisos.name}',
+              '/${HomePages.avisos.name}',
               child: (context, args) => const PaginaAvisos(),
               transition: TransitionType.downToUp,
             ),
             ChildRoute(
-              '/${Paginas.equipe.name}',
+              '/${HomePages.equipe.name}',
               child: (context, args) => const PaginaEquipe(),
               transition: TransitionType.downToUp,
             ),
           ],
         ),
+
+        // LOGIN
         ChildRoute(
           LOGIN,
           child: (_, __) => const TelaLogin(),
-          //guards: [LoginGuard()],
+          guards: [InverseAuthGuard()],
         ),
-        ChildRoute(
-          CONTEXTO,
-          child: (_, __) => const TelaContexto(),
-        ),
+
+        // PERFIL
         ChildRoute(
           PERFIL,
           child: (_, args) => TelaPerfil(
@@ -83,6 +93,8 @@ class AppModule extends Module {
           ),
           guards: [AuthGuard(), QueryGuard()],
         ),
+
+        // CULTO
         ChildRoute(
           CULTO,
           child: (_, args) => TelaDetalhesEscala(
@@ -91,11 +103,17 @@ class AppModule extends Module {
           ),
           guards: [AuthGuard(), QueryGuard()],
         ),
+
+        // CANTICOS
         ChildRoute(
-          ADMIN,
-          child: (_, __) => const TelaAdmin(),
-          guards: [AuthGuard()],
+          CANTICO,
+          child: (_, args) => TelaLetrasView(
+              id: args.queryParams['id'] ?? '', snapshot: args.data),
+          transition: TransitionType.downToUp,
+          guards: [AuthGuard(), QueryGuard()],
         ),
+
+        // ARQUIVOS PDF
         ChildRoute(
           ARQUIVOS,
           child: (_, args) => TelaPdfView(
@@ -105,50 +123,16 @@ class AppModule extends Module {
           transition: TransitionType.downToUp,
           guards: [AuthGuard()],
         ),
+
+        // ADMIN
         ChildRoute(
-          CANTICO,
-          child: (_, args) => TelaLetrasView(
-              id: args.queryParams['id'] ?? '', snapshot: args.data),
-          transition: TransitionType.downToUp,
-          guards: [AuthGuard(), QueryGuard()],
+          ADMIN,
+          child: (_, __) => const TelaAdmin(),
+          guards: [AuthGuard()], // TODO: Add AdminGuard
         ),
+
+        // WILDCARD (em caso de rota inexistente - Erro 404)
         WildcardRoute(child: (_, __) => const MyApp()),
-      ];
-}
-
-class HomeModule extends Module {
-  @override
-  List<Bind> get binds => [];
-
-  @override
-  List<ModularRoute> get routes => [
-        ChildRoute(
-          '/',
-          child: (_, args) => const Home(),
-          guards: [AuthGuard()],
-          children: [
-            ChildRoute(
-              '/${Paginas.agenda.name}',
-              child: (context, args) => const PaginaAgenda(),
-              transition: TransitionType.downToUp,
-            ),
-            ChildRoute(
-              '/${Paginas.canticos.name}',
-              child: (context, args) => const PaginaCanticos(),
-              transition: TransitionType.downToUp,
-            ),
-            ChildRoute(
-              '/${Paginas.avisos.name}',
-              child: (context, args) => const PaginaAvisos(),
-              transition: TransitionType.downToUp,
-            ),
-            ChildRoute(
-              '/${Paginas.equipe.name}',
-              child: (context, args) => const PaginaEquipe(),
-              transition: TransitionType.downToUp,
-            ),
-          ],
-        ),
       ];
 }
 
@@ -156,36 +140,27 @@ class AuthGuard extends RouteGuard {
   AuthGuard() : super(redirectTo: AppModule.LOGIN);
 
   @override
-  // ignore: avoid_renaming_method_parameters
-  Future<bool> canActivate(String path, ModularRoute router) async {
-    var test = FirebaseAuth.instance.currentUser != null;
-    print('AuthGuard: $test');
-    return test;
+  Future<bool> canActivate(String path, ModularRoute route) async {
+    var isAuthenticated = FirebaseAuth.instance.currentUser != null;
+    return isAuthenticated;
   }
 }
 
-/* class LoginGuard extends RouteGuard {
-  //LoginGuard() : super(redirectTo: '/${Paginas.values[0].name}');
-  LoginGuard() : super(redirectTo: Modular.initialRoute);
+class InverseAuthGuard extends RouteGuard {
+  InverseAuthGuard() : super(redirectTo: Global.rotaInicial);
 
   @override
-  // ignore: avoid_renaming_method_parameters
-  Future<bool> canActivate(String path, ModularRoute router) async {
-    var test = Modular.get<FirebaseAuth>(defaultValue: FirebaseAuth.instance)
-            .currentUser ==
-        null;
-    print('LoginGuard: $test');
-    return test;
+  Future<bool> canActivate(String path, ModularRoute route) async {
+    var isNotAuthenticated = FirebaseAuth.instance.currentUser == null;
+    return isNotAuthenticated;
   }
-} */
+}
 
 class QueryGuard extends RouteGuard {
-  //QueryGuard() : super(redirectTo: '/${Paginas.values[0].name}');
-  QueryGuard() : super(redirectTo: Modular.initialRoute);
+  QueryGuard() : super(redirectTo: Global.rotaInicial);
 
   @override
-  // ignore: avoid_renaming_method_parameters
-  Future<bool> canActivate(String path, ModularRoute router) async {
-    return router.uri.hasQuery;
+  Future<bool> canActivate(String path, ModularRoute route) async {
+    return route.uri.hasQuery;
   }
 }

@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:escala_louvor/resources/temas.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:intl/intl.dart';
@@ -396,14 +397,11 @@ class Dialogos {
                       child: CheckboxListTile(
                           title: const Text('É hino'),
                           activeColor: Theme.of(context).colorScheme.primary,
-                          tileColor: Theme.of(context)
-                              .colorScheme
-                              .secondary
-                              .withOpacity(0.12),
+                          tileColor: Theme.of(context).hoverColor,
                           selectedTileColor: Theme.of(context)
                               .colorScheme
-                              .primary
-                              .withOpacity(0.12),
+                              .secondary
+                              .withOpacity(0.25),
                           shape: RoundedRectangleBorder(
                               borderRadius: BorderRadius.circular(32)),
                           value: cantico.isHino,

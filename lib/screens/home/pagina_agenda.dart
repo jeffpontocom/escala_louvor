@@ -1,25 +1,19 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:escala_louvor/widgets/tela_mensagem.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:intl/intl.dart';
 import 'package:table_calendar/table_calendar.dart';
 
-import '../../modulos.dart';
 import '/functions/metodos_firebase.dart';
 import '/models/culto.dart';
 import '/models/integrante.dart';
+import '/modulos.dart';
 import '/utils/global.dart';
 import '/utils/mensagens.dart';
 import '/widgets/avatar.dart';
 import '/widgets/dialogos.dart';
+import '/widgets/tela_mensagem.dart';
 import '/widgets/tile_culto.dart';
-
-enum FiltroData {
-  historico,
-  proximos,
-  mesAtual,
-}
 
 class PaginaAgenda extends StatefulWidget {
   const PaginaAgenda({Key? key}) : super(key: key);
@@ -33,7 +27,6 @@ class _PaginaAgendaState extends State<PaginaAgenda> {
 
   /// Lista de cultos
   List<QueryDocumentSnapshot<Culto>> cultos = [];
-  FiltroData filtroData = FiltroData.proximos;
 
   // Variáveis para calendário
   final DateTime agora = DateTime.now();
@@ -73,55 +66,87 @@ class _PaginaAgendaState extends State<PaginaAgenda> {
   Widget build(BuildContext context) {
     // Inicia com um listener para os filtros
     // Datas minima e máxima, e Igreja
-    return ValueListenableBuilder<FiltroAgenda>(
-        valueListenable: Global.meusFiltros,
-        builder: (context, filtros, _) {
-          // Limpa a lista para forçar a interface a apresentar a tela de progresso
-          cultos.clear();
+    return ValueListenableBuilder<bool>(
+        valueListenable: Global.filtroMostrarTodosCultos,
+        builder: (context, mostrarTudo, _) {
+          var igrejas = mostrarTudo
+              ? Global.logadoSnapshot!.data()!.igrejas
+              : [Global.igrejaSelecionada.value?.reference];
 
-          // Stream para montar a lista de cultos dinâmica,
-          // ou seja, observa cada mudança nos registros
-          return StreamBuilder<QuerySnapshot<Culto>>(
-              stream: MeuFirebase.escutarCultos(
-                  dataMinima: filtros.timeStampMin,
-                  dataMaxima: filtros.timeStampMax,
-                  igrejas: filtros.igrejas),
-              builder: (context, snapshot) {
-                // TELA DE PROGRESSO
-                if (!snapshot.hasData ||
-                    (snapshot.connectionState == ConnectionState.waiting &&
-                        cultos.isEmpty)) {
-                  return Column(
-                    children: const [
-                      LinearProgressIndicator(),
-                      Expanded(
-                        child: TelaMensagem(
-                          'Carregando a lista...',
-                          asset: 'assets/images/church.png',
-                        ),
-                      )
-                    ],
-                  );
-                }
-                // TELA DE FALHA
-                if (snapshot.hasError) {
-                  return const TelaMensagem(
-                    'Falha ao tentar obter dados',
-                    isError: true,
-                  );
+          return ValueListenableBuilder<FiltroAgenda>(
+              valueListenable: Global.filtroAgenda,
+              builder: (context, agenda, _) {
+                // Limpa a lista para forçar a interface a apresentar a tela de progresso
+                cultos.clear();
+
+                Timestamp? dataMin;
+                Timestamp? dataMax;
+                switch (agenda) {
+                  case FiltroAgenda.historico:
+                    dataMax = Timestamp.fromDate(
+                        agora.subtract(const Duration(hours: 4)));
+                    break;
+                  case FiltroAgenda.mesAtual:
+                    var ano = agora.year;
+                    var mes = agora.month;
+                    dataMin = Timestamp.fromDate(DateTime(ano, mes, 1));
+                    dataMax = Timestamp.fromDate(DateTime(ano, mes + 1, -1));
+                    break;
+                  case FiltroAgenda.proximos:
+                    dataMin = Timestamp.fromDate(
+                        agora.subtract(const Duration(hours: 4)));
+                    break;
+                  default:
                 }
 
-                // Preenche a lista de cultos
-                cultos = snapshot.data!.docs.toList();
-                // Limpa e preenche novamente a lista de eventos do calendário
-                meusEventos.value.clear();
-                for (var culto in cultos) {
-                  var dataCulto = culto.data().dataCulto.toDate();
-                  meusEventos.value.putIfAbsent(dataCulto, () => 'culto');
-                }
+                // Stream para montar a lista de cultos dinâmica,
+                // ou seja, observa cada mudança nos registros
+                return StreamBuilder<QuerySnapshot<Culto>>(
+                    stream: MeuFirebase.escutarCultos(
+                        dataMinima: dataMin,
+                        dataMaxima: dataMax,
+                        igrejas: igrejas),
+                    builder: (context, snapshot) {
+                      // TELA DE PROGRESSO
+                      if (!snapshot.hasData ||
+                          (snapshot.connectionState ==
+                                  ConnectionState.waiting &&
+                              cultos.isEmpty)) {
+                        return Column(
+                          children: const [
+                            LinearProgressIndicator(),
+                            Expanded(
+                              child: TelaMensagem(
+                                'Carregando a lista...',
+                                asset: 'assets/images/church.png',
+                              ),
+                            )
+                          ],
+                        );
+                      }
+                      // TELA DE FALHA
+                      if (snapshot.hasError) {
+                        return const TelaMensagem(
+                          'Falha ao tentar obter dados',
+                          isError: true,
+                        );
+                      }
 
-                // TELA PRINCIPAL
-                return _layout;
+                      // Preenche a lista de cultos
+                      cultos = snapshot.data!.docs.toList();
+                      if (Global.filtroAgenda.value == FiltroAgenda.historico) {
+                        cultos = cultos.reversed.toList();
+                      }
+                      // Limpa e preenche novamente a lista de eventos do calendário
+                      meusEventos.value.clear();
+                      for (var culto in cultos) {
+                        var dataCulto = culto.data().dataCulto.toDate();
+                        meusEventos.value.putIfAbsent(dataCulto, () => 'culto');
+                      }
+
+                      // TELA PRINCIPAL
+                      return _layout;
+                    });
               });
         });
   }
@@ -132,17 +157,21 @@ class _PaginaAgendaState extends State<PaginaAgenda> {
       // MODO RETRATO
       if (orientation == Orientation.portrait) {
         return Column(children: [
-          _rowAcoes,
-          const Divider(height: 1),
+          Container(
+            color: Colors.grey.withOpacity(0.12),
+            child: _rowAcoes,
+          ),
+          const Divider(height: 1, thickness: 1),
           Expanded(child: _conteudo),
         ]);
       }
       // MODO PAISAGEM
       return LayoutBuilder(builder: (context, constraints) {
         return Wrap(children: [
-          SizedBox(
+          Container(
             height: constraints.maxHeight,
             width: constraints.maxWidth * 0.4 - 1,
+            color: Colors.grey.withOpacity(0.12),
             child: Column(
               children: [
                 _rowAcoes,
@@ -152,7 +181,9 @@ class _PaginaAgendaState extends State<PaginaAgenda> {
             ),
           ),
           Container(
-              height: constraints.maxHeight, width: 1, color: Colors.grey),
+              height: constraints.maxHeight,
+              width: 1,
+              color: Colors.grey.withOpacity(0.38)),
           SizedBox(
               height: constraints.maxHeight,
               width: constraints.maxWidth * 0.6,
@@ -164,8 +195,7 @@ class _PaginaAgendaState extends State<PaginaAgenda> {
 
   /// WIDGET AÇÕES
   get _rowAcoes {
-    return Container(
-      color: Theme.of(context).colorScheme.background,
+    return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Row(
         children: [
@@ -173,46 +203,24 @@ class _PaginaAgendaState extends State<PaginaAgenda> {
           const Icon(Icons.filter_alt),
           const SizedBox(width: 4),
           DropdownButtonHideUnderline(
-            child: DropdownButton<FiltroData>(
-                value: filtroData,
+            child: DropdownButton<FiltroAgenda>(
+                value: Global.filtroAgenda.value,
                 items: const [
                   DropdownMenuItem(
-                    value: FiltroData.proximos,
+                    value: FiltroAgenda.proximos,
                     child: Text('Próximos'),
                   ),
                   DropdownMenuItem(
-                    value: FiltroData.mesAtual,
+                    value: FiltroAgenda.mesAtual,
                     child: Text('Mês atual'),
                   ),
                   DropdownMenuItem(
-                    value: FiltroData.historico,
+                    value: FiltroAgenda.historico,
                     child: Text('Histórico'),
                   ),
                 ],
                 onChanged: (value) {
-                  filtroData = value ?? FiltroData.proximos;
-                  var agora = DateTime.now();
-                  switch (filtroData) {
-                    case FiltroData.proximos:
-                      Global.meusFiltros.value.dataMinima =
-                          agora.subtract(const Duration(hours: 4));
-                      Global.meusFiltros.value.dataMaxima = null;
-                      break;
-                    case FiltroData.mesAtual:
-                      var ano = agora.year;
-                      var mes = agora.month;
-                      Global.meusFiltros.value.dataMinima =
-                          DateTime(ano, mes, 1);
-                      Global.meusFiltros.value.dataMaxima =
-                          DateTime(ano, mes + 1, -1);
-                      break;
-                    case FiltroData.historico:
-                      Global.meusFiltros.value.dataMinima = null;
-                      Global.meusFiltros.value.dataMaxima =
-                          agora.add(const Duration(hours: 4));
-                      break;
-                  }
-                  Global.meusFiltros.notifyListeners();
+                  Global.filtroAgenda.value = value ?? FiltroAgenda.proximos;
                 }),
           ),
 
@@ -359,8 +367,8 @@ class _PaginaAgendaState extends State<PaginaAgenda> {
       shrinkWrap: true,
       separatorBuilder: (context, index) {
         return Divider(
-          height: 8,
-          thickness: 8,
+          height: 4,
+          thickness: 4,
           color: Theme.of(context).highlightColor,
         );
       },
@@ -385,8 +393,8 @@ class _PaginaAgendaState extends State<PaginaAgenda> {
             // Divisor
             mostrarCabecalho
                 ? Divider(
-                    height: 8,
-                    thickness: 8,
+                    height: 4,
+                    thickness: 4,
                     color: Theme.of(context).highlightColor,
                   )
                 : const SizedBox(),
@@ -404,8 +412,8 @@ class _PaginaAgendaState extends State<PaginaAgenda> {
             ),
             index == cultos.length - 1
                 ? Divider(
-                    height: 8,
-                    thickness: 8,
+                    height: 4,
+                    thickness: 4,
                     color: Theme.of(context).highlightColor,
                   )
                 : const SizedBox(),

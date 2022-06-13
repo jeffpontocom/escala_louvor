@@ -66,6 +66,13 @@ class _TelaLetrasViewState extends State<TelaLetrasView> {
           mCantico = mSnapshot.data()!;
           return Scaffold(
             appBar: AppBar(
+              leading: BackButton(
+                onPressed: () async {
+                  if (!await Modular.to.maybePop()) {
+                    Modular.to.pushNamed(Global.rotaInicial);
+                  }
+                },
+              ),
               title: Column(
                 children: [
                   // NOME DO CÂNTICO
@@ -103,6 +110,7 @@ class _TelaLetrasViewState extends State<TelaLetrasView> {
             ),
             body: Column(
               children: [
+                // CABEÇALHO
                 Container(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -134,71 +142,80 @@ class _TelaLetrasViewState extends State<TelaLetrasView> {
                       // Cifra
                       mCantico.cifraUrl == null
                           ? const SizedBox()
-                          : Column(
-                              children: [
-                                Container(
-                                  decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(8),
-                                      color: Colors.grey.withOpacity(0.38)),
-                                  child: IconButton(
-                                    icon: const Icon(Icons.queue_music),
-                                    padding: EdgeInsets.zero,
-                                    visualDensity: VisualDensity.compact,
-                                    onPressed: () {
-                                      var url = mCantico.cifraUrl!;
-                                      var name =
-                                          '${mCantico.nome.toUpperCase()} (${mCantico.tom ?? "_"})';
-                                      Modular.to.pushNamed(AppModule.ARQUIVOS,
-                                          arguments: [url, name]);
-                                      /* MeuFirebase.abrirArquivosPdf(
+                          : Padding(
+                              padding: const EdgeInsets.only(left: 12),
+                              child: Column(
+                                children: [
+                                  Container(
+                                    decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(8),
+                                        color: Colors.grey.withOpacity(0.38)),
+                                    child: IconButton(
+                                      icon: const Icon(Icons.queue_music),
+                                      padding: EdgeInsets.zero,
+                                      visualDensity: VisualDensity.compact,
+                                      onPressed: () {
+                                        var url = mCantico.cifraUrl!;
+                                        var name =
+                                            '${mCantico.nome.toUpperCase()} (${mCantico.tom ?? "_"})';
+                                        Modular.to.pushNamed(AppModule.ARQUIVOS,
+                                            arguments: [url, name]);
+                                        /* MeuFirebase.abrirArquivosPdf(
                                           context, [mCantico.cifraUrl!]); */
-                                    },
+                                      },
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text('Cifra',
-                                    style: Theme.of(context).textTheme.caption),
-                              ],
+                                  const SizedBox(height: 4),
+                                  Text('Cifra',
+                                      style:
+                                          Theme.of(context).textTheme.caption),
+                                ],
+                              ),
                             ),
-                      const SizedBox(width: 12),
                       // YouTube
                       mCantico.youTubeUrl == null ||
                               mCantico.youTubeUrl!.isEmpty
                           ? const SizedBox()
-                          : Column(
-                              children: [
-                                Container(
-                                  decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(8),
-                                      color: Colors.grey.withOpacity(0.38)),
-                                  child: IconButton(
-                                    icon: const FaIcon(FontAwesomeIcons.youtube,
-                                        color: Colors.red),
-                                    padding: EdgeInsets.zero,
-                                    visualDensity: VisualDensity.compact,
-                                    onPressed: () async {
-                                      if (!await launchUrlString(
-                                          mCantico.youTubeUrl!)) {
-                                        Mensagem.simples(
-                                            context: context,
-                                            mensagem:
-                                                'Não foi possível abrir o link');
-                                        throw 'Could not launch youTubeUrl';
-                                      }
-                                    },
+                          : Padding(
+                              padding: const EdgeInsets.only(left: 12),
+                              child: Column(
+                                children: [
+                                  Container(
+                                    decoration: BoxDecoration(
+                                        borderRadius: BorderRadius.circular(8),
+                                        color: Colors.grey.withOpacity(0.38)),
+                                    child: IconButton(
+                                      icon: const FaIcon(
+                                          FontAwesomeIcons.youtube,
+                                          color: Colors.red),
+                                      padding: EdgeInsets.zero,
+                                      visualDensity: VisualDensity.compact,
+                                      onPressed: () async {
+                                        if (!await launchUrlString(
+                                            mCantico.youTubeUrl!)) {
+                                          Mensagem.simples(
+                                              context: context,
+                                              mensagem:
+                                                  'Não foi possível abrir o link');
+                                          throw 'Could not launch youTubeUrl';
+                                        }
+                                      },
+                                    ),
                                   ),
-                                ),
-                                const SizedBox(height: 4),
-                                Text('Vídeo',
-                                    style: Theme.of(context).textTheme.caption),
-                              ],
+                                  const SizedBox(height: 4),
+                                  Text('Vídeo',
+                                      style:
+                                          Theme.of(context).textTheme.caption),
+                                ],
+                              ),
                             ),
                     ],
                   ),
                 ),
+
+                // LETRA
                 Expanded(
-                  child: Container(
-                    padding: const EdgeInsets.all(24),
+                  child: SizedBox(
                     width: double.infinity,
                     child: mCantico.letra == null || mCantico.letra!.isEmpty
                         ? const TelaMensagem(
@@ -234,6 +251,7 @@ class _TelaLetrasViewState extends State<TelaLetrasView> {
                                 valueListenable: fontSize,
                                 builder: (context, size, _) {
                                   return SingleChildScrollView(
+                                    padding: const EdgeInsets.all(24),
                                     child: SelectableText(
                                       mCantico.letra!,
                                       style: TextStyle(fontSize: size),

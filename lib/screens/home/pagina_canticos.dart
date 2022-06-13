@@ -60,18 +60,25 @@ class _PaginaCanticosState extends State<PaginaCanticos> {
       // MODO RETRATO
       if (orientation == Orientation.portrait) {
         return Column(children: [
-          _rowAcoes,
-          _rowBusca,
-          const Divider(height: 1),
-          Expanded(child: _listaCanticos),
-          const Divider(height: 1),
+          Container(
+            color: Colors.grey.withOpacity(0.12),
+            child: Column(
+              children: [
+                _rowAcoes,
+                _rowBusca,
+              ],
+            ),
+          ),
+          const Divider(height: 1, thickness: 1),
+          Flexible(child: _listaCanticos),
           _rowSelecao
         ]);
       }
       // MODO PAISAGEM
       return LayoutBuilder(builder: (context, constraints) {
         return Wrap(children: [
-          SizedBox(
+          Container(
+            color: Colors.grey.withOpacity(0.12),
             height: constraints.maxHeight,
             width: constraints.maxWidth * 0.4 - 1,
             child: Column(
@@ -79,12 +86,15 @@ class _PaginaCanticosState extends State<PaginaCanticos> {
                 _rowAcoes,
                 _rowBusca,
                 const Divider(height: 1),
-                Expanded(child: _rowSelecao),
+                const Expanded(child: SizedBox()),
+                _rowSelecao,
               ],
             ),
           ),
           Container(
-              height: constraints.maxHeight, width: 1, color: Colors.grey),
+              height: constraints.maxHeight,
+              width: 1,
+              color: Colors.grey.withOpacity(0.38)),
           SizedBox(
               height: constraints.maxHeight,
               width: constraints.maxWidth * 0.6,
@@ -96,9 +106,8 @@ class _PaginaCanticosState extends State<PaginaCanticos> {
 
   /// WIDGET DE AÇÕES
   get _rowAcoes {
-    return Container(
+    return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      color: Theme.of(context).colorScheme.background,
       child: Row(
         children: [
           // BOTÃO DE FILTROS
@@ -156,13 +165,13 @@ class _PaginaCanticosState extends State<PaginaCanticos> {
 
   /// WIDGET DE BUSCA
   get _rowBusca {
-    return Container(
-      color: Theme.of(context).colorScheme.background,
+    return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: TextField(
         controller: searchInputController,
         decoration: InputDecoration(
           isDense: true,
+          fillColor: Theme.of(context).colorScheme.background,
           prefixIcon: const Icon(Icons.search),
           suffixIcon: IconButton(
               icon: const Icon(Icons.clear),
@@ -183,12 +192,17 @@ class _PaginaCanticosState extends State<PaginaCanticos> {
   get _rowSelecao {
     return widget.culto != null
         ? Container(
-            color: Theme.of(context).colorScheme.secondary.withOpacity(0.38),
+            width: double.infinity,
+            color: Theme.of(context).colorScheme.secondary.withOpacity(0.25),
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            child: Row(
+            child: Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
               children: [
                 // Seleção
-                Expanded(child: _selecionadosToString),
+                _selecionadosToString,
                 // Botão adicionar/atualizar canticos do evento
                 ElevatedButton(
                   child: const Text('CONCLUIR'),
@@ -197,12 +211,12 @@ class _PaginaCanticosState extends State<PaginaCanticos> {
                     await widget.culto?.reference
                         .update({'canticos': _selecionados});
                     Modular.to.pop(); // fechar progresso
-                    Modular.to.pop(); // fecha dialog
+                    Modular.to.maybePop(); // fecha dialog
                   },
                 )
               ],
             ))
-        : const SizedBox(height: 64);
+        : const SizedBox();
   }
 
   /// TEXTO DE CÂNTICOS SELECIONADOS
@@ -277,7 +291,6 @@ class _PaginaCanticosState extends State<PaginaCanticos> {
                         );
                       }
                       return ListView.separated(
-                        padding: EdgeInsets.zero,
                         shrinkWrap: true,
                         itemCount: listaFiltrada.length,
                         itemBuilder: (context, index) {

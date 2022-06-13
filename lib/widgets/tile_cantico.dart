@@ -38,10 +38,7 @@ class TileCantico extends StatelessWidget {
         mainAxisSize: MainAxisSize.min,
         children: [
           Flexible(
-            child: Text(
-              cantico.nome,
-              overflow: TextOverflow.ellipsis,
-            ),
+            child: Text(cantico.nome, overflow: TextOverflow.ellipsis),
           ),
           const SizedBox(width: 8),
           Chip(
@@ -53,7 +50,6 @@ class TileCantico extends StatelessWidget {
             label: Text(cantico.tom ?? '?'),
             labelStyle: Theme.of(context).textTheme.caption,
           ),
-          const SizedBox(width: 4),
         ],
       ),
       // AUTO DO CÂNTICO
@@ -68,41 +64,46 @@ class TileCantico extends StatelessWidget {
           // Cifra
           cantico.cifraUrl == null
               ? const SizedBox()
-              : Container(
-                  decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      color: Colors.grey.withOpacity(0.38)),
-                  child: IconButton(
-                    icon: const Icon(Icons.queue_music),
-                    padding: EdgeInsets.zero,
-                    visualDensity: VisualDensity.compact,
-                    onPressed: () {
-                      var url = cantico.cifraUrl!;
-                      var name =
-                          '${cantico.nome.toUpperCase()} (${cantico.tom ?? "_"})';
-                      Modular.to.pushNamed(AppModule.ARQUIVOS,
-                          arguments: [url, name]);
-                    },
+              : Padding(
+                  padding: const EdgeInsets.only(left: 8),
+                  child: Container(
+                    decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                        color: Colors.grey.withOpacity(0.38)),
+                    child: IconButton(
+                      icon: const Icon(Icons.queue_music),
+                      padding: EdgeInsets.zero,
+                      visualDensity: VisualDensity.compact,
+                      onPressed: () {
+                        var url = cantico.cifraUrl!;
+                        var name =
+                            '${cantico.nome.toUpperCase()} (${cantico.tom ?? "_"})';
+                        Modular.to.pushNamed(AppModule.ARQUIVOS,
+                            arguments: [url, name]);
+                      },
+                    ),
                   ),
                 ),
-          const SizedBox(width: 8),
           // YouTube
           cantico.youTubeUrl == null || cantico.youTubeUrl!.isEmpty
               ? const SizedBox()
-              : Container(
-                  decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(8),
-                      color: Colors.grey.withOpacity(0.38)),
-                  child: IconButton(
-                    icon: const FaIcon(FontAwesomeIcons.youtube,
-                        color: Colors.red),
-                    padding: EdgeInsets.zero,
-                    visualDensity: VisualDensity.compact,
-                    onPressed: () async {
-                      if (!await launchUrlString(cantico.youTubeUrl ?? '')) {
-                        throw 'Could not launch youTubeUrl';
-                      }
-                    },
+              : Padding(
+                  padding: const EdgeInsets.only(left: 8),
+                  child: Container(
+                    decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(8),
+                        color: Colors.grey.withOpacity(0.38)),
+                    child: IconButton(
+                      icon: const FaIcon(FontAwesomeIcons.youtube,
+                          color: Colors.red),
+                      padding: EdgeInsets.zero,
+                      visualDensity: VisualDensity.compact,
+                      onPressed: () async {
+                        if (!await launchUrlString(cantico.youTubeUrl ?? '')) {
+                          throw 'Could not launch youTubeUrl';
+                        }
+                      },
+                    ),
                   ),
                 ),
           // Reordenavel na Web
