@@ -1,6 +1,8 @@
 // ignore_for_file: constant_identifier_names
 
 import 'package:escala_louvor/utils/global.dart';
+import 'package:escala_louvor/views/scaffold_404.dart';
+import 'package:escala_louvor/views/scaffold_user_inativo.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 
@@ -132,7 +134,7 @@ class AppModule extends Module {
         ),
 
         // WILDCARD (em caso de rota inexistente - Erro 404)
-        WildcardRoute(child: (_, __) => const MyApp()),
+        WildcardRoute(child: (_, __) => const View404()),
       ];
 }
 

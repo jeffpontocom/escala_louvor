@@ -3,7 +3,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_modular/flutter_modular.dart';
-import 'package:url_strategy/url_strategy.dart';
 
 import 'modulos.dart';
 import 'resources/behaviors/app_scroll_behavior.dart';
@@ -13,7 +12,7 @@ import 'views/scaffold_falha.dart';
 import 'widgets/tela_carregamento.dart';
 
 void main() async {
-  setPathUrlStrategy();
+  WidgetsFlutterBinding.ensureInitialized();
   runApp(ModularApp(module: AppModule(), child: const AppWidget()));
 }
 

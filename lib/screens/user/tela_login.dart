@@ -111,10 +111,10 @@ class _TelaLoginState extends State<TelaLogin> {
 
   /// Formulário de Login
   get formularioLogin {
-    return AutofillGroup(
-      child: Form(
-        key: _formKey,
-        autovalidateMode: AutovalidateMode.disabled,
+    return Form(
+      key: _formKey,
+      autovalidateMode: AutovalidateMode.disabled,
+      child: AutofillGroup(
         child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             mainAxisSize: MainAxisSize.min,
@@ -125,10 +125,7 @@ class _TelaLoginState extends State<TelaLogin> {
                 validator: MyInputs.validarEmail,
                 keyboardType: TextInputType.emailAddress,
                 textInputAction: TextInputAction.next,
-                autofillHints: const [
-                  AutofillHints.username,
-                  AutofillHints.email
-                ],
+                autofillHints: const [AutofillHints.email],
                 inputFormatters: <TextInputFormatter>[
                   FilteringTextInputFormatter.deny(' ')
                 ],
@@ -140,19 +137,20 @@ class _TelaLoginState extends State<TelaLogin> {
               const SizedBox(height: 12),
               // Campo Senha
               TextFormField(
-                controller: _formSenha,
-                validator: MyInputs.validarSenha,
-                obscureText: true,
-                keyboardType: TextInputType.visiblePassword,
-                textInputAction: TextInputAction.done,
-                autofillHints: const [AutofillHints.password],
-                enableSuggestions: false,
-                decoration: const InputDecoration(
-                  labelText: 'Senha',
-                  prefixIcon: Icon(Icons.password),
-                ),
-                onFieldSubmitted: (_) => _logar(),
-              ),
+                  controller: _formSenha,
+                  validator: MyInputs.validarSenha,
+                  obscureText: true,
+                  keyboardType: TextInputType.visiblePassword,
+                  textInputAction: TextInputAction.done,
+                  autofillHints: const [AutofillHints.password],
+                  enableSuggestions: false,
+                  decoration: const InputDecoration(
+                    labelText: 'Senha',
+                    prefixIcon: Icon(Icons.password),
+                  ),
+                  onFieldSubmitted: (_) {
+                    _logar();
+                  }),
               const SizedBox(height: 12),
               // Advertência
               advertencia,
@@ -197,6 +195,7 @@ class _TelaLoginState extends State<TelaLogin> {
   /// Logar no sistema
   void _logar() async {
     if (!_validarForm()) return;
+    TextInput.finishAutofillContext();
     // Abre progresso
     Mensagem.aguardar(context: context, mensagem: 'Entrando...');
     var mensagemErro = '';
