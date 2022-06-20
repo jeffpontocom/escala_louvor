@@ -39,21 +39,14 @@ class Global {
 
   /// INICIAR
   /// Carrega tudo o que é necessário para utilizar o aplicativo:
-  /// - Widgets Binding
-  /// - Rota inicial
   /// - PackageInfo
   /// - Firebase initialize (return false on error)
   ///   -  Persistência da autenticação
+  /// - Rota inicial
   /// - Shared Preferences
   ///   - Integrante logado
   ///   - Igreja em contexto
   static Future<bool> iniciar() async {
-    WidgetsFlutterBinding.ensureInitialized();
-
-    Modular.setInitialRoute(rotaInicial);
-    //Modular.setNavigatorKey(myNavigatorKey);
-    //Modular.setObservers([myObserver]);
-
     // Carrega o arquivo de chaves (a extensão .txt é para poder ser lida na web)
     await dotenv.load(fileName: 'dotenv.txt');
 
@@ -75,6 +68,11 @@ class Global {
       dev.log('Main: ${e.toString()}');
     }
 
+    // Prepostos Modular
+    Modular.setInitialRoute(rotaInicial);
+    //Modular.setNavigatorKey(myNavigatorKey);
+    //Modular.setObservers([myObserver]);
+
     // Persistência da autenticação (somente web)
     if (kIsWeb) {
       await FirebaseAuth.instance.setPersistence(Persistence.LOCAL);
@@ -89,11 +87,11 @@ class Global {
 
       // Carrega o integrante logado
       logadoSnapshot = await MeuFirebase.obterSnapshotIntegrante(userId);
-
-      // Carrega igreja pré-selecionada
-      igrejaSelecionada.value =
-          await MeuFirebase.obterSnapshotIgreja(prefIgrejaId);
     }
+
+    // Carrega igreja pré-selecionada
+    igrejaSelecionada.value =
+        await MeuFirebase.obterSnapshotIgreja(prefIgrejaId);
 
     return true;
   }

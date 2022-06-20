@@ -85,25 +85,7 @@ class _HomeState extends State<Home> {
 
   @override
   Widget build(BuildContext context) {
-    // Ouvinte para igreja selecionada
-    // se houver alguma alteração nos dados essa tela é recarregada
-    return ValueListenableBuilder<DocumentSnapshot<Igreja>?>(
-        valueListenable: Global.igrejaSelecionada,
-        builder: (context, igreja, _) {
-          dev.log('Igreja selecionada: ${igreja?.id}', name: 'log:Home');
-
-          // Verifica se usuário logado está inscrito na igreja selecionada
-          bool inscrito = Global.logado?.igrejas
-                  ?.map((e) => e.toString())
-                  .contains(igreja?.reference.toString()) ??
-              false;
-
-          if (!inscrito) {
-            return const TelaContexto();
-          }
-
-          return _layout;
-        });
+    return _layout;
   }
 
   /// Layout

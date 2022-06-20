@@ -2,7 +2,6 @@
 
 import 'package:escala_louvor/utils/global.dart';
 import 'package:escala_louvor/views/scaffold_404.dart';
-import 'package:escala_louvor/views/scaffold_user_inativo.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 
@@ -39,21 +38,12 @@ class AppModule extends Module {
         ChildRoute(
           '/',
           child: (_, args) => const MyApp(),
-          guards: [AuthGuard()],
-        ),
-
-        // CONTEXTO
-        ChildRoute(
-          CONTEXTO,
-          child: (_, __) => const TelaContexto(),
-          guards: [AuthGuard()],
         ),
 
         // HOME + Paginas
         ChildRoute(
           HOME,
           child: (_, args) => const MyApp(),
-          guards: [AuthGuard()],
           children: [
             ChildRoute(
               '/${HomePages.agenda.name}',
@@ -76,6 +66,13 @@ class AppModule extends Module {
               transition: TransitionType.downToUp,
             ),
           ],
+        ),
+
+        // CONTEXTO
+        ChildRoute(
+          CONTEXTO,
+          child: (_, __) => const TelaContexto(),
+          guards: [AuthGuard()],
         ),
 
         // LOGIN
