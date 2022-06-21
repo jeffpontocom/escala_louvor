@@ -18,7 +18,7 @@ description: App para controle da escala do louvor.
 publish_to: 'none'
 
 # VERSÃO DO APP
-version: 0.3.3+14
+version: 0.3.4+14
 
 # VERSÃO DO SDK FLUTTER
 environment:
@@ -32,33 +32,32 @@ dependencies:
     sdk: flutter
   flutter_localizations:
     sdk: flutter
-  cached_network_image: ^3.2.1
-  carousel_slider: ^4.1.1
-  cloud_firestore: ^3.1.17
-  connectivity_plus: ^2.3.0
-  easy_mask: ^2.0.1
-  file_picker: ^4.6.0
-  firebase_auth: ^3.3.19
-  firebase_core: ^1.17.1
-  firebase_messaging: ^11.4.1
-  firebase_storage: ^10.2.17
-  flutter_dotenv: ^5.0.2
-  flutter_modular: ^5.0.2
-  flutter_local_notifications: ^9.5.3+1
-  flutter_slidable: ^1.3.0
-  font_awesome_flutter: ^10.1.0
-  http: ^0.13.4
-  intl: ^0.17.0
-  package_info_plus: ^1.4.2
-  pdf: ^3.8.1
-  printing: ^5.9.1
-  shared_preferences: ^2.0.15
-  stylish_bottom_bar: ^0.1.3
-  table_calendar: ^3.0.6
-  upgrader: ^4.1.2
-  url_launcher: ^6.1.2
-  url_strategy: ^0.2.0 # para remover o hash '#' das URLs (incluir 'setPathUrlStrategy();' em main) 
-  wakelock: ^0.6.1+2
+  cached_network_image: ^3.2.1 # Economizar banda com imagens em cache
+  carousel_slider: ^4.1.1 # Widget tipo carrosel de imagens
+  cloud_firestore: ^3.1.18 # FIREBASE Firestore
+  connectivity_plus: ^2.3.5 # Verifica conexões
+  easy_mask: ^2.0.1 # Máscara para inputs de texto
+  file_picker: ^4.6.0 # Seleção de arquivos
+  firebase_auth: ^3.3.20 # FIREBASE Auth
+  firebase_core: ^1.18.0 # FIREBASE Core
+  firebase_messaging: ^11.4.2 # FIREBASE Messaging
+  firebase_storage: ^10.2.18 # FIREBASE Storage
+  flutter_dotenv: ^5.0.2 # Esconder arquivo de chaves
+  flutter_modular: ^5.0.2 # Gerenciador de estados e 
+  flutter_local_notifications: ^9.6.1 # Sistema de notificações locais
+  flutter_slidable: ^1.3.0 # Widget tipo arrastar item da lista para opções
+  font_awesome_flutter: ^10.1.0 # Ícones alternativos
+  http: ^0.13.4 # Base para web
+  intl: ^0.17.0 # Base para idioma
+  package_info_plus: ^1.4.2 # Recolhe dados básicos do app
+  pdf: ^3.8.1 # Gerar PDFs
+  printing: ^5.9.1 # Abrir PDFs
+  shared_preferences: ^2.0.15 # Cache para dados do usuário
+  stylish_bottom_bar: ^0.1.3 # Widget tipo bottom bar com float button
+  table_calendar: ^3.0.6 # Widget tipo calendário
+  upgrader: ^4.2.1 # Verificador de novas versões com notificador
+  url_launcher: ^6.1.2 # Base para links
+  wakelock: ^0.6.1+2 # Mantêm a tela sempre ligada
 
 
 dev_dependencies:
@@ -93,6 +92,7 @@ flutter:
     - assets/icons/music_dirigente.png
     - assets/icons/music_guitarra.png
     - assets/icons/music_percussao.png
+    - assets/icons/music_piano.png
     - assets/icons/music_sonorizacao.png
     - assets/icons/music_sopro.png
     - assets/icons/music_teclado.png
@@ -103,6 +103,7 @@ flutter:
     - assets/images/login.png
     - assets/images/chat.png
     - assets/images/church.png
+    - assets/images/fail.png
     - assets/images/song.png
   fonts:
     - family: Offside

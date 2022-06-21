@@ -5,6 +5,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:package_info_plus/package_info_plus.dart';
@@ -60,6 +61,9 @@ class Global {
     }
     // Em caso de plataforma não suportada
     on UnsupportedError catch (e) {
+      dev.log('Main: ${e.toString()}');
+      return false;
+    } on MissingPluginException catch (e) {
       dev.log('Main: ${e.toString()}');
       return false;
     }

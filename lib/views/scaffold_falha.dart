@@ -1,3 +1,4 @@
+import 'package:escala_louvor/utils/global.dart';
 import 'package:flutter/material.dart';
 
 class ViewFalha extends StatelessWidget {
@@ -9,21 +10,45 @@ class ViewFalha extends StatelessWidget {
     return Scaffold(
       body: SafeArea(
         child: Container(
-          padding: const EdgeInsets.all(64),
+          padding: const EdgeInsets.all(24),
           alignment: Alignment.center,
-          // Animação
           child: Column(
-            mainAxisSize: MainAxisSize.min,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
+              // Icone de erro
+              Flexible(
+                child: Image.asset(
+                  'assets/images/fail.png',
+                  width: 160,
+                  height: 160,
+                ),
+              ),
+              const SizedBox(height: 24),
+              // Texto de carregamento
+              const Text(
+                'Falha!',
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                mensagem,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 48),
               // logo
-              Image.asset('assets/icons/ic_launcher.png', width: 64),
-              const SizedBox(height: 32),
-              // texto
-              Text(mensagem,
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleMedium
-                      ?.copyWith(color: Colors.red)),
+              Wrap(
+                spacing: 12,
+                alignment: WrapAlignment.center,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  Image.asset('assets/icons/ic_launcher.png', width: 24),
+                  Text(
+                    Global.nomeDoApp,
+                    style: TextStyle(color: Colors.grey.withOpacity(0.5)),
+                  )
+                ],
+              ),
             ],
           ),
         ),

@@ -19,7 +19,7 @@ class View404 extends StatelessWidget {
               // Icone de erro
               Flexible(
                 child: Image.asset(
-                  'assets/images/church.png',
+                  'assets/images/fail.png',
                   width: 160,
                   height: 160,
                 ),
