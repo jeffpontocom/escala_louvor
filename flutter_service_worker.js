@@ -3,7 +3,7 @@ const MANIFEST = 'flutter-app-manifest';
 const TEMP = 'flutter-temp-cache';
 const CACHE_NAME = 'flutter-app-cache';
 const RESOURCES = {
-  "assets/AssetManifest.json": "48342bce574c59188c53663425f6d51d",
+  "assets/AssetManifest.json": "8564b176f235d2a9eafa6393c91bfa67",
 "assets/assets/fonts/Offside-Regular.ttf": "37cc5e97dd9817746e5510afe29a5f1d",
 "assets/assets/fonts/OpenSans_SemiCondensed-Bold.ttf": "0263aea0499c2422dfb70c6fa0034ca0",
 "assets/assets/fonts/OpenSans_SemiCondensed-Light.ttf": "c6d6df27d3de5a815f6d4d8cf6313b45",
@@ -25,6 +25,7 @@ const RESOURCES = {
 "assets/assets/icons/music_dirigente.png": "95600e0cbe155be6cf966be4c9e9adb7",
 "assets/assets/icons/music_guitarra.png": "080666cb0a8f8c21df77d020c9d6163a",
 "assets/assets/icons/music_percussao.png": "1ac11698bbf59939cdca72c1b736291e",
+"assets/assets/icons/music_piano.png": "1d69c596f212e956cdefd1b1b287e361",
 "assets/assets/icons/music_sonorizacao.png": "06dfd83a2ddbf6c1123316f5f25102cf",
 "assets/assets/icons/music_sopro.png": "e52dda81892031d888bf4845012a8d54",
 "assets/assets/icons/music_teclado.png": "916507d0ad89c78aa965494c433dbf03",
@@ -33,26 +34,33 @@ const RESOURCES = {
 "assets/assets/icons/music_voz.png": "24f0c4b6a28d17ca4dc04405f516588f",
 "assets/assets/images/chat.png": "bb3d4b45b8df735301b60d182882e05b",
 "assets/assets/images/church.png": "3244ed1fe3e156ff454b59776acb57b2",
+"assets/assets/images/fail.png": "9186a7c1e067feb7ef38bbcdce9e716c",
 "assets/assets/images/login.png": "2312a4310a3e38bc5f8f2806999ff1df",
 "assets/assets/images/song.png": "e9e0d5d4d9f7135bfd477c1cfe119100",
 "assets/dotenv.txt": "08dbd95bc9eb3f6cef2ccb70eb5547f5",
 "assets/FontManifest.json": "b2a7fd1d935801592b4ca8eaceb8e255",
 "assets/fonts/MaterialIcons-Regular.otf": "95db9098c58fd6db106f1116bae85a0b",
-"assets/NOTICES": "62d6a6680d4c37c5709805a83f3617ab",
+"assets/NOTICES": "53e64b5c9dfd7d3c0ad3db4d6ac12279",
 "assets/packages/font_awesome_flutter/lib/fonts/fa-brands-400.ttf": "d1722d5cf2c7855862f68edb85e31f88",
 "assets/packages/font_awesome_flutter/lib/fonts/fa-regular-400.ttf": "613e4cc1af0eb5148b8ce409ad35446d",
 "assets/packages/font_awesome_flutter/lib/fonts/fa-solid-900.ttf": "dd3c4233029270506ecc994d67785a37",
 "assets/packages/wakelock_web/assets/no_sleep.js": "7748a45cd593f33280669b29c2c8919a",
+"canvaskit/canvaskit.js": "c2b4e5f3d7a3d82aed024e7249a78487",
+"canvaskit/canvaskit.wasm": "4b83d89d9fecbea8ca46f2f760c5a9ba",
+"canvaskit/profiling/canvaskit.js": "ae2949af4efc61d28a4a80fffa1db900",
+"canvaskit/profiling/canvaskit.wasm": "95e736ab31147d1b2c7b25f11d4c32cd",
 "favicon.png": "d9f0bfa8d2610aa0c02ab61c04f57df6",
+"firebase-messaging-sw.js": "0af3c796d0888ddb71941901360469b9",
+"flutter.js": "eb2682e33f25cd8f1fc59011497c35f8",
 "icons/Icon-192.png": "701e43ae3eb8ad390c9b65537bc8a169",
 "icons/Icon-512.png": "51cbe3b1cb0ac7ddd62f3833cba6f39a",
 "icons/Icon-maskable-192.png": "701e43ae3eb8ad390c9b65537bc8a169",
 "icons/Icon-maskable-512.png": "51cbe3b1cb0ac7ddd62f3833cba6f39a",
-"index.html": "d03de3a42e7b04d9522399731f9218ea",
-"/": "d03de3a42e7b04d9522399731f9218ea",
-"main.dart.js": "d343a6190768898388b564ea38c856ff",
+"index.html": "70c8a42f3707bb9ec6b22765e3d21b0b",
+"/": "70c8a42f3707bb9ec6b22765e3d21b0b",
+"main.dart.js": "87168a90a5ae12670d4d3f00f0150b7e",
 "manifest.json": "7051455cda8feb95c100f8203fb1431e",
-"version.json": "df0b08a99d669ed40e4a6f9db75618ab"
+"version.json": "1e083dd4565ea940e8ac4a33161da490"
 };
 
 // The application shell files that are downloaded before a service worker can
