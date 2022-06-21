@@ -99,7 +99,7 @@
        application. For more information, see:
        https://developers.google.com/web/fundamentals/primers/service-workers -->
   <script>
-    var serviceWorkerVersion = '2471042905';
+    var serviceWorkerVersion = '4279971095';
     var scriptLoaded = false;
     function loadMainDartJs() {
       if (scriptLoaded) {
@@ -116,12 +116,14 @@
 
       // Service workers are supported. Use them.        
       window.addEventListener('load', function () {
+          
+        // Registro para Firebase Cloud Message
+        navigator.serviceWorker.register('firebase-messaging-sw.js');
 
         // Wait for registration to finish before dropping the <script> tag.
         // Otherwise, the browser will load the script multiple times,
         // potentially different versions.
-        var serviceWorkerUrl = './flutter_service_worker.js?v=' + serviceWorkerVersion;
-
+        var serviceWorkerUrl = 'flutter_service_worker.js?v=' + serviceWorkerVersion;
         navigator.serviceWorker.register(serviceWorkerUrl)
           .then((reg) => {
             function waitForActivation(serviceWorker) {
@@ -147,11 +149,7 @@
               console.log('Loading app from service worker.');
               loadMainDartJs();
             }
-          });
-
-          
-        // Registro para Firebase Cloud Message
-        navigator.serviceWorker.register('./firebase-messaging-sw.js');
+          });        
 
         // If service worker doesn't succeed in a reasonable amount of time,
         // fallback to plaint <script> tag.
@@ -163,7 +161,9 @@
             loadMainDartJs();
           }
         }, 4000);
+
       });
+
     } else {
       // Service workers not supported. Just drop the <script> tag.
       loadMainDartJs();
