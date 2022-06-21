@@ -219,28 +219,3 @@ class Mensagem {
     });
   }
 }
-
-/// Caixa de diálogo de notificação por push para primeiro plano
-class DialogoNotificacao extends StatelessWidget {
-  final String titulo;
-  final String corpo;
-  const DialogoNotificacao(
-      {Key? key, required this.titulo, required this.corpo})
-      : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text(titulo),
-      content: Text(corpo),
-      actions: [
-        OutlinedButton.icon(
-            label: const Text('Fechar'),
-            onPressed: () {
-              Navigator.pop(context);
-            },
-            icon: const Icon(Icons.close))
-      ],
-    );
-  }
-}

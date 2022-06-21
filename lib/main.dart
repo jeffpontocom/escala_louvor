@@ -1,4 +1,4 @@
-//import 'dart:developer' as dev;
+import 'dart:developer' as dev;
 
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -25,7 +25,8 @@ class AppWidget extends StatelessWidget {
         future: Global.iniciar(),
         builder: (context, snapshot) {
           // FALHA AO CARREGAR APP
-          if (snapshot.data == false) {
+          if (snapshot.hasData && snapshot.data == false) {
+            dev.log('Falha ao carregar o app', name: 'AppWidget');
             return MaterialApp(
                 title: Global.nomeDoApp,
                 theme: Temas.claro(),
@@ -36,7 +37,8 @@ class AppWidget extends StatelessWidget {
           }
 
           // CARREGAMENTO COMPLETO
-          if (snapshot.data == true) {
+          if (snapshot.hasData && snapshot.data == true) {
+            dev.log('Carregamento completo', name: 'AppWidget');
             return MaterialApp.router(
               title: Global.nomeDoApp,
               // Temas
@@ -58,6 +60,7 @@ class AppWidget extends StatelessWidget {
           }
 
           // SPLASH SCREEN
+          dev.log('Carregando o app...', name: 'AppWidget');
           return const TelaCarregamento();
         });
   }

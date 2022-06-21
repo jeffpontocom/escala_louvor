@@ -5,14 +5,17 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:http/http.dart' as http;
+// ignore: depend_on_referenced_packages
+import 'package:rxdart/rxdart.dart';
 
-import '../utils/global.dart';
 import '/firebase_options.dart';
+import '/utils/global.dart';
 import '/utils/mensagens.dart';
 
 class Notificacoes {
@@ -20,27 +23,76 @@ class Notificacoes {
   Notificacoes._();
   static late Notificacoes instancia;
 
+  /// Contexto para abrir dialogos em primeiro plano
+  late BuildContext context;
+
   /// Create a [AndroidNotificationChannel] for heads up notifications
   late AndroidNotificationChannel channel;
 
   /// Initialize the [FlutterLocalNotificationsPlugin] package.
   late FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin;
 
-  //String? _token;
+  // Streams
   late Stream<String> _tokenStream;
+  late BehaviorSubject<RemoteMessage> _messageStreamController;
 
-  void setToken(String? token) async {
-    dev.log('FCM Token: $token');
-    //instancia._token = token;
-    FirebaseFirestore.instance
+  void saveToken(String? token) async {
+    if (FirebaseAuth.instance.currentUser == null) {
+      dev.log('Token não foi salvo - Usuário não logado', name: 'FCM');
+      return;
+    }
+    await FirebaseFirestore.instance
         .collection('tokens')
-        .doc(FirebaseAuth.instance.currentUser?.uid)
-        .set({'token': token}).then(
-            (value) => dev.log('Token salvo no firebase'));
+        .doc(FirebaseAuth.instance.currentUser!.uid)
+        .set({'token': token});
+    dev.log('Token salvo no Firebase', name: 'FCM');
   }
 
-  static Future carregarInstancia() async {
+  static Future carregarInstancia(BuildContext context) async {
     instancia = Notificacoes._();
+    instancia.context = context;
+
+    // NOVAS INSTRUÇÕES
+    final messaging = FirebaseMessaging.instance;
+
+    // Request permission
+    final settings = await messaging.requestPermission(
+      alert: true,
+      announcement: false,
+      badge: true,
+      carPlay: false,
+      criticalAlert: false,
+      provisional: false,
+      sound: true,
+    );
+    dev.log('Permissão aceita: ${settings.authorizationStatus}', name: 'FCM');
+
+    // Register with FCM
+    String? vapidKey = dotenv.env['FCM_VapidKey'];
+    String? token = await messaging.getToken(vapidKey: vapidKey);
+    if (kDebugMode) {
+      print('Registration Token=$token');
+    }
+    instancia.saveToken(token);
+    instancia._tokenStream = messaging.onTokenRefresh;
+    instancia._tokenStream.listen(instancia.saveToken);
+
+    // Ouvir mensagens em primeiro plnao
+    // Set up foreground message handler
+    // used to pass messages from event handler to the UI
+    instancia._messageStreamController = BehaviorSubject<RemoteMessage>();
+    instancia._ouvirMensagens();
+
+    // Set up background message handler
+
+    // FIM DAS NOVAS INSTRUÇÕES
+
+    // Obter token
+    /* var fcmToken = await FirebaseMessaging.instance
+        .getToken(vapidKey: dotenv.env['FCM_VapidKey'] ?? '');
+    instancia.saveToken(fcmToken);
+    instancia._tokenStream = FirebaseMessaging.instance.onTokenRefresh;
+    instancia._tokenStream.listen(instancia.saveToken); */
 
     // Set the background messaging handler early on, as a named top-level function
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
@@ -92,16 +144,6 @@ class Notificacoes {
           .subscribeToTopic('escala_louvor')
           .then((_) => dev.log('Usuário inscrito no tópico: escala_louvor'));
     }
-
-    // Obter token
-    var fcmToken = await FirebaseMessaging.instance
-        .getToken(vapidKey: dotenv.env['FCM_VapidKey'] ?? '');
-    instancia.setToken(fcmToken);
-    instancia._tokenStream = FirebaseMessaging.instance.onTokenRefresh;
-    instancia._tokenStream.listen(instancia.setToken);
-
-    // Ouvir mensagens
-    instancia._ouvirMensagens();
   }
 
   /// Tratamento para segundo plano
@@ -118,19 +160,20 @@ class Notificacoes {
 
   /// Ouvir
   void _ouvirMensagens() {
-    dev.log('Ouvindo mensagens');
+    dev.log('Ouvindo mensagens', name: 'FCM');
 
     // Recebimentos em primeiro plano
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      dev.log('Recebeu uma mensagem enquanto estava em primeiro plano!');
-      dev.log('Dados da mensagem: ${message.data}');
+      dev.log('Mensagem em primeiro plano recebida!', name: 'FCM');
 
       RemoteNotification? notification = message.notification;
       AndroidNotification? android = message.notification?.android;
+
+      dev.log('Título da mensagem: ${notification?.title}', name: 'FCM');
+      instancia._messageStreamController.sink.add(message);
+
       if (notification != null && android != null && !kIsWeb) {
-        dev.log(
-            'A mensagem também contém uma notificação: ${message.notification?.body}');
-        flutterLocalNotificationsPlugin.show(
+        instancia.flutterLocalNotificationsPlugin.show(
           notification.hashCode,
           notification.title,
           notification.body,
@@ -145,23 +188,29 @@ class Notificacoes {
           payload: notification.android?.clickAction,
         );
       }
-      //if (kIsWeb) {
-      DialogoNotificacao(
-          titulo: notification?.title ?? 'Mensagem',
-          corpo: notification?.body ?? 'Sem conteúdo');
-      //}
+
+      // Apresentar mensagem na tela
+      Mensagem.bottomDialog(
+        context: context,
+        titulo: notification?.title ?? 'Mensagem',
+        conteudo: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Text(notification?.body ?? 'Sem conteúdo'),
+        ),
+      );
     });
 
     // Verifica se há alguma mensagem ao abrir o app
     FirebaseMessaging.instance
         .getInitialMessage()
         .then((RemoteMessage? message) async {
-      dev.log('Mensagem inicial: ${message?.messageId}');
+      dev.log('Mensagem inicial: ${message?.messageId}', name: 'FCM');
       if (message != null) {
         String contexto = message.data['contexto'];
         String pagina = message.data['pagina'];
         String conteudo = message.data['conteudo'];
-        dev.log('Abrindo app pela mensagem: /$pagina?id=$conteudo');
+        dev.log('Abrindo app pela mensagem: /$pagina?id=$conteudo',
+            name: 'FCM');
         Global.prefIgrejaId = contexto;
         //Global.igrejaSelecionada.value =
         //    await MeuFirebase.obterSnapshotIgreja(contexto);
@@ -175,13 +224,11 @@ class Notificacoes {
       String contexto = message.data['contexto'];
       String pagina = message.data['pagina'];
       String conteudo = message.data['conteudo'];
-      dev.log('Abrindo app pela mensagem: /$pagina?id=$conteudo');
+      dev.log('Abrindo app pela mensagem: /$pagina?id=$conteudo', name: 'FCM');
       Global.prefIgrejaId = contexto;
       //Global.igrejaSelecionada.value =
       //    await MeuFirebase.obterSnapshotIgreja(contexto);
       Modular.to.navigate('/$pagina?id=$conteudo');
-      /* Modular.to.pushNamed('/notificacoes',
-          arguments: MessageArguments(message, true)); */
     });
   }
 
@@ -224,26 +271,11 @@ class Notificacoes {
     );
 
     if (response.statusCode == 200) {
-      dev.log('Solicitação de FCM enviada com sucesso!');
+      dev.log('Solicitação de FCM enviada com sucesso!', name: 'FCM');
       return true;
     } else {
-      dev.log('Erro ao enviar solicitação de FCM');
+      dev.log('Erro ao enviar solicitação de FCM', name: 'FCM');
       return false;
     }
   }
 }
-
-  /// Permitir
-  /* Future<void> _obterPermissao() async {
-    NotificationSettings settings =
-        await FirebaseMessaging.instance.requestPermission(
-      alert: true,
-      announcement: false,
-      badge: true,
-      carPlay: false,
-      criticalAlert: false,
-      provisional: false,
-      sound: true,
-    );
-    dev.log('Usuário cedeu permissão: ${settings.authorizationStatus}');
-  } */

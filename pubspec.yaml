@@ -4,10 +4,14 @@ description: App para controle da escala do louvor.
 # INSTRUÇÕES PARA BUILD 
 # Para publicar a versão web no servidor local executar: 
 # - flutter build web
+# - flutter build web --base-href /escala_louvor/
 # então copiar arquivos resultantes para a pasta definida no servidor IIS
 #
+# Para publicar no Firebase Hosting
+# firebase deploy
+#
 # Para publicar no github pages executar:
-# - flutter pub global run peanut --web-renderer canvaskit
+# - flutter pub global run peanut --web-renderer canvaskit --extra-args "--base-href=/escala_louvor/"
 # - git push -f origin --set-upstream gh-pages (-f é necessário para refazer a base)
 #
 # Para gerar a versão para Android tipo appbundle: 
@@ -18,7 +22,7 @@ description: App para controle da escala do louvor.
 publish_to: 'none'
 
 # VERSÃO DO APP
-version: 0.3.4+14
+version: 0.3.5+14
 
 # VERSÃO DO SDK FLUTTER
 environment:

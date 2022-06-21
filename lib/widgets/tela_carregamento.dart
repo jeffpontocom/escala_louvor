@@ -8,7 +8,7 @@ class TelaCarregamento extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(64),
+      padding: const EdgeInsets.all(24),
       alignment: Alignment.center,
       color: MediaQueryData.fromWindow(WidgetsBinding.instance.window)
                   .platformBrightness ==

@@ -1,15 +1,12 @@
 import 'dart:developer' as dev;
 
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:stylish_bottom_bar/stylish_bottom_bar.dart';
 
-import '/models/igreja.dart';
 import '/modulos.dart';
-import '/screens/secondaries/tela_selecao.dart';
 import '/utils/global.dart';
 import '/widgets/avatar.dart';
 
@@ -66,7 +63,7 @@ class _HomeState extends State<Home> {
   int setPage(String rota) {
     rota = rota.substring(rota.lastIndexOf('/') + 1,
         rota.contains('?') ? rota.indexOf('?') : null);
-    dev.log('Rota: $rota', name: 'log:Home');
+    dev.log('Rota: $rota', name: 'Home');
     var index = 0;
     try {
       index = HomePages.values.indexWhere((element) => element.name == rota);

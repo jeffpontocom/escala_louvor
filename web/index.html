@@ -14,8 +14,7 @@
     This is a placeholder for base href that will be replaced by the value of
     the `--base-href` argument provided to `flutter build`.
   -->
-  <!-- <base href="$FLUTTER_BASE_HREF"> -->
-  <base href="/escala_louvor/"> <!-- importante indicar nome da pasta raiz para github pages -->
+  <base href="$FLUTTER_BASE_HREF">
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
@@ -33,6 +32,7 @@
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
+
   <!-- Para carregar imagem e textos centralizados na inicialização -->
   <style>
     body {
@@ -95,6 +95,27 @@
       });
   </script>
 
+<script type="module">
+  // Import the functions you need from the SDKs you need
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.8.3/firebase-app.js";
+  // TODO: Add SDKs for Firebase products that you want to use
+  // https://firebase.google.com/docs/web/setup#available-libraries
+
+  // Your web app's Firebase configuration
+  const firebaseConfig = {
+    apiKey: "AIzaSyBp_lsWvNrPhSCKoW3eXS1uDoxXGdBBWns",
+    authDomain: "escala-louvor-ipbfoz.firebaseapp.com",
+    databaseURL: "https://escala-louvor-ipbfoz-default-rtdb.firebaseio.com",
+    projectId: "escala-louvor-ipbfoz",
+    storageBucket: "escala-louvor-ipbfoz.appspot.com",
+    messagingSenderId: "420088880029",
+    appId: "1:420088880029:web:7f20d85ded9fd777482d74"
+  };
+
+  // Initialize Firebase
+  const app = initializeApp(firebaseConfig);
+</script>
+
   <!-- This script installs service_worker.js to provide PWA functionality to
        application. For more information, see:
        https://developers.google.com/web/fundamentals/primers/service-workers -->
@@ -112,21 +133,21 @@
       document.body.append(scriptTag);
     }
 
-    if ('serviceWorker' in navigator) {      
-      //register firebase-messaging service worker
-      //navigator.serviceWorker.register("/firebase-messaging-sw.js");
-      // Service workers are supported. Use them.
-      
-      // Registro para Firebase Cloud Message
+    if ('serviceWorker' in navigator) {
+
+      // Service workers are supported. Use them.        
       window.addEventListener('load', function () {
+          
+        // Registro para Firebase Cloud Message
+        navigator.serviceWorker.register('firebase-messaging-sw.js');
+
         // Wait for registration to finish before dropping the <script> tag.
         // Otherwise, the browser will load the script multiple times,
         // potentially different versions.
-        /* navigator.serviceWorker.register('/firebase-messaging-sw.js')
+        var serviceWorkerUrl = 'flutter_service_worker.js?v=' + serviceWorkerVersion;
+        navigator.serviceWorker.register(serviceWorkerUrl)
           .then((reg) => {
             function waitForActivation(serviceWorker) {
-              var serviceWorkerUrl = 'flutter_service_worker.js?v=' + serviceWorkerVersion;
-              console.log(serviceWorkerUrl);
               serviceWorker.addEventListener('statechange', () => {
                 if (serviceWorker.state == 'activated') {
                   console.log('Installed new service worker.');
@@ -137,7 +158,7 @@
             if (!reg.active && (reg.installing || reg.waiting)) {
               // No active web worker and we have installed or are installing
               // one for the first time. Simply wait for it to activate.
-              waitForActivation(reg.installing || reg.waiting);
+              waitForActivation(reg.installing ?? reg.waiting);
             } else if (!reg.active.scriptURL.endsWith(serviceWorkerVersion)) {
               // When the app updates the serviceWorkerVersion changes, so we
               // need to ask the service worker to update.
@@ -149,19 +170,21 @@
               console.log('Loading app from service worker.');
               loadMainDartJs();
             }
-          }); */
-        
+          });        
+
         // If service worker doesn't succeed in a reasonable amount of time,
         // fallback to plaint <script> tag.
-        //setTimeout(() => {
+        setTimeout(() => {
           if (!scriptLoaded) {
             console.warn(
               'Failed to load app from service worker. Falling back to plain <script> tag.',
             );
             loadMainDartJs();
           }
-        //}, 4000);
+        }, 4000);
+
       });
+
     } else {
       // Service workers not supported. Just drop the <script> tag.
       loadMainDartJs();

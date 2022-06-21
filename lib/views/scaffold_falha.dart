@@ -19,18 +19,21 @@ class ViewFalha extends StatelessWidget {
               Flexible(
                 child: Image.asset(
                   'assets/images/fail.png',
-                  width: 160,
-                  height: 160,
+                  height: 256,
+                  fit: BoxFit.contain,
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 12),
               // Texto de carregamento
               const Text(
                 'Falha!',
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.redAccent),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 12),
               Text(
                 mensagem,
                 textAlign: TextAlign.center,
@@ -38,11 +41,11 @@ class ViewFalha extends StatelessWidget {
               const SizedBox(height: 48),
               // logo
               Wrap(
-                spacing: 12,
+                spacing: 8,
                 alignment: WrapAlignment.center,
                 crossAxisAlignment: WrapCrossAlignment.center,
                 children: [
-                  Image.asset('assets/icons/ic_launcher.png', width: 24),
+                  Image.asset('assets/icons/ic_launcher.png', width: 20),
                   Text(
                     Global.nomeDoApp,
                     style: TextStyle(color: Colors.grey.withOpacity(0.5)),
