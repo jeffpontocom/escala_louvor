@@ -124,7 +124,7 @@
       window.addEventListener('load', function () {
 
         // Registro para Firebase Cloud Messaging
-        navigator.serviceWorker.register('firebase-messaging-sw.js')
+        navigator.serviceWorker.register('$FLUTTER_BASE_HREF'+'firebase-messaging-sw.js', { scope: '$FLUTTER_BASE_HREF' })
           .then(function (registration) {
             console.log('FCM - Registration successful, scope is:', registration.scope);
           }).catch(function (err) {

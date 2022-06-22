@@ -100,7 +100,7 @@ class AppModule extends Module {
             id: args.queryParams['id'] ?? '',
             snapCulto: args.data,
           ),
-          guards: [AuthGuard(), QueryGuard()],
+          guards: [QueryGuard()],
         ),
 
         // CANTICOS
@@ -140,8 +140,7 @@ class AuthGuard extends RouteGuard {
 
   @override
   Future<bool> canActivate(String path, ModularRoute route) async {
-    var isAuthenticated = FirebaseAuth.instance.currentUser != null;
-    return isAuthenticated;
+    return FirebaseAuth.instance.currentUser != null;
   }
 }
 
@@ -150,8 +149,7 @@ class InverseAuthGuard extends RouteGuard {
 
   @override
   Future<bool> canActivate(String path, ModularRoute route) async {
-    var isNotAuthenticated = FirebaseAuth.instance.currentUser == null;
-    return isNotAuthenticated;
+    return FirebaseAuth.instance.currentUser == null;
   }
 }
 

@@ -3,10 +3,9 @@ import 'dart:developer' as dev;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_modular/flutter_modular.dart';
@@ -14,7 +13,6 @@ import 'package:http/http.dart' as http;
 // ignore: depend_on_referenced_packages
 import 'package:rxdart/rxdart.dart';
 
-import '/firebase_options.dart';
 import '/utils/global.dart';
 import '/utils/mensagens.dart';
 
@@ -65,39 +63,40 @@ class Notificacoes {
       provisional: false,
       sound: true,
     );
-    dev.log('Permissão aceita: ${settings.authorizationStatus}', name: 'FCM');
+    print('Permissão aceita: ${settings.authorizationStatus}');
 
     // Register with FCM
-    String? vapidKey = dotenv.env['FCM_VapidKey'];
-    String? token = await messaging.getToken(vapidKey: vapidKey);
-    if (kDebugMode) {
-      print('Registration Token=$token');
+    String? token;
+    try {
+      if (kIsWeb) {
+        await messaging.deleteToken();
+        var vapidKey = dotenv.env['FCM_VapidKey'];
+        token = await messaging.getToken(vapidKey: vapidKey);
+      } else {
+        token = await messaging.getToken();
+      }
+      print('Token registrado com sucesso');
+      instancia.saveToken(token);
+    } catch (e) {
+      print('Erro ao registrar token: $e');
     }
-    instancia.saveToken(token);
     instancia._tokenStream = messaging.onTokenRefresh;
     instancia._tokenStream.listen(instancia.saveToken);
 
     // Ouvir mensagens em primeiro plano
     // Set up foreground message handler
     // used to pass messages from event handler to the UI
-    instancia._messageStreamController = BehaviorSubject<RemoteMessage>();
     instancia._ouvirMensagens();
 
     // Set up background message handler
 
     // FIM DAS NOVAS INSTRUÇÕES
 
-    // Obter token
-    /* var fcmToken = await FirebaseMessaging.instance
-        .getToken(vapidKey: dotenv.env['FCM_VapidKey'] ?? '');
-    instancia.saveToken(fcmToken);
-    instancia._tokenStream = FirebaseMessaging.instance.onTokenRefresh;
-    instancia._tokenStream.listen(instancia.saveToken); */
-
-    // Set the background messaging handler early on, as a named top-level function
-    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-
     if (!kIsWeb) {
+      // Set the background messaging handler early on, as a named top-level function
+      FirebaseMessaging.onBackgroundMessage(
+          _firebaseMessagingBackgroundHandler);
+
       // Definições do Canal de Notificações para Android
       instancia.channel = const AndroidNotificationChannel(
         'canal_escala_louvor', // id
@@ -149,18 +148,20 @@ class Notificacoes {
   /// Tratamento para segundo plano
   static Future<void> _firebaseMessagingBackgroundHandler(
       RemoteMessage message) async {
-    try {
+    /* try {
       await Firebase.initializeApp(
           options: DefaultFirebaseOptions.currentPlatform);
     } catch (e) {
       dev.log('Notificações: A Firebase App named "[DEFAULT]" already exists');
     }
-    dev.log('Tratando notificação em segundo plano: ${message.messageId}');
+    dev.log('Tratando notificação em segundo plano: ${message.messageId}'); */
   }
 
   /// Ouvir
   void _ouvirMensagens() {
     dev.log('Ouvindo mensagens', name: 'FCM');
+
+    instancia._messageStreamController = BehaviorSubject<RemoteMessage>();
 
     // Recebimentos em primeiro plano
     FirebaseMessaging.onMessage.listen((RemoteMessage message) {
@@ -192,10 +193,18 @@ class Notificacoes {
       // Apresentar mensagem na tela
       Mensagem.bottomDialog(
         context: context,
-        titulo: notification?.title ?? 'Mensagem',
+        titulo: 'Nova mensagem',
         conteudo: Padding(
           padding: const EdgeInsets.all(16),
-          child: Text(notification?.body ?? 'Sem conteúdo'),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(notification?.title ?? '',
+                  style: Theme.of(context).textTheme.titleMedium),
+              const SizedBox(height: 12),
+              Text(notification?.body ?? 'Sem conteúdo'),
+            ],
+          ),
         ),
       );
     });

@@ -48,6 +48,8 @@ class Global {
   ///   - Integrante logado
   ///   - Igreja em contexto
   static Future<bool> iniciar() async {
+    print('Carregando dados globais...');
+
     // Carrega o arquivo de chaves (a extensão .txt é para poder ser lida na web)
     await dotenv.load(fileName: 'dotenv.txt');
 
@@ -61,15 +63,17 @@ class Global {
     }
     // Em caso de plataforma não suportada
     on UnsupportedError catch (e) {
-      dev.log('Main: ${e.toString()}');
+      print('Erro fatal: ${e.toString()}');
       return false;
-    } on MissingPluginException catch (e) {
-      dev.log('Main: ${e.toString()}');
+    }
+    // Em caso falta de plugin
+    on MissingPluginException catch (e) {
+      print('Erro fatal: ${e.toString()}');
       return false;
     }
     // Em caso de erros não previstos
     catch (e) {
-      dev.log('Main: ${e.toString()}');
+      print('Falha: ${e.toString()}');
     }
 
     // Prepostos Modular
@@ -77,26 +81,29 @@ class Global {
     //Modular.setNavigatorKey(myNavigatorKey);
     //Modular.setObservers([myObserver]);
 
-    // Persistência da autenticação (somente web)
-    if (kIsWeb) {
-      await FirebaseAuth.instance.setPersistence(Persistence.LOCAL);
-    }
-
     // Recupera os dados salvos na seção anterior
     preferences = await SharedPreferences.getInstance();
-
-    // Dados do usuário logado
-    if (FirebaseAuth.instance.currentUser != null) {
-      var userId = FirebaseAuth.instance.currentUser!.uid;
-
-      // Carrega o integrante logado
-      logadoSnapshot = await MeuFirebase.obterSnapshotIntegrante(userId);
-    }
-
     // Carrega igreja pré-selecionada
     igrejaSelecionada.value =
         await MeuFirebase.obterSnapshotIgreja(prefIgrejaId);
 
+    /* final auth = FirebaseAuth.instance;
+    // Persistência da autenticação (somente web)
+    if (kIsWeb) {
+      await auth.setPersistence(Persistence.LOCAL);
+    }
+
+    // Dados do usuário logado
+    if (auth.currentUser != null) {
+      print('Usuário está logado!');
+      // Carrega o integrante logado
+      var userId = auth.currentUser!.uid;
+      logadoSnapshot = await MeuFirebase.obterSnapshotIntegrante(userId);
+    } else {
+      print('Usuário não está logado!');
+    } */
+
+    print('Dados globais carregados com sucesso');
     return true;
   }
 
@@ -121,7 +128,6 @@ class Global {
   /// Setter: Mostrar cultos de todas as igrejas inscritas
   static set prefMostrarTodosOsCultos(bool value) {
     preferences?.setBool('mostrar_todos_cultos', value);
-    //notificarAlteracaoEmIgrejas();
   }
 
   /* GETTERS */

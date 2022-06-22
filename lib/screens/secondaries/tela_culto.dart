@@ -1,6 +1,8 @@
 import 'dart:developer' as dev;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:escala_louvor/screens/user/auth_guard.dart';
+import 'package:escala_louvor/views/scaffold_404.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
@@ -37,7 +39,7 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
   /* VARIÁVEIS */
   late Culto mCulto;
   late DocumentSnapshot<Culto> mSnapshot;
-  Integrante? mLogado = Global.logado;
+  Integrante? mLogado;
 
   bool get _ehODirigente {
     if (mCulto.dirigente == null) {
@@ -56,7 +58,8 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
   /* SISTEMA */
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return AuthGuardView(
+        scaffold: Scaffold(
       appBar: AppBar(
         leading: BackButton(
           onPressed: () async {
@@ -84,9 +87,10 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
             // Conteúdo
             mSnapshot = snapshot.data!;
             mCulto = mSnapshot.data()!;
+            mLogado = Global.logadoSnapshot?.data();
             return _layout;
           }),
-    );
+    ));
   }
 
   /// LAYOUT DA TELA

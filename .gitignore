@@ -15,6 +15,10 @@
 *.iws
 .idea/
 
+# Firebase related
+.firebase/
+node_modules/
+
 # flutter_envdot
 *.env
 dotenv.txt
