@@ -376,7 +376,7 @@ class MetodosIntegrante {
                             context: context,
                             titulo: 'Atenção',
                             mensagem:
-                                'Deseja se desinscrever da sua igreja atualmente selecionada?',
+                                'Deseja remover a inscrição da igreja atualmente selecionada?',
                             onPressed: (ok) async {
                               if (ok) {
                                 innerState(() {

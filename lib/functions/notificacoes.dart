@@ -77,7 +77,7 @@ class Notificacoes {
     instancia._tokenStream = messaging.onTokenRefresh;
     instancia._tokenStream.listen(instancia.saveToken);
 
-    // Ouvir mensagens em primeiro plnao
+    // Ouvir mensagens em primeiro plano
     // Set up foreground message handler
     // used to pass messages from event handler to the UI
     instancia._messageStreamController = BehaviorSubject<RemoteMessage>();

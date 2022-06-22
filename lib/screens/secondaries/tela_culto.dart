@@ -834,29 +834,6 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
         });
   }
 
-  /// Acesso ao arquivo da liturgia do culto
-  Widget get _secaoCanticos {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: Row(
-        children: [
-          Expanded(
-            child: Text(
-              'Segure e arraste para reordenar',
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodySmall,
-            ),
-          ),
-          OutlinedButton.icon(
-            onPressed: () => _adicionarCanticos(),
-            icon: const Icon(Icons.edit_note),
-            label: const Text('Editar lista'),
-          )
-        ],
-      ),
-    );
-  }
-
   Widget get _listaDeCanticos {
     List<Widget> lista = [];
     if (mCulto.canticos == null || mCulto.canticos!.isEmpty) {

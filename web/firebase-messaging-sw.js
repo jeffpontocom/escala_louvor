@@ -1,7 +1,10 @@
-importScripts("https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js");
-importScripts("https://www.gstatic.com/firebasejs/8.10.0/firebase-messaging.js");
+import { initializeApp } from "firebase/app";
+import { getMessaging } from "firebase/messaging";
 
-firebase.initializeApp({    
+//importScripts("https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js");
+//importScripts("https://www.gstatic.com/firebasejs/8.10.0/firebase-messaging.js");
+
+const firebaseConfig = {    
   apiKey: "AIzaSyBp_lsWvNrPhSCKoW3eXS1uDoxXGdBBWns",
   authDomain: "escala-louvor-ipbfoz.firebaseapp.com",
   databaseURL: "https://escala-louvor-ipbfoz-default-rtdb.firebaseio.com",
@@ -9,9 +12,13 @@ firebase.initializeApp({
   storageBucket: "escala-louvor-ipbfoz.appspot.com",
   messagingSenderId: "420088880029",
   appId: "1:420088880029:web:7f20d85ded9fd777482d74",
-});
+};
 
-const messaging = firebase.messaging();
+//firebase.initializeApp(firebaseConfig);
+//const messaging = firebase.messaging();
+
+const app = initializeApp(firebaseConfig);
+const messaging = getMessaging(app);
 
 messaging.setBackgroundMessageHandler(function (payload) {
   payload.data.data = JSON.parse(JSON.stringify(payload.data));

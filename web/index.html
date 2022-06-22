@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <!--
     If you are serving your web app in a path other than the root, change the
@@ -31,7 +32,7 @@
   <link rel="manifest" href="manifest.json">
 
   <!-- Favicon -->
-  <link rel="icon" type="image/png" href="favicon.png"/>
+  <link rel="icon" type="image/png" href="favicon.png" />
 
   <!-- Para carregar imagem e textos centralizados na inicialização -->
   <style>
@@ -40,15 +41,18 @@
       color: #222;
       font: 100% system-ui;
     }
+
     @media (prefers-color-scheme: dark) {
       body {
         background: #121212;
         color: #eee;
       }
     }
-    div *{
-      font-family: "Ubuntu","Trebuchet MS";
+
+    div * {
+      font-family: "Ubuntu", "Trebuchet MS";
     }
+
     .centered {
       position: fixed;
       top: 50%;
@@ -56,65 +60,46 @@
       transform: translate(-50%, -50%);
       text-align: center;
     }
-    .centered *{
+
+    .centered * {
       text-align: center;
     }
   </style>
 
 </head>
+
 <body>
   <!-- Interface de carregamento  -->
   <div class="centered">
     <img src="icons/Icon-192.png" width="128" />
     <span></br></span>
-    <span style="font-size: 32px; font-weight: bold; font-family: 'Offside','Trebuchet MS'">Escala do Louvor</br></span>
-    <span></br></span>
+    <span style="font-size: 32px; font-weight: bold; font-family: 'Offside', 'Ubuntu', 'Trebuchet MS'">Escala do
+      Louvor</br></span>
     <span></br></span>
     <span style="font-size: 14px; opacity: 0.5;" id="mStatus">...</span>
   </div>
 
   <!-- Verifica se a internet esta disponivel
       Impede a tela branca caso o script mainDartJs não seja baixado -->
-  <script>    
+  <script>
     console.log('Verificando conexão com a internet...');
-    fetch('https://static-global-s-msn-com.akamaized.net/hp-neu/sc/2b/a5ea21.ico?d='+Date.now())
-      .then(function(response) {
+    fetch('https://static-global-s-msn-com.akamaized.net/hp-neu/sc/2b/a5ea21.ico?d=' + Date.now())
+      .then(function (response) {
         console.log('Status de conexão com a internet = %d %s', response.status, response.statusText);
-        if (response.status >= 200 && response.status < 300){
+        if (response.status >= 200 && response.status < 300) {
           document.getElementById('mStatus').innerText = 'Carregando app...';
         } else {
           document.getElementById('mStatus').innerText = 'Não é possível acessar o sistema!\nVerifique sua conexão com a Internet ou tente em outro navegador mais atualizado.';
-          //document.getElementById('mStatus').style.color = 'red';
+          document.getElementById('mStatus').style.color = 'red';
         }
       })
-      .catch(function(error) {
+      .catch(function (error) {
         console.log('Conexão falhou', error)
         status = 'Não é possível acessar o sistema!\nVerifique sua conexão com a Internet.';
         document.getElementById('mStatus').innerText = status;
-        //document.getElementById('mStatus').style.color = 'amber';
+        document.getElementById('mStatus').style.color = 'red';
       });
   </script>
-
-<script type="module">
-  // Import the functions you need from the SDKs you need
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.8.3/firebase-app.js";
-  // TODO: Add SDKs for Firebase products that you want to use
-  // https://firebase.google.com/docs/web/setup#available-libraries
-
-  // Your web app's Firebase configuration
-  const firebaseConfig = {
-    apiKey: "AIzaSyBp_lsWvNrPhSCKoW3eXS1uDoxXGdBBWns",
-    authDomain: "escala-louvor-ipbfoz.firebaseapp.com",
-    databaseURL: "https://escala-louvor-ipbfoz-default-rtdb.firebaseio.com",
-    projectId: "escala-louvor-ipbfoz",
-    storageBucket: "escala-louvor-ipbfoz.appspot.com",
-    messagingSenderId: "420088880029",
-    appId: "1:420088880029:web:7f20d85ded9fd777482d74"
-  };
-
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-</script>
 
   <!-- This script installs service_worker.js to provide PWA functionality to
        application. For more information, see:
@@ -137,9 +122,14 @@
 
       // Service workers are supported. Use them.        
       window.addEventListener('load', function () {
-          
-        // Registro para Firebase Cloud Message
-        navigator.serviceWorker.register('firebase-messaging-sw.js');
+
+        // Registro para Firebase Cloud Messaging
+        navigator.serviceWorker.register('firebase-messaging-sw.js')
+          .then(function (registration) {
+            console.log('FCM - Registration successful, scope is:', registration.scope);
+          }).catch(function (err) {
+            console.log('FCM - Service worker registration failed, error:', err);
+          });
 
         // Wait for registration to finish before dropping the <script> tag.
         // Otherwise, the browser will load the script multiple times,
@@ -170,7 +160,7 @@
               console.log('Loading app from service worker.');
               loadMainDartJs();
             }
-          });        
+          });
 
         // If service worker doesn't succeed in a reasonable amount of time,
         // fallback to plaint <script> tag.
@@ -191,4 +181,5 @@
     }
   </script>
 </body>
+
 </html>
