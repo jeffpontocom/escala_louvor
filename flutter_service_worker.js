@@ -46,16 +46,16 @@ const RESOURCES = {
 "assets/packages/font_awesome_flutter/lib/fonts/fa-solid-900.ttf": "dd3c4233029270506ecc994d67785a37",
 "assets/packages/wakelock_web/assets/no_sleep.js": "7748a45cd593f33280669b29c2c8919a",
 "favicon.png": "d9f0bfa8d2610aa0c02ab61c04f57df6",
-"firebase-messaging-sw.js": "2ca44624dacc112bff3ff7c63a474d6f",
+"firebase-messaging-sw.js": "ecf93417d9ede491ecbe55f003e467f0",
 "icons/Icon-192.png": "701e43ae3eb8ad390c9b65537bc8a169",
 "icons/Icon-512.png": "51cbe3b1cb0ac7ddd62f3833cba6f39a",
 "icons/Icon-maskable-192.png": "701e43ae3eb8ad390c9b65537bc8a169",
 "icons/Icon-maskable-512.png": "51cbe3b1cb0ac7ddd62f3833cba6f39a",
-"index.html": "52bee536afe03d7dd3613390f28d4957",
-"/": "52bee536afe03d7dd3613390f28d4957",
-"main.dart.js": "828ba91c9d2d9c6134662ab510dcf248",
+"index.html": "a05061ddcbcacccd235a876de304ee71",
+"/": "a05061ddcbcacccd235a876de304ee71",
+"main.dart.js": "e0572aedc7b76b927dcc82c14ed46ff6",
 "manifest.json": "7051455cda8feb95c100f8203fb1431e",
-"version.json": "de50d8718edadba767b2b58f08233069"
+"version.json": "bd3e0986629e349431de67aa97f508d4"
 };
 
 // The application shell files that are downloaded before a service worker can

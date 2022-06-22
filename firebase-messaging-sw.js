@@ -1,7 +1,9 @@
-importScripts("https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js");
-importScripts("https://www.gstatic.com/firebasejs/8.10.0/firebase-messaging.js");
+/* importScripts("https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js");
+importScripts("https://www.gstatic.com/firebasejs/8.10.1/firebase-messaging.js"); */
+importScripts("https://www.gstatic.com/firebasejs/9.6.10/firebase-app-compat.js");
+importScripts("https://www.gstatic.com/firebasejs/9.6.10/firebase-messaging-compat.js");
 
-firebase.initializeApp({    
+const firebaseConfig = {
   apiKey: "AIzaSyBp_lsWvNrPhSCKoW3eXS1uDoxXGdBBWns",
   authDomain: "escala-louvor-ipbfoz.firebaseapp.com",
   databaseURL: "https://escala-louvor-ipbfoz-default-rtdb.firebaseio.com",
@@ -9,30 +11,48 @@ firebase.initializeApp({
   storageBucket: "escala-louvor-ipbfoz.appspot.com",
   messagingSenderId: "420088880029",
   appId: "1:420088880029:web:7f20d85ded9fd777482d74",
-});
+};
 
+firebase.initializeApp(firebaseConfig);
 const messaging = firebase.messaging();
 
-messaging.setBackgroundMessageHandler(function (payload) {
-  payload.data.data = JSON.parse(JSON.stringify(payload.data));
-  return self.registration.showNotification(payload.data.title, payload.data);
-
-    /* const promiseChain = clients
-        .matchAll({
-            type: "window",
-            includeUncontrolled: true
-        })
-        .then(windowClients => {
-            for (let i = 0; i < windowClients.length; i++) {
-                const windowClient = windowClients[i];
-                windowClient.postMessage(payload);
-            }
-        })
-        .then(() => {
-            return registration.showNotification("New Message");
-        });
-    return promiseChain; */
-});
+/* messaging.setBackgroundMessageHandler(function (payload) {
+  const promiseChain = clients
+      .matchAll({
+          type: "window",
+          includeUncontrolled: true
+      })
+      .then(windowClients => {
+          for (let i = 0; i < windowClients.length; i++) {
+              const windowClient = windowClients[i];
+              windowClient.postMessage(payload);
+          }
+      })
+      .then(() => {
+          return registration.showNotification(payload.data.title, payload.data);
+      });
+  return promiseChain;
+}); */
+messaging.onBackgroundMessage(function (message) {
+  console.log('Mensagem recebida em background', message);
+  const promiseChain = clients
+      .matchAll({
+          type: "window",
+          includeUncontrolled: true
+      })
+      .then(windowClients => {
+          for (let i = 0; i < windowClients.length; i++) {
+              const windowClient = windowClients[i];
+              windowClient.postMessage(message);
+          }
+      })
+      .then(() => {
+          const title = message.notification.title;
+          const options = {body: message.notification.body}
+          return registration.showNotification(title, options);
+      });
+  return promiseChain;
+ });
 
 self.addEventListener('notificationclick', function (event) {
   console.log('notification received: ', event)
@@ -43,7 +63,7 @@ self.addEventListener('notificationclick', function (event) {
   event.waitUntil(clients.matchAll({
     type: 'window',
     includeUncontrolled: true
-  }).then(function(clientList) {
+  }).then(function (clientList) {
     // clientList always is empty?!
     for (var i = 0; i < clientList.length; i++) {
       var client = clientList[i];
@@ -52,7 +72,7 @@ self.addEventListener('notificationclick', function (event) {
       }
     }
     if (clients.openWindow) {
-    return clients.openWindow(target);
+      return clients.openWindow(target);
     }
 
   }));
