@@ -1,18 +1,18 @@
 import 'dart:developer' as dev;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:escala_louvor/views/scaffold_404.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
+import 'scaffold_falha.dart';
+import 'scaffold_user_inativo.dart';
 import '/functions/metodos_firebase.dart';
 import '/functions/notificacoes.dart';
 import '/models/integrante.dart';
 import '/screens/user/tela_login.dart';
 import '/utils/global.dart';
+import '/views/scaffold_404.dart';
 import '/widgets/tela_carregamento.dart';
-import 'scaffold_falha.dart';
-import 'scaffold_user_inativo.dart';
 
 class AuthGuardView extends StatelessWidget {
   final bool adminCheck;

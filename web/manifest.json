@@ -5,7 +5,7 @@
     "display": "standalone",
     "background_color": "none",
     "theme_color": "#2094f3",
-    "description": "App para controle da escala do louvor.",
+    "description": "Um app para controle da escala da equipe de louvor",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
