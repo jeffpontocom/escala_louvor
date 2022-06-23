@@ -19,10 +19,10 @@ import '/models/culto.dart';
 import '/models/igreja.dart';
 import '/models/instrumento.dart';
 import '/models/integrante.dart';
+import '/modulos.dart';
 import '/utils/global.dart';
 import '/utils/mensagens.dart';
 import '/utils/utils.dart';
-import '../modulos.dart';
 
 class MeuFirebase {
   /* STREAMS  */
@@ -322,7 +322,7 @@ class MeuFirebase {
       required String igreja,
       required Culto culto,
       required String cultoId}) async {
-    await Notificacoes.instancia.enviarMensagemPush(
+    await Notificacoes.enviarMensagemPush(
       para: token,
       titulo: 'Você está escalado!',
       corpo:
@@ -338,7 +338,7 @@ class MeuFirebase {
       required String igreja,
       required Culto culto,
       required String cultoId}) async {
-    await Notificacoes.instancia.enviarMensagemPush(
+    await Notificacoes.enviarMensagemPush(
       para: token,
       titulo: 'Marque a sua disponibilidade!',
       corpo:

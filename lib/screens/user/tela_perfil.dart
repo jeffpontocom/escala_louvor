@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:escala_louvor/views/auth_guard.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -47,41 +48,43 @@ class _TelaPerfilState extends State<TelaPerfil> {
 
   @override
   Widget build(BuildContext context) {
-    return OrientationBuilder(builder: (context, orientation) {
-      _isPortrait = orientation == Orientation.portrait;
-      return Scaffold(
-        appBar: AppBar(
-          leading: BackButton(
-            onPressed: () async {
-              if (!await Modular.to.maybePop()) {
-                Modular.to.pushNamed(Global.rotaInicial);
+    return AuthGuardView(
+      scaffoldView: OrientationBuilder(builder: (context, orientation) {
+        _isPortrait = orientation == Orientation.portrait;
+        return Scaffold(
+          appBar: AppBar(
+            leading: BackButton(
+              onPressed: () async {
+                if (!await Modular.to.maybePop()) {
+                  Modular.to.pushNamed(Global.rotaInicial);
+                }
+              },
+            ),
+            title: const Text('Perfil'),
+            actions: _ehMeuPerfil || _ehAdm ? [_menuSuspenso] : null,
+          ),
+          body: StreamBuilder<DocumentSnapshot<Integrante>>(
+            initialData: widget.snapIntegrante,
+            stream: MeuFirebase.obterStreamIntegrante(widget.id),
+            builder: (context, snapshot) {
+              // Tela em carregamento
+              if (!snapshot.hasData) {
+                return const Center(child: CircularProgressIndicator());
               }
+              // Tela de falha
+              if (!snapshot.data!.exists || snapshot.data!.data() == null) {
+                return const Center(
+                    child: Text('Falha ao obter dados do integrante.'));
+              }
+              // Tela carregada
+              _integrante = snapshot.data!.data()!;
+              _metodos = MetodosIntegrante(context, snapshot.data!);
+              return _layout;
             },
           ),
-          title: const Text('Perfil'),
-          actions: _ehMeuPerfil || _ehAdm ? [_menuSuspenso] : null,
-        ),
-        body: StreamBuilder<DocumentSnapshot<Integrante>>(
-          initialData: widget.snapIntegrante,
-          stream: MeuFirebase.obterStreamIntegrante(widget.id),
-          builder: (context, snapshot) {
-            // Tela em carregamento
-            if (!snapshot.hasData) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            // Tela de falha
-            if (!snapshot.data!.exists || snapshot.data!.data() == null) {
-              return const Center(
-                  child: Text('Falha ao obter dados do integrante.'));
-            }
-            // Tela carregada
-            _integrante = snapshot.data!.data()!;
-            _metodos = MetodosIntegrante(context, snapshot.data!);
-            return _layout;
-          },
-        ),
-      );
-    });
+        );
+      }),
+    );
   }
 
   /// Corpo

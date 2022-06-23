@@ -72,7 +72,6 @@ class AppModule extends Module {
         ChildRoute(
           CONTEXTO,
           child: (_, __) => const TelaContexto(),
-          guards: [AuthGuard()],
         ),
 
         // LOGIN
@@ -90,7 +89,7 @@ class AppModule extends Module {
             hero: args.queryParams['hero'],
             snapIntegrante: args.data,
           ),
-          guards: [AuthGuard(), QueryGuard()],
+          guards: [QueryGuard()],
         ),
 
         // CULTO
@@ -106,10 +105,10 @@ class AppModule extends Module {
         // CANTICOS
         ChildRoute(
           CANTICO,
-          child: (_, args) => TelaLetrasView(
+          child: (_, args) => TelaCantico(
               id: args.queryParams['id'] ?? '', snapshot: args.data),
           transition: TransitionType.downToUp,
-          guards: [AuthGuard(), QueryGuard()],
+          guards: [QueryGuard()],
         ),
 
         // ARQUIVOS PDF
@@ -120,14 +119,13 @@ class AppModule extends Module {
             fileName: args.data[1],
           ),
           transition: TransitionType.downToUp,
-          guards: [AuthGuard()],
         ),
 
         // ADMIN
         ChildRoute(
           ADMIN,
           child: (_, __) => const TelaAdmin(),
-          guards: [AuthGuard()], // TODO: Add AdminGuard
+          // TODO: Add AdminGuard
         ),
 
         // WILDCARD (em caso de rota inexistente - Erro 404)

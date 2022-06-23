@@ -2,6 +2,7 @@ import 'dart:developer' as dev;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_modular/flutter_modular.dart';
@@ -215,7 +216,12 @@ class _TelaLoginState extends State<TelaLogin> {
             .then((DocumentSnapshot<Integrante> documentSnapshot) async {
           Modular.to.pop(); // Fecha progresso
           if (documentSnapshot.exists) {
-            // Integrante já registrado. Vai para home page
+            // INTEGRANTE JÁ REGISTRADO
+            // Persistir autenticação na web
+            if (kIsWeb) {
+              FirebaseAuth.instance.setPersistence(Persistence.LOCAL);
+            }
+            // Vai para home page
             Modular.to.navigate(Global.rotaInicial);
           } else {
             // Cria novo registro de integrante
@@ -232,7 +238,12 @@ class _TelaLoginState extends State<TelaLogin> {
                   .collection(Integrante.collection)
                   .doc(user.uid)
                   .set(integrante.toJson());
-              // Sucesso. Vai para home
+              // NOVO INTEGRANTE CRIADO
+              // Persistir autenticação na web
+              if (kIsWeb) {
+                FirebaseAuth.instance.setPersistence(Persistence.LOCAL);
+              }
+              // Vai para home
               Modular.to.navigate(Global.rotaInicial);
             } catch (e) {
               dev.log("Não foi possível criar o perfil do integrante: $e.");

@@ -151,7 +151,7 @@ class _HomeState extends State<Home> {
         // Tela administrador
         (Global.logado?.adm ?? false)
             ? IconButton(
-                onPressed: () => Modular.to.pushNamed('/admin'),
+                onPressed: () => Modular.to.pushNamed(AppModule.ADMIN),
                 icon: const Icon(Icons.admin_panel_settings),
               )
             : const SizedBox(),

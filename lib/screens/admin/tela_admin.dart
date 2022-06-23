@@ -1,7 +1,6 @@
 import 'dart:developer' as dev;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:escala_louvor/widgets/avatar.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 
@@ -9,13 +8,109 @@ import '/functions/metodos_firebase.dart';
 import '/models/igreja.dart';
 import '/models/instrumento.dart';
 import '/models/integrante.dart';
-import '../../../deprecated/view_integrante.dart';
-import '../../resources/estilos.dart';
+import '/resources/estilos.dart';
+import '/utils/global.dart';
 import '/utils/mensagens.dart';
 import '/utils/utils.dart';
+import '/views/auth_guard.dart';
+import '/widgets/avatar.dart';
+import '../../../deprecated/view_integrante.dart';
 
 class TelaAdmin extends StatelessWidget {
   const TelaAdmin({Key? key}) : super(key: key);
+
+  /* SISTEMA */
+  @override
+  Widget build(BuildContext context) {
+    return AuthGuardView(
+      adminCheck: true,
+      scaffoldView: Scaffold(
+        appBar: AppBar(
+          leading: BackButton(
+            onPressed: () async {
+              if (!await Modular.to.maybePop()) {
+                Modular.to.pushNamed(Global.rotaInicial);
+              }
+            },
+          ),
+          title: const Text('Administração do sistema'),
+          titleSpacing: 0,
+        ),
+        body: Scrollbar(
+          child: ListView(
+            padding: const EdgeInsets.symmetric(vertical: 24),
+            children: [
+              tituloSecao('Cadastros'),
+              // Igrejas
+              ListTile(
+                leading: const Icon(Icons.church),
+                title: const Text('Igrejas e locais de culto'),
+                subtitle: FutureBuilder<int>(
+                  future: MeuFirebase.totalCadastros(Igreja.collection,
+                      ativo: true),
+                  builder: ((context, snapshot) {
+                    if (!snapshot.hasData) return const Text('verificando...');
+                    int total = snapshot.data!;
+                    String plural = MyStrings.isPlural(total);
+                    return Text('$total cadastro$plural ativo$plural');
+                  }),
+                ),
+                trailing: IconButton(
+                  icon: const Icon(Icons.add_circle),
+                  color: Theme.of(context).colorScheme.primary,
+                  onPressed: () => _editarIgreja(context),
+                ),
+                onTap: () => _verIgrejas(context),
+              ),
+              // Instrumentos
+              ListTile(
+                leading: const Icon(Icons.music_video),
+                title: const Text('Instrumentos e equipamentos'),
+                subtitle: FutureBuilder<int>(
+                  future: MeuFirebase.totalCadastros(Instrumento.collection,
+                      ativo: true),
+                  builder: ((context, snapshot) {
+                    if (!snapshot.hasData) return const Text('verificando...');
+                    int total = snapshot.data!;
+                    String plural = MyStrings.isPlural(total);
+                    return Text('$total cadastro$plural ativo$plural');
+                  }),
+                ),
+                trailing: IconButton(
+                  icon: const Icon(Icons.add_circle),
+                  color: Theme.of(context).colorScheme.primary,
+                  onPressed: () => _editarInstrumento(context),
+                ),
+                onTap: () => _verInstrumentos(context),
+              ),
+              // Integrantes
+              ListTile(
+                leading: const Icon(Icons.groups),
+                title: const Text('Integrantes da equipe'),
+                subtitle: FutureBuilder<int>(
+                  future: MeuFirebase.totalCadastros(Integrante.collection,
+                      ativo: true),
+                  builder: ((context, snapshot) {
+                    if (!snapshot.hasData) return const Text('verificando...');
+                    int total = snapshot.data!;
+                    String plural = MyStrings.isPlural(total);
+                    return Text('$total cadastro$plural ativo$plural');
+                  }),
+                ),
+                trailing: IconButton(
+                  icon: const Icon(Icons.add_circle),
+                  color: Theme.of(context).colorScheme.primary,
+                  onPressed: () => _editarIntegrante(context),
+                ),
+                onTap: () => _verIntegrantes(context),
+              ),
+              const Divider(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
 
   /* WIDGETS */
   Widget tituloSecao(titulo) {
@@ -719,89 +814,6 @@ class TelaAdmin extends StatelessWidget {
         novoCadastro: novoCadastro,
         editMode: true,
         hero: id ?? 'foto',
-      ),
-    );
-  }
-
-  /* SISTEMA */
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Administração do sistema'),
-        titleSpacing: 0,
-      ),
-      body: Scrollbar(
-        child: ListView(
-          padding: const EdgeInsets.symmetric(vertical: 24),
-          children: [
-            tituloSecao('Cadastros'),
-            // Igrejas
-            ListTile(
-              leading: const Icon(Icons.church),
-              title: const Text('Igrejas e locais de culto'),
-              subtitle: FutureBuilder<int>(
-                future:
-                    MeuFirebase.totalCadastros(Igreja.collection, ativo: true),
-                builder: ((context, snapshot) {
-                  if (!snapshot.hasData) return const Text('verificando...');
-                  int total = snapshot.data!;
-                  String plural = MyStrings.isPlural(total);
-                  return Text('$total cadastro$plural ativo$plural');
-                }),
-              ),
-              trailing: IconButton(
-                icon: const Icon(Icons.add_circle),
-                color: Theme.of(context).colorScheme.primary,
-                onPressed: () => _editarIgreja(context),
-              ),
-              onTap: () => _verIgrejas(context),
-            ),
-            // Instrumentos
-            ListTile(
-              leading: const Icon(Icons.music_video),
-              title: const Text('Instrumentos e equipamentos'),
-              subtitle: FutureBuilder<int>(
-                future: MeuFirebase.totalCadastros(Instrumento.collection,
-                    ativo: true),
-                builder: ((context, snapshot) {
-                  if (!snapshot.hasData) return const Text('verificando...');
-                  int total = snapshot.data!;
-                  String plural = MyStrings.isPlural(total);
-                  return Text('$total cadastro$plural ativo$plural');
-                }),
-              ),
-              trailing: IconButton(
-                icon: const Icon(Icons.add_circle),
-                color: Theme.of(context).colorScheme.primary,
-                onPressed: () => _editarInstrumento(context),
-              ),
-              onTap: () => _verInstrumentos(context),
-            ),
-            // Integrantes
-            ListTile(
-              leading: const Icon(Icons.groups),
-              title: const Text('Integrantes da equipe'),
-              subtitle: FutureBuilder<int>(
-                future: MeuFirebase.totalCadastros(Integrante.collection,
-                    ativo: true),
-                builder: ((context, snapshot) {
-                  if (!snapshot.hasData) return const Text('verificando...');
-                  int total = snapshot.data!;
-                  String plural = MyStrings.isPlural(total);
-                  return Text('$total cadastro$plural ativo$plural');
-                }),
-              ),
-              trailing: IconButton(
-                icon: const Icon(Icons.add_circle),
-                color: Theme.of(context).colorScheme.primary,
-                onPressed: () => _editarIntegrante(context),
-              ),
-              onTap: () => _verIntegrantes(context),
-            ),
-            const Divider(),
-          ],
-        ),
       ),
     );
   }

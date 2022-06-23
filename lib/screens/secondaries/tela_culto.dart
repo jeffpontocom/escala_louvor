@@ -1,8 +1,7 @@
 import 'dart:developer' as dev;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:escala_louvor/screens/user/auth_guard.dart';
-import 'package:escala_louvor/views/scaffold_404.dart';
+import 'package:escala_louvor/views/auth_guard.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
@@ -59,38 +58,39 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
   @override
   Widget build(BuildContext context) {
     return AuthGuardView(
-        scaffold: Scaffold(
-      appBar: AppBar(
-        leading: BackButton(
-          onPressed: () async {
-            if (!await Modular.to.maybePop()) {
-              Modular.to.pushNamed(Global.rotaInicial);
-            }
-          },
+      scaffoldView: Scaffold(
+        appBar: AppBar(
+          leading: BackButton(
+            onPressed: () async {
+              if (!await Modular.to.maybePop()) {
+                Modular.to.pushNamed(Global.rotaInicial);
+              }
+            },
+          ),
+          title: const Text('Escala'),
+          actions: [_menuSuspenso],
         ),
-        title: const Text('Escala'),
-        actions: [_menuSuspenso],
+        body: StreamBuilder<DocumentSnapshot<Culto>>(
+            initialData: widget.snapCulto,
+            stream: MeuFirebase.obterStreamCulto(widget.id),
+            builder: (context, snapshot) {
+              // Progresso
+              if (!snapshot.hasData) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              // Erro
+              if (snapshot.hasError || snapshot.data?.data() == null) {
+                return const Center(
+                    child: Text('Falha ao carregar dados do culto.'));
+              }
+              // Conteúdo
+              mSnapshot = snapshot.data!;
+              mCulto = mSnapshot.data()!;
+              mLogado = Global.logadoSnapshot?.data();
+              return _layout;
+            }),
       ),
-      body: StreamBuilder<DocumentSnapshot<Culto>>(
-          initialData: widget.snapCulto,
-          stream: MeuFirebase.obterStreamCulto(widget.id),
-          builder: (context, snapshot) {
-            // Progresso
-            if (!snapshot.hasData) {
-              return const Center(child: CircularProgressIndicator());
-            }
-            // Erro
-            if (snapshot.hasError || snapshot.data?.data() == null) {
-              return const Center(
-                  child: Text('Falha ao carregar dados do culto.'));
-            }
-            // Conteúdo
-            mSnapshot = snapshot.data!;
-            mCulto = mSnapshot.data()!;
-            mLogado = Global.logadoSnapshot?.data();
-            return _layout;
-          }),
-    ));
+    );
   }
 
   /// LAYOUT DA TELA
