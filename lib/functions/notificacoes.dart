@@ -50,7 +50,8 @@ class Notificacoes {
       provisional: false,
       sound: true,
     );
-    print('Permissão para notificar aceita: ${settings.authorizationStatus}');
+    print(
+        '[FCM] Permissão para notificar aceita: ${settings.authorizationStatus}');
 
     // Registrar token no FCM (Firebase Cloud Messaging)
     String? token;
@@ -61,9 +62,9 @@ class Notificacoes {
       } else {
         token = await messaging.getToken();
       }
-      print('Token registrado com sucesso');
+      print('[FCM] Token registrado com sucesso');
     } catch (error) {
-      print('Erro ao registrar token: $error');
+      print('[FCM] Erro ao registrar token: $error');
       return;
     }
     instancia!.saveToken(token);
@@ -111,35 +112,31 @@ class Notificacoes {
         sound: true,
       );
 
-      // Get APNs token (apenas IOS)
+      // Colher Token da APN (apenas IOS)
       if (defaultTargetPlatform == TargetPlatform.iOS ||
           defaultTargetPlatform == TargetPlatform.macOS) {
-        dev.log('FlutterFire Messaging Example: Getting APNs token...');
+        print('[FCM IOS] Colhendo toke da APN...');
         String? token = await FirebaseMessaging.instance.getAPNSToken();
-        dev.log('FlutterFire Messaging Example: Got APNs token: $token');
-      } else {
-        dev.log(
-            'FlutterFire Messaging Example: Getting an APNs token is only supported on iOS and macOS platforms.');
+        print('[FCM IOS] Token da APN recebido: $token');
       }
 
       // Inscrever usuário no tópico
-      FirebaseMessaging.instance
-          .subscribeToTopic('escala_louvor')
-          .then((_) => dev.log('Usuário inscrito no tópico: escala_louvor'));
+      FirebaseMessaging.instance.subscribeToTopic('escala_louvor').then(
+          (_) => print('[FCM] Usuário inscrito no tópico: escala_louvor'));
     }
   }
 
   /// Salvar o token do usuário no banco de dados
   void saveToken(String? token) async {
     if (FirebaseAuth.instance.currentUser == null) {
-      dev.log('Token não foi salvo - Usuário não logado', name: 'FCM');
+      print('[FCM] Token não foi salvo, usuário não está logado');
       return;
     }
     await FirebaseFirestore.instance
         .collection('tokens')
         .doc(FirebaseAuth.instance.currentUser!.uid)
         .set({'token': token});
-    dev.log('Token salvo no Firebase', name: 'FCM');
+    print('[FCM] Token salvo no Firebase');
   }
 
   /// Tratamento para escutar mensagens recebidas

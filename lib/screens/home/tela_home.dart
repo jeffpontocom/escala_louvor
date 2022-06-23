@@ -63,7 +63,7 @@ class _HomeState extends State<Home> {
   int setPage(String rota) {
     rota = rota.substring(rota.lastIndexOf('/') + 1,
         rota.contains('?') ? rota.indexOf('?') : null);
-    dev.log('Rota: $rota', name: 'Home');
+    dev.log('Router: $rota', name: 'Home');
     var index = 0;
     try {
       index = HomePages.values.indexWhere((element) => element.name == rota);

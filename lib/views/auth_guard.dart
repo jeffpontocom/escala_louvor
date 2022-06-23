@@ -30,20 +30,20 @@ class AuthGuardView extends StatelessWidget {
         initialData: FirebaseAuth.instance.currentUser,
         stream: FirebaseAuth.instance.authStateChanges(),
         builder: (context, snapshot) {
-          dev.log('- Stream user: ${snapshot.connectionState.name} -',
+          dev.log(
+              'FirebaseAuth User: ${snapshot.connectionState.name.toUpperCase()}',
               name: 'AuthGuard');
 
           // NÃO LOGADO
           if (!snapshot.hasData &&
               snapshot.connectionState == ConnectionState.active) {
-            dev.log('Interface usuário não logado', name: 'AuthGuard');
+            dev.log('Usuário não está logado', name: 'AuthGuard');
+            Global.logadoSnapshot = null;
             return const TelaLogin();
           }
           // DADOS DO INTEGRANTE CARREGADOS
           // USUARIO LOGADO
           if (snapshot.hasData) {
-            dev.log('Interface usuário logado!', name: 'AuthGuard');
-
             // Ativa o sistema de notificações
             if (snapshot.connectionState == ConnectionState.active &&
                 Notificacoes.instancia == null) {
@@ -58,12 +58,12 @@ class AuthGuardView extends StatelessWidget {
                 stream: MeuFirebase.escutarIntegranteLogado(),
                 builder: (context, logado) {
                   dev.log(
-                      '-- Stream integrante: ${snapshot.connectionState.name} --',
+                      'Integrante: ${snapshot.connectionState.name.toUpperCase()}',
                       name: 'AuthGuard');
 
                   // FALHA AO CARREGAR COM DADOS DO INTEGRANTE
                   if (logado.hasError) {
-                    dev.log(logado.error.toString(), name: 'AuthGuard');
+                    dev.log('Falha: ${logado.error}', name: 'AuthGuard');
                     return const ViewFalha(
                         mensagem:
                             'Não foi possível carregar os dados do integrante.\nFeche o aplicativo e tente novamente.');
@@ -71,12 +71,14 @@ class AuthGuardView extends StatelessWidget {
 
                   // DADOS DO INTEGRANTE CARREGADOS
                   if (logado.hasData) {
-                    dev.log(
-                        'Carregando interface para ${logado.data?.data()?.nome ?? 'SEM NOME'}',
-                        name: 'AuthGuard');
+                    if (logado.connectionState == ConnectionState.active) {
+                      dev.log(
+                          'Interface carregada para ${logado.data?.data()?.nome ?? 'SEM NOME'}',
+                          name: 'AuthGuard');
 
-                    // Atualizar snapshot
-                    Global.logadoSnapshot = logado.data;
+                      // Atualizar snapshot
+                      Global.logadoSnapshot = logado.data;
+                    }
 
                     // Verifica se está ativo
                     // Caso inativo devolve tela que impede acesso ao app
@@ -97,13 +99,14 @@ class AuthGuardView extends StatelessWidget {
                   }
 
                   // CARREGAMENTO DA INTERFACE
-                  dev.log('Carregando interface...', name: 'AuthGuard');
+                  dev.log('Carregando interface do integrante...',
+                      name: 'AuthGuard');
                   return const TelaCarregamento();
                 });
           }
 
           // CARREGAMENTO DA INTERFACE
-          dev.log('Carregando interface...', name: 'AuthGuard');
+          dev.log('Carregando interface do usuário...', name: 'AuthGuard');
           return const TelaCarregamento();
         });
   }

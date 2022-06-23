@@ -1,4 +1,4 @@
-//import 'dart:developer' as dev;
+// ignore_for_file: avoid_print
 
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -47,7 +47,7 @@ class Global {
   ///   - Integrante logado
   ///   - Igreja em contexto
   static Future<bool> iniciar() async {
-    print('Carregando dados globais...');
+    print('[Global] Carregando dados...');
 
     // Carrega o arquivo de chaves (a extensão .txt é para poder ser lida na web)
     await dotenv.load(fileName: 'dotenv.txt');
@@ -62,17 +62,17 @@ class Global {
     }
     // Em caso de plataforma não suportada
     on UnsupportedError catch (e) {
-      print('Erro fatal: ${e.toString()}');
+      print('[Global] Erro ao carregar o app: ${e.toString()}');
       return false;
     }
     // Em caso falta de plugin
     on MissingPluginException catch (e) {
-      print('Erro fatal: ${e.toString()}');
+      print('[Global] Erro ao carregar o app: ${e.toString()}');
       return false;
     }
     // Em caso de erros não previstos
     catch (e) {
-      print('Falha: ${e.toString()}');
+      print('[Global] Falha registrada: ${e.toString()}');
     }
 
     // Prepostos Modular
@@ -82,27 +82,14 @@ class Global {
 
     // Recupera os dados salvos na seção anterior
     preferences = await SharedPreferences.getInstance();
-    // Carrega igreja pré-selecionada
-    igrejaSelecionada.value =
-        await MeuFirebase.obterSnapshotIgreja(prefIgrejaId);
 
-    /* final auth = FirebaseAuth.instance;
-    // Persistência da autenticação (somente web)
-    if (kIsWeb) {
-      await auth.setPersistence(Persistence.LOCAL);
+    // Carrega igreja pré-selecionada
+    if (prefIgrejaId != null) {
+      igrejaSelecionada.value =
+          await MeuFirebase.obterSnapshotIgreja(prefIgrejaId);
     }
 
-    // Dados do usuário logado
-    if (auth.currentUser != null) {
-      print('Usuário está logado!');
-      // Carrega o integrante logado
-      var userId = auth.currentUser!.uid;
-      logadoSnapshot = await MeuFirebase.obterSnapshotIntegrante(userId);
-    } else {
-      print('Usuário não está logado!');
-    } */
-
-    print('Dados globais carregados com sucesso');
+    print('[Global] Dados carregados com sucesso');
     return true;
   }
 

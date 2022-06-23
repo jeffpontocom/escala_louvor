@@ -1,7 +1,5 @@
 // ignore_for_file: constant_identifier_names
 
-import 'package:escala_louvor/utils/global.dart';
-import 'package:escala_louvor/views/scaffold_404.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 
@@ -18,6 +16,8 @@ import 'screens/secondaries/tela_pdf_view.dart';
 import 'screens/secondaries/tela_selecao.dart';
 import 'screens/user/tela_login.dart';
 import 'screens/user/tela_perfil.dart';
+import 'utils/global.dart';
+import 'views/scaffold_404.dart';
 
 class AppModule extends Module {
   static const String ADMIN = '/admin';
@@ -125,21 +125,11 @@ class AppModule extends Module {
         ChildRoute(
           ADMIN,
           child: (_, __) => const TelaAdmin(),
-          // TODO: Add AdminGuard
         ),
 
         // WILDCARD (em caso de rota inexistente - Erro 404)
         WildcardRoute(child: (_, __) => const View404()),
       ];
-}
-
-class AuthGuard extends RouteGuard {
-  AuthGuard() : super(redirectTo: AppModule.LOGIN);
-
-  @override
-  Future<bool> canActivate(String path, ModularRoute route) async {
-    return FirebaseAuth.instance.currentUser != null;
-  }
 }
 
 class InverseAuthGuard extends RouteGuard {

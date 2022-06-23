@@ -15,6 +15,8 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    dev.log('O app está atento a novas versões', name: 'MyApp');
+    dev.log('O app está atento a seleção de igreja', name: 'MyApp');
     return UpgradeAlert(
       upgrader: Upgrader(
         canDismissDialog: true,
@@ -24,8 +26,6 @@ class MyApp extends StatelessWidget {
         scaffoldView: ValueListenableBuilder<DocumentSnapshot<Igreja>?>(
             valueListenable: Global.igrejaSelecionada,
             builder: (context, igreja, _) {
-              dev.log('Escutando igreja selecionada', name: 'MyApp');
-
               // Verifica se usuário logado está inscrito na igreja selecionada
               bool inscrito = Global.logado?.igrejas
                       ?.map((e) => e.toString())
@@ -40,7 +40,7 @@ class MyApp extends StatelessWidget {
 
               // Se está inscrito devolve a tela inicial
               dev.log(
-                  'Inscrito na igreja: ${igreja?.data()?.sigla ?? 'NENHUMA'}',
+                  'Igreja selecionada: ${igreja?.data()?.sigla ?? 'NENHUMA'}',
                   name: 'MyApp');
               return Home(key: Key(igreja?.id ?? ''));
             }),
