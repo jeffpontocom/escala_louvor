@@ -1,11 +1,11 @@
 {
-    "name": "Escala Louvor",
-    "short_name": "Escala Louvor",
+    "name": "Escala do Louvor",
+    "short_name": "Escala do Louvor",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "App para controle da escala do louvor.",
+    "background_color": "none",
+    "theme_color": "#2094f3",
+    "description": "Um app para controle da escala da equipe de louvor",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [
