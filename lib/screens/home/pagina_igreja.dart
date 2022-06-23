@@ -6,7 +6,7 @@ import '/models/igreja.dart';
 import '/models/integrante.dart';
 import '/utils/global.dart';
 import '/utils/utils.dart';
-import '/widgets/avatar.dart';
+import '../../widgets/cached_circle_avatar.dart';
 import '/widgets/tile_integrante.dart';
 
 class PaginaEquipe extends StatefulWidget {

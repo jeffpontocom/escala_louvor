@@ -51,10 +51,12 @@ dependencies:
   flutter_dotenv: ^5.0.2 # Esconder arquivo de chaves
   flutter_modular: ^5.0.2 # Gerenciador de estados e 
   flutter_local_notifications: ^9.6.1 # Sistema de notificações locais
+  flutter_quill: ^5.0.3 # Para edição de RichText
   flutter_slidable: ^1.3.0 # Widget tipo arrastar item da lista para opções
   font_awesome_flutter: ^10.1.0 # Ícones alternativos
   http: ^0.13.4 # Base para web
   intl: ^0.17.0 # Base para idioma
+  image_cropper: ^2.0.3 # Para manipulação de imagens
   package_info_plus: ^1.4.2 # Recolhe dados básicos do app
   pdf: ^3.8.1 # Gerar PDFs
   printing: ^5.9.1 # Abrir PDFs

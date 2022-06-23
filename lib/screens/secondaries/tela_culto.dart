@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:developer' as dev;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -5,6 +6,7 @@ import 'package:escala_louvor/views/auth_guard.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
+import 'package:flutter_quill/flutter_quill.dart' as rich;
 import 'package:intl/intl.dart';
 
 import '/functions/metodos_firebase.dart';
@@ -17,7 +19,7 @@ import '/resources/animations/shimmer.dart';
 import '/screens/home/pagina_canticos.dart';
 import '/utils/global.dart';
 import '/utils/mensagens.dart';
-import '/widgets/avatar.dart';
+import '../../widgets/cached_circle_avatar.dart';
 import '/widgets/dialogos.dart';
 import '/widgets/tela_mensagem.dart';
 import '/widgets/tile_cantico.dart';
@@ -413,6 +415,68 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
       // Título
       leading: const Text('LITURGIA'),
       // Texto de apoio
+      title: mCulto.liturgia == null || mCulto.liturgia!.isEmpty
+          ? Text(
+              'Nenhuma informação no momento',
+              style: Theme.of(context).textTheme.bodySmall,
+            )
+          : OutlinedButton(
+              onPressed: _verLiturgia,
+              style: OutlinedButton.styleFrom(
+                  visualDensity: VisualDensity.compact),
+              child: const Text('Abrir'),
+            ),
+      // Botão de edição (somente para dirigente, coordenadores ou liturgos)
+      trailing: (mLogado?.adm ?? false) ||
+              _ehODirigente ||
+              _ehOCoordenador ||
+              (mLogado?.ehLiturgo ?? false)
+          ? IconButton(
+              onPressed: () async {
+                Dialogos.editarLiturgia(context,
+                    reference: mSnapshot.reference,
+                    texto: mCulto.liturgia ?? '');
+              },
+              icon: const Icon(Icons.edit),
+            )
+          : null,
+    );
+  }
+
+  void _verLiturgia() {
+    rich.QuillController controller;
+    // Tratamento para texto vazio ou fora dos parâmetros JSON
+    try {
+      final doc = rich.Document.fromJson(jsonDecode(mCulto.liturgia!));
+      controller = rich.QuillController(
+          document: doc, selection: const TextSelection.collapsed(offset: 0));
+    } catch (error) {
+      final doc = rich.Document()
+        ..insert(0, 'Falha ao ler o texto. Solicite alteração ao liturgo.');
+      controller = rich.QuillController(
+          document: doc, selection: const TextSelection.collapsed(offset: 0));
+    }
+    Mensagem.bottomDialog(
+      context: context,
+      titulo: 'Liturgia do culto',
+      conteudo: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
+        child: rich.QuillEditor.basic(
+          controller: controller,
+          readOnly: true,
+        ),
+      ),
+    );
+  }
+  /* Widget get _secaoLiturgia {
+    return ListTile(
+      dense: true,
+      minLeadingWidth: 64,
+      shape: UnderlineInputBorder(
+          borderSide: BorderSide(color: Colors.grey.withOpacity(0.26))),
+      // Título
+      leading: const Text('LITURGIA'),
+      // Texto de apoio
       title: mCulto.liturgiaUrl == null
           ? Text(
               'Nenhum arquivo carregado',
@@ -457,7 +521,7 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
 
       /* MeuFirebase.abrirArquivosPdf(context, [mCulto.liturgiaUrl!]), */
     );
-  }
+  } */
 
   /// Seção observações
   Widget get _rowObservacoes {
@@ -519,7 +583,7 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
                       icon: const Icon(Icons.hail),
                       label: const Text('RECRUTAR'),
                     )
-              : const SizedBox(),
+              : const SizedBox(height: 36),
         ],
       ),
     );

@@ -19,6 +19,7 @@ class Culto {
   Timestamp? dataEnsaio;
   List<DocumentReference<Cantico>>? canticos;
   String? liturgiaUrl;
+  String? liturgia;
   String? obs;
   bool emEdicao;
 
@@ -34,6 +35,7 @@ class Culto {
     this.dataEnsaio,
     this.canticos,
     this.liturgiaUrl,
+    this.liturgia,
     this.obs,
     this.emEdicao = false,
   });
@@ -51,6 +53,7 @@ class Culto {
           dataEnsaio: json['dataEnsaio'] as Timestamp?,
           canticos: _getCanticos(json['canticos']),
           liturgiaUrl: json['liturgiaUrl'] as String?,
+          liturgia: json['liturgia'] as String?,
           obs: json['obs'] as String?,
           emEdicao: (json['emEdicao'] ?? false) as bool,
         );
@@ -68,6 +71,7 @@ class Culto {
       'dataEnsaio': dataEnsaio,
       'canticos': canticos,
       'liturgiaUrl': liturgiaUrl,
+      'liturgia': liturgia,
       'obs': obs,
       'emEdicao': emEdicao,
     };

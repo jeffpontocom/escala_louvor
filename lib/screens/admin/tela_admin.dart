@@ -13,7 +13,7 @@ import '/utils/global.dart';
 import '/utils/mensagens.dart';
 import '/utils/utils.dart';
 import '/views/auth_guard.dart';
-import '/widgets/avatar.dart';
+import '../../widgets/cached_circle_avatar.dart';
 import '../../../deprecated/view_integrante.dart';
 
 class TelaAdmin extends StatelessWidget {
@@ -574,6 +574,7 @@ class TelaAdmin extends StatelessWidget {
                         'assets/icons/music_dirigente.png',
                         'assets/icons/music_guitarra.png',
                         'assets/icons/music_percussao.png',
+                        'assets/icons/music_piano.png',
                         'assets/icons/music_sonorizacao.png',
                         'assets/icons/music_sopro.png',
                         'assets/icons/music_teclado.png',

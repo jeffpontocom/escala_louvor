@@ -8,7 +8,7 @@ import 'package:stylish_bottom_bar/stylish_bottom_bar.dart';
 
 import '/modulos.dart';
 import '/utils/global.dart';
-import '/widgets/avatar.dart';
+import '../../widgets/cached_circle_avatar.dart';
 
 enum HomePages {
   agenda,

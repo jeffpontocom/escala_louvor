@@ -9,7 +9,7 @@ import '/models/igreja.dart';
 import '/models/integrante.dart';
 import '/resources/animations/shimmer.dart';
 import '/utils/global.dart';
-import '/widgets/avatar.dart';
+import 'cached_circle_avatar.dart';
 
 class TileCulto extends StatelessWidget {
   final Culto culto;

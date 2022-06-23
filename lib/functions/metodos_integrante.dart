@@ -9,7 +9,7 @@ import '/models/instrumento.dart';
 import '/models/integrante.dart';
 import '/utils/mensagens.dart';
 import '/utils/global.dart';
-import '/widgets/avatar.dart';
+import '../widgets/cached_circle_avatar.dart';
 import '/widgets/tile_igreja.dart';
 
 class MetodosIntegrante {

@@ -15,7 +15,7 @@ import '/models/integrante.dart';
 import '/utils/global.dart';
 import '/utils/mensagens.dart';
 import '/utils/utils.dart';
-import '/widgets/avatar.dart';
+import '../../widgets/cached_circle_avatar.dart';
 import '/widgets/tile_igreja.dart';
 
 class TelaPerfil extends StatefulWidget {

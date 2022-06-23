@@ -1,14 +1,17 @@
+import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
+import 'package:flutter_quill/flutter_quill.dart' as rich;
 import 'package:intl/intl.dart';
 
+import 'cached_circle_avatar.dart';
 import '/functions/metodos_firebase.dart';
 import '/models/cantico.dart';
 import '/models/culto.dart';
 import '/utils/global.dart';
 import '/utils/mensagens.dart';
-import '/widgets/avatar.dart';
 
 class Dialogos {
   /// DIÁLOGO
@@ -109,7 +112,7 @@ class Dialogos {
             ),
             const SizedBox(height: 16),
 
-            // Ocasiao
+            // Ocasião
             Autocomplete(
               initialValue: TextEditingValue(text: culto.ocasiao ?? ''),
               optionsBuilder: (textEditingValue) {
@@ -145,7 +148,7 @@ class Dialogos {
             ),
             const SizedBox(height: 8),
 
-            //Obs
+            // Atenção
             TextFormField(
               initialValue: culto.obs,
               minLines: 5,
@@ -207,6 +210,79 @@ class Dialogos {
             },
           ),
         ],
+      ),
+    );
+  }
+
+  /// DIÁLOGO
+  /// Editar Liturgia do Culto
+  static void editarLiturgia(
+    BuildContext context, {
+    required DocumentReference<Culto> reference,
+    required String texto,
+  }) async {
+    rich.QuillController controller;
+    // Tratamento para texto vazio ou fora dos parâmetros JSON
+    try {
+      final doc = rich.Document.fromJson(jsonDecode(texto));
+      controller = rich.QuillController(
+          document: doc, selection: const TextSelection.collapsed(offset: 0));
+    } catch (error) {
+      final doc = rich.Document()..insert(0, '');
+      controller = rich.QuillController(
+          document: doc, selection: const TextSelection.collapsed(offset: 0));
+    }
+    return Mensagem.bottomDialog(
+      context: context,
+      titulo: 'Editar Liturgia',
+      conteudo: StatefulBuilder(builder: (context, innerState) {
+        return Column(
+          children: [
+            rich.QuillToolbar.basic(controller: controller),
+            Expanded(
+              child: Container(
+                color: Colors.grey.withOpacity(0.15),
+                padding: const EdgeInsets.all(16),
+                child: rich.QuillEditor.basic(
+                  controller: controller,
+                  readOnly: false,
+                ),
+              ),
+            )
+          ],
+        );
+
+        /* ListView(
+          shrinkWrap: true,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          children: [
+            // Form Field
+            TextFormField(
+              initialValue: texto,
+              minLines: 10,
+              maxLines: 30,
+              textCapitalization: TextCapitalization.sentences,
+              textInputAction: TextInputAction.newline,
+              decoration: const InputDecoration(
+                isDense: true,
+                floatingLabelBehavior: FloatingLabelBehavior.always,
+              ),
+              onChanged: (value) {
+                texto = value;
+              },
+            ),
+          ],
+        ); */
+      }),
+      rodape: ElevatedButton.icon(
+        icon: const Icon(Icons.save),
+        label: const Text('ATUALIZAR'),
+        onPressed: () async {
+          // Salva os dados no firebase
+          await reference.update(
+              {'liturgia': jsonEncode(controller.document.toDelta().toJson())});
+          Modular.to.pop(); // Fecha dialog
+        },
       ),
     );
   }

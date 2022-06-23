@@ -7,7 +7,7 @@ import '/models/instrumento.dart';
 import '/models/integrante.dart';
 import '../modulos.dart';
 import '/utils/utils.dart';
-import '/widgets/avatar.dart';
+import 'cached_circle_avatar.dart';
 
 class TileIntegrante extends StatelessWidget {
   final DocumentSnapshot<Integrante> snapshot;

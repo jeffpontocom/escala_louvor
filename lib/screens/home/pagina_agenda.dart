@@ -10,7 +10,7 @@ import '/models/integrante.dart';
 import '/modulos.dart';
 import '/utils/global.dart';
 import '/utils/mensagens.dart';
-import '/widgets/avatar.dart';
+import '../../widgets/cached_circle_avatar.dart';
 import '/widgets/dialogos.dart';
 import '/widgets/tela_mensagem.dart';
 import '/widgets/tile_culto.dart';
