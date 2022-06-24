@@ -43,7 +43,7 @@ class ViewUserInativo extends StatelessWidget {
               ),
               const SizedBox(height: 24),
               FutureBuilder<QuerySnapshot<Integrante>>(
-                  future: MeuFirebase.obterListaIntegrantesAdministradores(),
+                  future: MeuFirebase.obterListaDeAdministradores(),
                   builder: (context, snap) {
                     var whats = snap.data?.docs.first.data().telefone;
                     return ElevatedButton.icon(

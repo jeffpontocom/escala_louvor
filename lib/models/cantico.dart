@@ -23,17 +23,17 @@ class Cantico {
     this.ativo = true,
   });
 
-  Cantico.fromJson(Map<String, Object?> json)
+  Cantico.fromJson(Map<String, Object?>? json)
       : this(
-          nome: (json['nome'] ?? '[novo cantico]') as String,
-          autor: json['autor'] as String?,
-          tom: json['tom'] as String?,
-          compasso: json['compasso'] as String?,
-          letra: json['letra'] as String?,
-          cifraUrl: json['cifraUrl'] as String?,
-          youTubeUrl: json['youTubeUrl'] as String?,
-          isHino: (json['isHino'] ?? false) as bool,
-          ativo: (json['ativo'] ?? true) as bool,
+          nome: (json?['nome'] ?? '[novo cantico]') as String,
+          autor: json?['autor'] as String?,
+          tom: json?['tom'] as String?,
+          compasso: json?['compasso'] as String?,
+          letra: json?['letra'] as String?,
+          cifraUrl: json?['cifraUrl'] as String?,
+          youTubeUrl: json?['youTubeUrl'] as String?,
+          isHino: (json?['isHino'] ?? false) as bool,
+          ativo: (json?['ativo'] ?? true) as bool,
         );
 
   Map<String, Object?> toJson() {

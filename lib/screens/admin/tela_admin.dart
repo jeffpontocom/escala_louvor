@@ -303,7 +303,7 @@ class TelaAdmin extends StatelessWidget {
           ),
           // Responsável
           FutureBuilder<QuerySnapshot<Integrante>?>(
-            future: MeuFirebase.obterListaIntegrantes(ativo: true),
+            future: MeuFirebase.obterListaIntegrantes(),
             builder: ((context, snapshot) {
               // Chave para redefinir formulários
               final GlobalKey<FormFieldState> key = GlobalKey<FormFieldState>();

@@ -24,8 +24,9 @@ class _PaginaEquipeState extends State<PaginaEquipe> {
   Widget build(BuildContext context) {
     return StreamBuilder<DocumentSnapshot<Igreja>>(
         initialData: Global.igrejaSelecionada.value,
-        stream: MeuFirebase.obterStreamIgreja(Global.prefIgrejaId ??
-            Global.igrejaSelecionada.value!.reference.id),
+        stream: MeuFirebase.ouvinteIgreja(
+            id: Global.prefIgrejaId ??
+                Global.igrejaSelecionada.value!.reference.id),
         builder: (context, snapshot) {
           // Tela em carregamento
           if (!snapshot.hasData) {
@@ -153,7 +154,6 @@ class _PaginaEquipeState extends State<PaginaEquipe> {
   get _dados {
     return StreamBuilder<QuerySnapshot<Integrante>>(
         stream: MeuFirebase.obterListaIntegrantes(
-          ativo: true,
           igreja: Global.igrejaSelecionada.value?.reference,
         ).asStream(),
         builder: (context, snapshot) {

@@ -74,7 +74,7 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
         ),
         body: StreamBuilder<DocumentSnapshot<Culto>>(
             initialData: widget.snapCulto,
-            stream: MeuFirebase.obterStreamCulto(widget.id),
+            stream: MeuFirebase.ouvinteCulto(id: widget.id),
             builder: (context, snapshot) {
               // Progresso
               if (!snapshot.hasData) {
@@ -400,7 +400,7 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
         if (hora == null) return;
         var dataHora = Timestamp.fromDate(
             DateTime(data.year, data.month, data.day, hora.hour, hora.minute));
-        MeuFirebase.definirDataHoraDoEnsaio(mSnapshot.reference, dataHora);
+        mSnapshot.reference.update({'dataEnsaio': dataHora});
       });
     });
   }
@@ -810,7 +810,7 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
           return FutureBuilder<DocumentSnapshot<Instrumento>?>(
               future: instrumentoId == null || instrumentoId.isEmpty
                   ? null
-                  : MeuFirebase.obterSnapshotInstrumento(instrumentoId),
+                  : MeuFirebase.obterInstrumento(id: instrumentoId),
               builder: (_, instr) {
                 Instrumento? instrumento;
                 if (!instr.hasError) {
@@ -913,7 +913,7 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
     lista = List.generate(mCulto.canticos!.length, (index) {
       return FutureBuilder<DocumentSnapshot<Cantico>?>(
           key: Key('Future${mCulto.canticos![index]}'),
-          future: MeuFirebase.obterSnapshotCantico(mCulto.canticos![index].id),
+          future: MeuFirebase.obterCantico(id: mCulto.canticos![index].id),
           builder: (context, snapshot) {
             if (!snapshot.hasData) {
               return ListTile(
@@ -1000,7 +1000,7 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
             // Busca por integrantes ativos na função componente da equipe
             return FutureBuilder<QuerySnapshot<Integrante>>(
                 future: MeuFirebase.obterListaIntegrantes(
-                    ativo: true, funcao: Funcao.membro.index),
+                    funcao: Funcao.membro.index),
                 builder: (context, snapIntegrantes) {
                   // Aguardando
                   if (!snapIntegrantes.hasData ||
@@ -1216,8 +1216,7 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
         builder: (context) {
           // Buscar integrantes ativos que possuem determinada função
           return FutureBuilder<QuerySnapshot<Integrante>>(
-              future: MeuFirebase.obterListaIntegrantes(
-                  ativo: true, funcao: funcao.index),
+              future: MeuFirebase.obterListaIntegrantes(funcao: funcao.index),
               builder: (context, snap) {
                 // Construtor Stateful
                 return StatefulBuilder(builder: (context, innerState) {
@@ -1317,8 +1316,7 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
         context: context,
         titulo: 'Disponibilidade dos integrantes',
         conteudo: FutureBuilder<QuerySnapshot<Integrante>>(
-            future: MeuFirebase.obterListaIntegrantes(
-                ativo: true, igreja: mCulto.igreja),
+            future: MeuFirebase.obterListaIntegrantes(igreja: mCulto.igreja),
             builder: (context, snapshot) {
               if (!snapshot.hasData) {
                 return const CircularProgressIndicator();
@@ -1429,7 +1427,7 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
                                         var token = await MeuFirebase
                                             .obterTokenDoIntegrante(id);
                                         if (token != null) {
-                                          MeuFirebase.notificarIndecisos(
+                                          MeuFirebase.notificarIndeciso(
                                               token: token,
                                               igreja: Global.igrejaSelecionada
                                                       .value?.id ??

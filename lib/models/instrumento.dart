@@ -19,15 +19,15 @@ class Instrumento {
     this.ativo = true,
   });
 
-  Instrumento.fromJson(Map<String, Object?> json)
+  Instrumento.fromJson(Map<String, Object?>? json)
       : this(
-          nome: (json['nome'] ?? '[novo instrumento]') as String,
-          iconAsset: (json['iconAsset'] ?? '') as String,
-          composMin: (json['composMin'] ?? 0) as int,
-          composMax: (json['composMax'] ?? 2) as int,
-          permiteOutro: (json['permiteOutro'] ?? false) as bool,
-          ordem: (json['ordem'] ?? 99) as int,
-          ativo: (json['ativo'] ?? true) as bool,
+          nome: (json?['nome'] ?? '') as String,
+          iconAsset: (json?['iconAsset'] ?? '') as String,
+          composMin: (json?['composMin'] ?? 0) as int,
+          composMax: (json?['composMax'] ?? 2) as int,
+          permiteOutro: (json?['permiteOutro'] ?? false) as bool,
+          ordem: (json?['ordem'] ?? 99) as int,
+          ativo: (json?['ativo'] ?? true) as bool,
         );
 
   Map<String, Object?> toJson() {

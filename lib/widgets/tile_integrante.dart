@@ -50,7 +50,7 @@ class TileIntegrante extends StatelessWidget {
                 List.generate(integrante.instrumentos?.length ?? 0, (index) {
               var instrumento = integrante.instrumentos![index];
               return FutureBuilder<DocumentSnapshot<Instrumento>?>(
-                future: MeuFirebase.obterSnapshotInstrumento(instrumento.id),
+                future: MeuFirebase.obterInstrumento(id: instrumento.id),
                 builder: (context, snapshot) {
                   if (!snapshot.hasData ||
                       snapshot.data?.data()?.iconAsset == null) {

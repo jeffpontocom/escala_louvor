@@ -53,9 +53,9 @@ class AuthGuardView extends StatelessWidget {
             // Ouvinte para integrante logado
             // se houver alguma alteração nos dados do integrante logado
             // o app é recarregado.
-            return StreamBuilder<DocumentSnapshot<Integrante>?>(
+            return StreamBuilder<DocumentSnapshot<Integrante>>(
                 initialData: Global.logadoSnapshot,
-                stream: MeuFirebase.escutarIntegranteLogado(),
+                stream: MeuFirebase.ouvinteIntegrante(id: snapshot.data!.uid),
                 builder: (context, logado) {
                   dev.log(
                       'Integrante: ${snapshot.connectionState.name.toUpperCase()}',

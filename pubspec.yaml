@@ -66,6 +66,7 @@ dependencies:
   upgrader: ^4.2.1 # Verificador de novas versões com notificador
   url_launcher: ^6.1.2 # Base para links
   wakelock: ^0.6.1+2 # Mantêm a tela sempre ligada
+  image_picker: ^0.8.5+3
 
 
 dev_dependencies:

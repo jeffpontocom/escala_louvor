@@ -65,7 +65,7 @@ class _TelaPerfilState extends State<TelaPerfil> {
           ),
           body: StreamBuilder<DocumentSnapshot<Integrante>>(
             initialData: widget.snapIntegrante,
-            stream: MeuFirebase.obterStreamIntegrante(widget.id),
+            stream: MeuFirebase.ouvinteIntegrante(id: widget.id),
             builder: (context, snapshot) {
               // Tela em carregamento
               if (!snapshot.hasData) {

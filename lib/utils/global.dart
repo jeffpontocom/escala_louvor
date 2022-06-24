@@ -86,7 +86,7 @@ class Global {
     // Carrega igreja pré-selecionada
     if (prefIgrejaId != null) {
       igrejaSelecionada.value =
-          await MeuFirebase.obterSnapshotIgreja(prefIgrejaId);
+          await MeuFirebase.obterIgreja(id: prefIgrejaId!);
     }
 
     print('[Global] Dados carregados com sucesso');

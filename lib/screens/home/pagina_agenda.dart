@@ -102,7 +102,7 @@ class _PaginaAgendaState extends State<PaginaAgenda> {
                 // Stream para montar a lista de cultos dinâmica,
                 // ou seja, observa cada mudança nos registros
                 return StreamBuilder<QuerySnapshot<Culto>>(
-                    stream: MeuFirebase.escutarCultos(
+                    stream: MeuFirebase.ouvinteCultos(
                         dataMinima: dataMin,
                         dataMaxima: dataMax,
                         igrejas: igrejas),
@@ -458,7 +458,7 @@ class _PaginaAgendaState extends State<PaginaAgenda> {
           padding: const EdgeInsets.symmetric(horizontal: 8),
           height: kToolbarHeight,
           child: FutureBuilder<QuerySnapshot<Integrante>>(
-              future: MeuFirebase.obterListaIntegrantes(ativo: true),
+              future: MeuFirebase.obterListaIntegrantes(),
               builder: (context, snapshot) {
                 List<QueryDocumentSnapshot<Integrante>> aniversariantes = [];
                 // Aguardando

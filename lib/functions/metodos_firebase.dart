@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:developer' as dev;
+import 'package:http/http.dart' as http;
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -11,6 +12,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_modular/flutter_modular.dart';
+import 'package:image_cropper/image_cropper.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 
 import 'notificacoes.dart';
@@ -24,15 +27,23 @@ import '/utils/global.dart';
 import '/utils/mensagens.dart';
 import '/utils/utils.dart';
 
-class MeuFirebase {
-  /* STREAMS  */
+import 'cropper/ui_helper.dart'
+    if (dart.library.io) 'cropper/mobile_ui_helper.dart'
+    if (dart.library.html) 'cropper/web_ui_helper.dart';
 
-  /// Stream para escutar dados do integrante logado
-  static Stream<DocumentSnapshot<Integrante>?> escutarIntegranteLogado() {
-    var userId = FirebaseAuth.instance.currentUser?.uid;
+class MeuFirebase {
+  /*
+  *** STREAMS ***
+  */
+
+  /// Stream para obter dados do integrante e ouvir alterações
+  /// Utilizado nas classes [AuthGuardView] e [TelaPerfil]
+  static Stream<DocumentSnapshot<Integrante>> ouvinteIntegrante({
+    required String id,
+  }) {
     return FirebaseFirestore.instance
         .collection(Integrante.collection)
-        .doc(userId)
+        .doc(id)
         .withConverter<Integrante>(
             fromFirestore: (snapshot, _) =>
                 Integrante.fromJson(snapshot.data()),
@@ -40,28 +51,29 @@ class MeuFirebase {
         .snapshots();
   }
 
-  /// Stream para escutar base de dados dos Integrantes
-  static Stream<QuerySnapshot<Integrante>> escutarIntegrantes({bool? ativos}) {
+  /// Stream para obter dados da igreja e ouvir alterações
+  /// Utilizado nas classes [PaginaIgreja]
+  static Stream<DocumentSnapshot<Igreja>> ouvinteIgreja({
+    required String id,
+  }) {
     return FirebaseFirestore.instance
-        .collection(Integrante.collection)
-        .where('ativo', isEqualTo: ativos)
-        .orderBy('nome')
-        .withConverter<Integrante>(
-          fromFirestore: (snapshot, _) => Integrante.fromJson(snapshot.data()!),
-          toFirestore: (model, _) => model.toJson(),
-        )
+        .collection(Igreja.collection)
+        .doc(id)
+        .withConverter<Igreja>(
+            fromFirestore: (snapshot, _) => Igreja.fromJson(snapshot.data()!),
+            toFirestore: (pacote, _) => pacote.toJson())
         .snapshots();
   }
 
-  /// Stream para escutar base de dados das Igrejas
-  static Stream<QuerySnapshot<Culto>> escutarCultos({
+  /// Stream para obter dados dos cultos e ouvir alterações
+  /// Utilizado nas classes [PaginaAgenda]
+  static Stream<QuerySnapshot<Culto>> ouvinteCultos({
     List<DocumentReference?>? igrejas,
     Timestamp? dataMinima,
     Timestamp? dataMaxima,
   }) {
     return FirebaseFirestore.instance
         .collection(Culto.collection)
-        //.where('igreja', isEqualTo: igrejas)
         .where('igreja', whereIn: igrejas)
         .where('dataCulto', isGreaterThanOrEqualTo: dataMinima)
         .where('dataCulto', isLessThanOrEqualTo: dataMaxima)
@@ -73,34 +85,11 @@ class MeuFirebase {
         .snapshots();
   }
 
-  /// Stream para escutar base de dados das Igrejas
-  static Stream<QuerySnapshot<Igreja>> escutarIgrejas({bool? ativas}) {
-    return FirebaseFirestore.instance
-        .collection(Igreja.collection)
-        .where('ativo', isEqualTo: ativas)
-        .orderBy('sigla')
-        .withConverter<Igreja>(
-          fromFirestore: (snapshot, _) => Igreja.fromJson(snapshot.data()!),
-          toFirestore: (model, _) => model.toJson(),
-        )
-        .snapshots();
-  }
-
-  /// Stream para escutar base de dados das Igrejas
-  static Stream<QuerySnapshot<Cantico>> escutarCanticos(bool? somenteHinos) {
-    return FirebaseFirestore.instance
-        .collection(Cantico.collection)
-        .where('isHino', isEqualTo: somenteHinos)
-        .orderBy('nome')
-        .withConverter<Cantico>(
-          fromFirestore: (snapshot, _) => Cantico.fromJson(snapshot.data()!),
-          toFirestore: (model, _) => model.toJson(),
-        )
-        .snapshots();
-  }
-
-  /// Stream Culto específico
-  static Stream<DocumentSnapshot<Culto>>? obterStreamCulto(String id) {
+  /// Stream para obter dados de um culto específico e ouvir alterações
+  /// Utilizado nas classes [TelaCulto]
+  static Stream<DocumentSnapshot<Culto>> ouvinteCulto({
+    required String id,
+  }) {
     return FirebaseFirestore.instance
         .collection(Culto.collection)
         .doc(id)
@@ -110,8 +99,28 @@ class MeuFirebase {
         .snapshots();
   }
 
-  /// Stream Cantico específico
-  static Stream<DocumentSnapshot<Cantico>>? obterStreamCantico(String id) {
+  /// Stream para obter dados dos cânticos e ouvir alterações
+  /// Utilizado nas classes [PaginaCanticos]
+  static Stream<QuerySnapshot<Cantico>> ouvinteCanticos({
+    bool? somenteHinos,
+    String ordenarPor = 'nome',
+  }) {
+    return FirebaseFirestore.instance
+        .collection(Cantico.collection)
+        .where('isHino', isEqualTo: somenteHinos)
+        .orderBy(ordenarPor)
+        .withConverter<Cantico>(
+          fromFirestore: (snapshot, _) => Cantico.fromJson(snapshot.data()!),
+          toFirestore: (model, _) => model.toJson(),
+        )
+        .snapshots();
+  }
+
+  /// Stream para obter dados de um cântico específico e ouvir alterações
+  /// Utilizado nas classes [TelaCantico]
+  static Stream<DocumentSnapshot<Cantico>> ouvinteCantico({
+    required String id,
+  }) {
     return FirebaseFirestore.instance
         .collection(Cantico.collection)
         .doc(id)
@@ -121,30 +130,14 @@ class MeuFirebase {
         .snapshots();
   }
 
-  /* SNAPSHOTS */
-
-  /// Lista de Culto
-  static Future<QuerySnapshot<Culto>> obterListaCultos({
-    DocumentReference? igreja,
-    Timestamp? dataMinima,
-    Timestamp? dataMaxima,
-  }) async {
-    return FirebaseFirestore.instance
-        .collection(Culto.collection)
-        .where('igreja', isEqualTo: igreja)
-        .where('dataCulto', isGreaterThanOrEqualTo: dataMinima)
-        .where('dataCulto', isLessThanOrEqualTo: dataMaxima)
-        .orderBy('dataCulto')
-        .withConverter<Culto>(
-          fromFirestore: (snapshot, _) => Culto.fromJson(snapshot.data()!),
-          toFirestore: (model, _) => model.toJson(),
-        )
-        .get();
-  }
+  /* 
+  *** SNAPSHOTS (Listas) *** 
+  */
 
   /// Lista de Igrejas
-  static Future<QuerySnapshot<Igreja>> obterListaIgrejas(
-      {required bool ativo}) async {
+  static Future<QuerySnapshot<Igreja>> obterListaIgrejas({
+    required bool ativo,
+  }) async {
     return FirebaseFirestore.instance
         .collection(Igreja.collection)
         .where('ativo', isEqualTo: ativo)
@@ -157,8 +150,9 @@ class MeuFirebase {
   }
 
   /// Lista de Instrumento
-  static Future<QuerySnapshot<Instrumento>> obterListaInstrumentos(
-      {required bool ativo}) async {
+  static Future<QuerySnapshot<Instrumento>> obterListaInstrumentos({
+    required bool ativo,
+  }) async {
     return FirebaseFirestore.instance
         .collection(Instrumento.collection)
         .where('ativo', isEqualTo: ativo)
@@ -172,10 +166,12 @@ class MeuFirebase {
   }
 
   /// Lista de Integrantes
-  static Future<QuerySnapshot<Integrante>> obterListaIntegrantes(
-      {required bool ativo,
-      int? funcao,
-      DocumentReference<Igreja>? igreja}) async {
+  /// TODO: Definir assert para ou função ou igreja
+  static Future<QuerySnapshot<Integrante>> obterListaIntegrantes({
+    bool ativo = true,
+    int? funcao,
+    DocumentReference<Igreja>? igreja,
+  }) async {
     return FirebaseFirestore.instance
         .collection(Integrante.collection)
         .where('ativo', isEqualTo: ativo)
@@ -189,9 +185,8 @@ class MeuFirebase {
         .get();
   }
 
-  /// Lista de administradores
-  static Future<QuerySnapshot<Integrante>>
-      obterListaIntegrantesAdministradores() async {
+  /// Lista de Administradores do sistema
+  static Future<QuerySnapshot<Integrante>> obterListaDeAdministradores() async {
     return FirebaseFirestore.instance
         .collection(Integrante.collection)
         .where('adm', isEqualTo: true)
@@ -203,12 +198,14 @@ class MeuFirebase {
         .get();
   }
 
-  /// Integrante específico
-  static Future<DocumentSnapshot<Integrante>?> obterSnapshotIntegrante(
-      String? id) async {
-    if (id == null) {
-      return null;
-    }
+  /* 
+  *** SNAPSHOT (Individual) *** 
+  */
+
+  /// Dados de um Integrante específico
+  static Future<DocumentSnapshot<Integrante>> obterIntegrante({
+    required String id,
+  }) async {
     return FirebaseFirestore.instance
         .collection(Integrante.collection)
         .doc(id)
@@ -219,36 +216,10 @@ class MeuFirebase {
         .get();
   }
 
-  /// Stream Integrante específico
-  static Stream<DocumentSnapshot<Integrante>>? obterStreamIntegrante(
-      String id) {
-    return FirebaseFirestore.instance
-        .collection(Integrante.collection)
-        .doc(id)
-        .withConverter<Integrante>(
-            fromFirestore: (snapshot, _) =>
-                Integrante.fromJson(snapshot.data()),
-            toFirestore: (pacote, _) => pacote.toJson())
-        .snapshots();
-  }
-
-  /// Stream Igreja específica
-  static Stream<DocumentSnapshot<Igreja>>? obterStreamIgreja(String id) {
-    return FirebaseFirestore.instance
-        .collection(Igreja.collection)
-        .doc(id)
-        .withConverter<Igreja>(
-            fromFirestore: (snapshot, _) => Igreja.fromJson(snapshot.data()!),
-            toFirestore: (pacote, _) => pacote.toJson())
-        .snapshots();
-  }
-
-  /// Igreja específica
-  static Future<DocumentSnapshot<Igreja>?> obterSnapshotIgreja(
-      String? id) async {
-    if (id == null) {
-      return null;
-    }
+  /// Dados de uma Igreja específica
+  static Future<DocumentSnapshot<Igreja>> obterIgreja({
+    required String id,
+  }) async {
     return await FirebaseFirestore.instance
         .collection(Igreja.collection)
         .doc(id)
@@ -259,12 +230,10 @@ class MeuFirebase {
         .get();
   }
 
-  /// Instrumento específico
-  static Future<DocumentSnapshot<Instrumento>?> obterSnapshotInstrumento(
-      String? id) async {
-    if (id == null) {
-      return null;
-    }
+  /// Dados de um Instrumento específico
+  static Future<DocumentSnapshot<Instrumento>> obterInstrumento({
+    required String id,
+  }) async {
     return await FirebaseFirestore.instance
         .collection(Instrumento.collection)
         .doc(id)
@@ -276,27 +245,10 @@ class MeuFirebase {
         .get();
   }
 
-  /// Culto especifico
-  static Future<DocumentSnapshot<Culto>?> obterSnapshotCulto(String? id) async {
-    if (id == null) {
-      return null;
-    }
-    return await FirebaseFirestore.instance
-        .collection(Culto.collection)
-        .doc(id)
-        .withConverter<Culto>(
-          fromFirestore: (snapshot, _) => Culto.fromJson(snapshot.data()!),
-          toFirestore: (model, _) => model.toJson(),
-        )
-        .get();
-  }
-
-  /// Cantico especifico
-  static Future<DocumentSnapshot<Cantico>?> obterSnapshotCantico(
-      String? id) async {
-    if (id == null) {
-      return null;
-    }
+  /// Dados de um Cântico específico
+  static Future<DocumentSnapshot<Cantico>> obterCantico({
+    required String id,
+  }) async {
     return await FirebaseFirestore.instance
         .collection(Cantico.collection)
         .doc(id)
@@ -307,7 +259,9 @@ class MeuFirebase {
         .get();
   }
 
-  /* NOTIFICAÇÕES */
+  /* 
+  *** NOTIFICAÇÕES *** 
+  */
 
   /// Token do integrante
   static Future<String?> obterTokenDoIntegrante(String id) async {
@@ -317,11 +271,12 @@ class MeuFirebase {
   }
 
   /// Notificar integrante escalado
-  static Future<void> notificarEscalado(
-      {required String token,
-      required String igreja,
-      required Culto culto,
-      required String cultoId}) async {
+  static Future<void> notificarEscalado({
+    required String token,
+    required String igreja,
+    required Culto culto,
+    required String cultoId,
+  }) async {
     await Notificacoes.enviarMensagemPush(
       para: token,
       titulo: 'Você está escalado!',
@@ -332,12 +287,13 @@ class MeuFirebase {
     );
   }
 
-  /// Notificar integrante escalado
-  static Future<void> notificarIndecisos(
-      {required String token,
-      required String igreja,
-      required Culto culto,
-      required String cultoId}) async {
+  /// Notificar integrante indeciso
+  static Future<void> notificarIndeciso({
+    required String token,
+    required String igreja,
+    required Culto culto,
+    required String cultoId,
+  }) async {
     await Notificacoes.enviarMensagemPush(
       para: token,
       titulo: 'Marque a sua disponibilidade!',
@@ -348,25 +304,28 @@ class MeuFirebase {
     );
   }
 
-  /* CÁLCULOS */
+  /* 
+  *** SETS E UPDATES *** 
+  */
 
-  /// Identifica o total de cadastros de determinada coleção, conforme filtro de cadastros ativo ou não
-  static Future<int> totalCadastros(String colecao, {bool? ativo}) async {
-    var snap = await FirebaseFirestore.instance
-        .collection(colecao)
-        .where('ativo', isEqualTo: ativo)
-        .get();
-    return snap.docs.length;
+  /// Atualizar ou Criar Integrante
+  static Future salvarIntegrante(Integrante integrante, {String? id}) async {
+    FirebaseFirestore.instance
+        .collection(Integrante.collection)
+        .withConverter<Integrante>(
+          fromFirestore: (snapshot, _) => Integrante.fromJson(snapshot.data()),
+          toFirestore: (model, _) => model.toJson(),
+        )
+        .doc(id)
+        .set(integrante);
   }
 
-  /* SETS E UPDATES */
-
-  /// Atualizar ou Criar nova igreja
+  /// Atualizar ou Criar Igreja
   static Future salvarIgreja(Igreja igreja, {String? id}) async {
     FirebaseFirestore.instance
         .collection(Igreja.collection)
         .withConverter<Igreja>(
-          fromFirestore: (snapshot, _) => Igreja.fromJson(snapshot.data()!),
+          fromFirestore: (snapshot, _) => Igreja.fromJson(snapshot.data()),
           toFirestore: (model, _) => model.toJson(),
         )
         .doc(id)
@@ -378,24 +337,11 @@ class MeuFirebase {
     FirebaseFirestore.instance
         .collection(Instrumento.collection)
         .withConverter<Instrumento>(
-          fromFirestore: (snapshot, _) =>
-              Instrumento.fromJson(snapshot.data()!),
+          fromFirestore: (snapshot, _) => Instrumento.fromJson(snapshot.data()),
           toFirestore: (model, _) => model.toJson(),
         )
         .doc(id)
         .set(instrumento);
-  }
-
-  /// Atualizar ou Criar Integrante
-  static Future salvarIntegrante(Integrante integrante, {String? id}) async {
-    FirebaseFirestore.instance
-        .collection(Integrante.collection)
-        .withConverter<Integrante>(
-          fromFirestore: (snapshot, _) => Integrante.fromJson(snapshot.data()!),
-          toFirestore: (model, _) => model.toJson(),
-        )
-        .doc(id)
-        .set(integrante);
   }
 
   /// Criar Culto
@@ -425,7 +371,7 @@ class MeuFirebase {
     FirebaseFirestore.instance
         .collection(Cantico.collection)
         .withConverter<Cantico>(
-          fromFirestore: (snapshot, _) => Cantico.fromJson(snapshot.data()!),
+          fromFirestore: (snapshot, _) => Cantico.fromJson(snapshot.data()),
           toFirestore: (model, _) => model.toJson(),
         )
         .doc()
@@ -438,7 +384,7 @@ class MeuFirebase {
     reference.set(cantico);
   }
 
-  /// Criar novo usuário
+  /// Criar novo usuário do sistema
   static Future<String?> criarUsuario(
       {required String email, required String senha}) async {
     var tempName = MyInputs.randomString(6);
@@ -456,7 +402,25 @@ class MeuFirebase {
     return Future.sync(() => userCredential?.user?.uid);
   }
 
-  /* UPDATES ESPECÍFICOS */
+  /* 
+  *** UPDATES ESPECÍFICOS *** 
+  */
+
+  /// Culto especifico
+  /// TODO: Tentar remover a necessidade dessa função
+  static Future<DocumentSnapshot<Culto>?> obterSnapshotCulto(String? id) async {
+    if (id == null) {
+      return null;
+    }
+    return await FirebaseFirestore.instance
+        .collection(Culto.collection)
+        .doc(id)
+        .withConverter<Culto>(
+          fromFirestore: (snapshot, _) => Culto.fromJson(snapshot.data()!),
+          toFirestore: (model, _) => model.toJson(),
+        )
+        .get();
+  }
 
   static Future<bool> definirDisponibilidadeParaOCulto(
       DocumentReference<Culto> reference) async {
@@ -536,64 +500,47 @@ class MeuFirebase {
     }
   }
 
-  static Future<bool> definirDataHoraDoEnsaio(
-      DocumentReference<Culto> reference, Timestamp dataHora) async {
-    try {
-      await reference.update({'dataEnsaio': dataHora});
-      dev.log('Data definida com sucesso');
-      return true;
-    } catch (e) {
-      dev.log('Erro: ${e.toString()}');
-      return false;
-    }
-  }
+  /* 
+  *** CLOUD FIRESTORE ***
+  */
 
-  /* static Future<bool> atualizarCampo({
-    required DocumentReference reference,
-    required String campo,
-    required dynamic valor,
-  }) async {
-    try {
-      await reference.update({campo: valor});
-      dev.log('Sucesso!');
-      return true;
-    } catch (e) {
-      dev.log('Erro: ${e.toString()}');
-      return false;
-    }
-  } */
-
-  /* CLOUD FIRESTORE */
-
-  /// Trocar foto
+  /// Carregar foto do integrante
   static Future<String?> carregarFoto(BuildContext context) async {
-    String fotoUrl = '';
-    // Abrir seleção de foto
+    String? fotoUrl;
     try {
-      final result = await FilePicker.platform.pickFiles(
-        type: FileType.image,
-        allowMultiple: false,
-        onFileLoading: (FilePickerStatus status) => dev.log('$status'),
-        //allowedExtensions: ['xlsx'],
-      );
-      if (result != null && result.files.isNotEmpty) {
-        final fileBytes = result.files.first.bytes;
-        final fileName = result.files.first.name;
-        final fileExtension = result.files.first.extension;
-        dev.log(fileName);
-        // Salvar na Cloud Firestore
-        Mensagem.aguardar(context: context, mensagem: 'Carregando foto..');
-        var ref = FirebaseStorage.instance
-            .ref('fotos/${MyInputs.randomString(6)}_$fileName');
-        if (kIsWeb) {
-          await ref.putData(fileBytes!,
-              SettableMetadata(contentType: 'image/$fileExtension'));
+      // Abrir a galeria para seleção
+      final pickedImage =
+          await ImagePicker().pickImage(source: ImageSource.gallery);
+      if (pickedImage != null) {
+        // Abrir imagem para edição
+        final croppedImage = await ImageCropper().cropImage(
+          sourcePath: pickedImage.path,
+          compressFormat: ImageCompressFormat.jpg,
+          compressQuality: 100,
+          uiSettings: buildUiSettings(context),
+        );
+        if (croppedImage != null) {
+          // Salvar na Cloud Firestore
+          Mensagem.aguardar(context: context, mensagem: 'Carregando foto..');
+          var ref = FirebaseStorage.instance
+              .ref('fotos/${MyInputs.randomString(6)}_${pickedImage.name}');
+          if (kIsWeb) {
+            var bytes = await croppedImage.readAsBytes();
+            await ref.putData(
+                bytes, SettableMetadata(contentType: pickedImage.mimeType));
+          } else {
+            var file = File(croppedImage.path);
+            await ref.putFile(file);
+          }
+          fotoUrl = await ref.getDownloadURL();
+          Modular.to.pop(); // fecha progresso
         } else {
-          var file = File(result.files.first.path!);
-          await ref.putFile(file);
+          dev.log('Ação cancelada pelo usuário', name: 'CarregarFoto');
+          return null;
         }
-        fotoUrl = await ref.getDownloadURL();
-        Modular.to.pop(); // fecha progresso
+      } else {
+        dev.log('Ação cancelada pelo usuário', name: 'CarregarFoto');
+        return null;
       }
     } on PlatformException catch (e) {
       dev.log('Unsupported operation: ${e.toString()}', name: 'CarregarFoto');
@@ -648,21 +595,28 @@ class MeuFirebase {
     return url;
   }
 
-  /// Abrir arquivo PDF
-  /* static void abrirArquivosPdf(BuildContext context, String? fileUrl) async {
-    if (fileUrl == null || fileUrl.isEmpty) return;
-    try {
-      Mensagem.aguardar(context: context, mensagem: 'Abrindo arquivo...');
-      List<Response> arquivos = [];
-      for (var url in fileUrl) {
-        var data = await http.get(Uri.parse(url));
-        arquivos.add(data);
-      }
-      Modular.to.pop(); // fecha progresso
-      Modular.to.pushNamed(AppRotas.ARQUIVOS, arguments: arquivos);
-    } catch (e) {
-      Modular.to.maybePop(); // fecha progresso
-      throw Exception("Error opening url file");
-    }
-  } */
+  /* DEPRECAR
+  TODO: Remover essa funções quando puder */
+
+  /// Stream para escutar base de dados dos Integrantes
+  static Stream<QuerySnapshot<Integrante>> escutarIntegrantes({bool? ativos}) {
+    return FirebaseFirestore.instance
+        .collection(Integrante.collection)
+        .where('ativo', isEqualTo: ativos)
+        .orderBy('nome')
+        .withConverter<Integrante>(
+          fromFirestore: (snapshot, _) => Integrante.fromJson(snapshot.data()!),
+          toFirestore: (model, _) => model.toJson(),
+        )
+        .snapshots();
+  }
+
+  /// Identifica o total de cadastros de determinada coleção, conforme filtro de cadastros ativo ou não
+  static Future<int> totalCadastros(String colecao, {bool? ativo}) async {
+    var snap = await FirebaseFirestore.instance
+        .collection(colecao)
+        .where('ativo', isEqualTo: ativo)
+        .get();
+    return snap.docs.length;
+  }
 }

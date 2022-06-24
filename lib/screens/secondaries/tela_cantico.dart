@@ -52,7 +52,7 @@ class _TelaCanticoState extends State<TelaCantico> {
     return AuthGuardView(
       scaffoldView: StreamBuilder<DocumentSnapshot<Cantico>>(
           initialData: widget.snapshot,
-          stream: MeuFirebase.obterStreamCantico(widget.id),
+          stream: MeuFirebase.ouvinteCantico(id: widget.id),
           builder: (context, snapshot) {
             // Progresso
             if (!snapshot.hasData) {

@@ -195,9 +195,9 @@ class _TelaContextoState extends State<TelaContexto> {
                                 context: context,
                                 mensagem: 'Alterando contexto...',
                               );
-                              String? id = inscritas[index].reference.id;
+                              String id = inscritas[index].reference.id;
                               var igreja =
-                                  await MeuFirebase.obterSnapshotIgreja(id);
+                                  await MeuFirebase.obterIgreja(id: id);
                               Modular.to.pop(); // fecha progresso
                               Modular.to.maybePop(true); // fecha dialog
                               Global.prefIgrejaId = id;

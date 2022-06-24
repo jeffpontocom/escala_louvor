@@ -332,7 +332,7 @@ class TileCulto extends StatelessWidget {
   /// Igreja
   get igreja {
     return FutureBuilder<DocumentSnapshot<Igreja>?>(
-      future: MeuFirebase.obterSnapshotIgreja(culto.igreja.id),
+      future: MeuFirebase.obterIgreja(id: culto.igreja.id),
       builder: (context, snapshot) {
         // Shimmer de carregamento
         if (!snapshot.hasData) {
@@ -568,8 +568,7 @@ class TileCulto extends StatelessWidget {
     // Dirigente
     if (culto.dirigente != null) {
       var integrante =
-          (await MeuFirebase.obterSnapshotIntegrante(culto.dirigente!.id))
-              ?.data();
+          (await MeuFirebase.obterIntegrante(id: culto.dirigente!.id)).data();
       if (integrante != null) {
         escalados.add(integrante);
       }
@@ -577,8 +576,7 @@ class TileCulto extends StatelessWidget {
     // Coordenador
     if (culto.coordenador != null) {
       var integrante =
-          (await MeuFirebase.obterSnapshotIntegrante(culto.coordenador!.id))
-              ?.data();
+          (await MeuFirebase.obterIntegrante(id: culto.coordenador!.id)).data();
       if (integrante != null &&
           !escalados.map((e) => e.nome).contains(integrante.nome)) {
         escalados.add(integrante);
@@ -589,8 +587,7 @@ class TileCulto extends StatelessWidget {
       for (var integrantes in culto.equipe!.values) {
         for (var referencia in integrantes) {
           var integrante =
-              (await MeuFirebase.obterSnapshotIntegrante(referencia.id))
-                  ?.data();
+              (await MeuFirebase.obterIntegrante(id: referencia.id)).data();
           if (integrante != null &&
               !escalados.map((e) => e.nome).contains(integrante.nome)) {
             escalados.add(integrante);

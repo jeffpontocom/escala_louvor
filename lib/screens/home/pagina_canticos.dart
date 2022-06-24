@@ -227,7 +227,7 @@ class _PaginaCanticosState extends State<PaginaCanticos> {
     return Wrap(
       children: List.generate(_selecionados!.length, (index) {
         return FutureBuilder<DocumentSnapshot<Cantico>?>(
-            future: MeuFirebase.obterSnapshotCantico(_selecionados![index].id),
+            future: MeuFirebase.obterCantico(id: _selecionados![index].id),
             builder: (context, snapshot) {
               return Text(
                   '${index + 1} - ${snapshot.data?.data()?.nome ?? '[erro]'}${index < _selecionados!.length - 1 ? "; " : ""}');
@@ -255,7 +255,7 @@ class _PaginaCanticosState extends State<PaginaCanticos> {
             default:
           }
           return StreamBuilder<QuerySnapshot<Cantico>>(
-              stream: MeuFirebase.escutarCanticos(somenteHinos),
+              stream: MeuFirebase.ouvinteCanticos(somenteHinos: somenteHinos),
               builder: (_, canticos) {
                 if (!canticos.hasData) {
                   return const Center(child: CircularProgressIndicator());
