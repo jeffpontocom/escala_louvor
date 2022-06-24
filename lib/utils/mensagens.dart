@@ -138,11 +138,13 @@ class Mensagem {
     required Widget conteudo,
     Widget? leading,
     Widget? rodape,
+    bool arrasteParaFechar = true,
     VoidCallback? onClose,
   }) {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
+      enableDrag: arrasteParaFechar,
       useRootNavigator: true, // para sobrepor a Bottom Navigation
       // Formato do Dialog
       /* shape: const RoundedRectangleBorder(

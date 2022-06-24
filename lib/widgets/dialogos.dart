@@ -235,13 +235,41 @@ class Dialogos {
     return Mensagem.bottomDialog(
       context: context,
       titulo: 'Editar Liturgia',
+      arrasteParaFechar: false,
       conteudo: StatefulBuilder(builder: (context, innerState) {
         return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            rich.QuillToolbar.basic(controller: controller),
+            rich.QuillToolbar.basic(
+              controller: controller,
+              toolbarIconAlignment: WrapAlignment.start,
+              locale: const Locale('pt', 'BR'),
+              iconTheme: rich.QuillIconTheme(
+                  iconSelectedFillColor: Theme.of(context).colorScheme.primary),
+              fontSizeValues: const {
+                'Título': '26',
+                'Subtítulo': '20',
+                'Padrão': '0',
+                'Legenda': '12',
+              },
+              showHeaderStyle: false,
+              showColorButton: false,
+              showBackgroundColorButton: false,
+              showImageButton: false,
+              showVideoButton: false,
+              showListCheck: false,
+              showListNumbers: false,
+              showCameraButton: false,
+              showAlignmentButtons: true,
+              showCodeBlock: false,
+              showInlineCode: false,
+              showQuote: false,
+              showIndent: false,
+              showStrikeThrough: false,
+            ),
             Expanded(
               child: Container(
-                color: Colors.grey.withOpacity(0.15),
+                color: Colors.grey.withOpacity(0.12),
                 padding: const EdgeInsets.all(16),
                 child: rich.QuillEditor.basic(
                   controller: controller,
@@ -251,28 +279,6 @@ class Dialogos {
             )
           ],
         );
-
-        /* ListView(
-          shrinkWrap: true,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          children: [
-            // Form Field
-            TextFormField(
-              initialValue: texto,
-              minLines: 10,
-              maxLines: 30,
-              textCapitalization: TextCapitalization.sentences,
-              textInputAction: TextInputAction.newline,
-              decoration: const InputDecoration(
-                isDense: true,
-                floatingLabelBehavior: FloatingLabelBehavior.always,
-              ),
-              onChanged: (value) {
-                texto = value;
-              },
-            ),
-          ],
-        ); */
       }),
       rodape: ElevatedButton.icon(
         icon: const Icon(Icons.save),
