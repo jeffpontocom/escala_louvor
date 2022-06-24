@@ -3,13 +3,13 @@ description: Um app para controle da escala da equipe de louvor
 
 # INSTRUÇÕES PARA BUILD 
 # Para publicar a versão web no servidor local executar: 
-# - flutter build web 
+# - flutter build web --web-renderer canvaskit
 # OU
 # - flutter build web --base-href /escala_louvor/
 # então copiar arquivos resultantes para a pasta definida no servidor IIS
 #
 # Para publicar no Firebase Hosting
-# - flutter build web
+# - flutter build web --web-renderer canvaskit
 # - firebase deploy
 #
 # Para publicar no github pages executar:
@@ -24,7 +24,7 @@ description: Um app para controle da escala da equipe de louvor
 publish_to: 'none'
 
 # VERSÃO DO APP
-version: 0.3.7+14
+version: 0.3.8+14
 
 # VERSÃO DO SDK FLUTTER
 environment:
@@ -43,7 +43,7 @@ dependencies:
   cloud_firestore: ^3.1.18 # FIREBASE Firestore
   connectivity_plus: ^2.3.5 # Verifica conexões
   easy_mask: ^2.0.1 # Máscara para inputs de texto
-  file_picker: ^4.6.0 # Seleção de arquivos
+  file_picker: ^4.6.0 # Para seleção de arquivos
   firebase_auth: ^3.3.20 # FIREBASE Auth
   firebase_core: ^1.18.0 # FIREBASE Core
   firebase_messaging: ^11.4.2 # FIREBASE Messaging
@@ -57,6 +57,7 @@ dependencies:
   http: ^0.13.4 # Base para web
   intl: ^0.17.0 # Base para idioma
   image_cropper: ^2.0.3 # Para manipulação de imagens
+  image_picker: ^0.8.5+3 # Para seleção de imagens
   package_info_plus: ^1.4.2 # Recolhe dados básicos do app
   pdf: ^3.8.1 # Gerar PDFs
   printing: ^5.9.1 # Abrir PDFs
@@ -66,7 +67,6 @@ dependencies:
   upgrader: ^4.2.1 # Verificador de novas versões com notificador
   url_launcher: ^6.1.2 # Base para links
   wakelock: ^0.6.1+2 # Mantêm a tela sempre ligada
-  image_picker: ^0.8.5+3
 
 
 dev_dependencies:

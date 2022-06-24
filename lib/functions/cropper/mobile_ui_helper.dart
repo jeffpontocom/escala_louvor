@@ -4,13 +4,15 @@ import 'package:image_cropper/image_cropper.dart';
 List<PlatformUiSettings>? buildUiSettings(BuildContext context) {
   return [
     AndroidUiSettings(
-        toolbarTitle: 'Recortar',
-        toolbarColor: Colors.deepOrange,
-        toolbarWidgetColor: Colors.white,
-        initAspectRatio: CropAspectRatioPreset.original,
-        lockAspectRatio: false),
+      toolbarTitle: 'Ajustar imagem',
+      toolbarColor: Colors.deepOrange,
+      toolbarWidgetColor: Colors.white,
+      initAspectRatio: CropAspectRatioPreset.square,
+      lockAspectRatio: true,
+      hideBottomControls: true,
+    ),
     IOSUiSettings(
-      title: 'Recortar',
+      title: 'Ajustar imagem',
     ),
   ];
 }

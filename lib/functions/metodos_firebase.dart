@@ -517,7 +517,9 @@ class MeuFirebase {
           compressFormat: ImageCompressFormat.jpg,
           compressQuality: 100,
           // ignore: use_build_context_synchronously
-          uiSettings: buildUiSettings(context),
+          uiSettings: buildUiSettings(
+            context,
+          ),
         );
         if (croppedImage != null) {
           // Salvar na Cloud Firestore

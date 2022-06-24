@@ -460,7 +460,8 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
       context: context,
       titulo: 'Liturgia do culto',
       conteudo: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
+        padding:
+            const EdgeInsets.only(top: 16, bottom: 32, left: 16, right: 16),
         child: rich.QuillEditor.basic(
           controller: controller,
           readOnly: true,

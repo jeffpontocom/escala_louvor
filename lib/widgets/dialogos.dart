@@ -252,6 +252,7 @@ class Dialogos {
                 'Padrão': '0',
                 'Legenda': '12',
               },
+              multiRowsDisplay: false,
               showHeaderStyle: false,
               showColorButton: false,
               showBackgroundColorButton: false,
@@ -282,7 +283,7 @@ class Dialogos {
       }),
       rodape: ElevatedButton.icon(
         icon: const Icon(Icons.save),
-        label: const Text('ATUALIZAR'),
+        label: const Text('SALVAR'),
         onPressed: () async {
           // Salva os dados no firebase
           await reference.update(
