@@ -506,7 +506,6 @@ class MeuFirebase {
 
   /// Carregar foto do integrante
   static Future<String?> carregarFoto(BuildContext context) async {
-    String? fotoUrl;
     try {
       // Abrir a galeria para seleção
       final pickedImage =
@@ -517,11 +516,12 @@ class MeuFirebase {
           sourcePath: pickedImage.path,
           compressFormat: ImageCompressFormat.jpg,
           compressQuality: 100,
+          // ignore: use_build_context_synchronously
           uiSettings: buildUiSettings(context),
         );
         if (croppedImage != null) {
           // Salvar na Cloud Firestore
-          Mensagem.aguardar(context: context, mensagem: 'Carregando foto..');
+          Mensagem.aguardar(context: context, mensagem: 'Carregando foto...');
           var ref = FirebaseStorage.instance
               .ref('fotos/${MyInputs.randomString(6)}_${pickedImage.name}');
           if (kIsWeb) {
@@ -532,8 +532,9 @@ class MeuFirebase {
             var file = File(croppedImage.path);
             await ref.putFile(file);
           }
-          fotoUrl = await ref.getDownloadURL();
+          final fotoUrl = await ref.getDownloadURL();
           Modular.to.pop(); // fecha progresso
+          return fotoUrl;
         } else {
           dev.log('Ação cancelada pelo usuário', name: 'CarregarFoto');
           return null;
@@ -543,20 +544,24 @@ class MeuFirebase {
         return null;
       }
     } on PlatformException catch (e) {
-      dev.log('Unsupported operation: ${e.toString()}', name: 'CarregarFoto');
+      dev.log('Operação não suportada: ${e.toString()}', name: 'CarregarFoto');
     } on FirebaseException catch (e) {
       dev.log('FirebaseException code: ${e.code}', name: 'CarregarFoto');
     } catch (e) {
-      dev.log('Catch Exception: ${e.toString()}', name: 'CarregarFoto');
+      dev.log('Falha: ${e.toString()}', name: 'CarregarFoto');
     }
-    // Retorno
-    return fotoUrl;
+    // Retorno após falhas
+    Mensagem.simples(
+      context: context,
+      titulo: 'Falha!',
+      mensagem: 'Não foi possível carregar a imagem.',
+    );
+    return null;
   }
 
   /// Carregar arquivo PDF
   static Future<String?> carregarArquivoPdf(BuildContext context,
       {required String pasta}) async {
-    String url = '';
     // Abrir seleção
     try {
       final result = await FilePicker.platform.pickFiles(
@@ -566,33 +571,42 @@ class MeuFirebase {
         allowedExtensions: ['pdf'],
       );
       if (result != null && result.files.isNotEmpty) {
-        final fileBytes = result.files.first.bytes;
-        final fileName = result.files.first.name;
-        final fileExtension = result.files.first.extension;
-        dev.log(fileName);
+        final pickedFile = result.files.single;
+        dev.log(pickedFile.name);
         // Salvar na Cloud Firestore
         Mensagem.aguardar(context: context, mensagem: 'Carregando arquivo...');
         var ref = FirebaseStorage.instance
-            .ref('$pasta/${MyInputs.randomString(6)}_$fileName');
+            .ref('$pasta/${MyInputs.randomString(6)}_${pickedFile.name}');
         if (kIsWeb) {
-          await ref.putData(fileBytes!,
-              SettableMetadata(contentType: 'application/$fileExtension'));
+          await ref.putData(
+              pickedFile.bytes!,
+              SettableMetadata(
+                  contentType: 'application/${pickedFile.extension}'));
         } else {
-          var file = File(result.files.first.path!);
+          var file = File(pickedFile.path!);
           await ref.putFile(file);
         }
-        url = await ref.getDownloadURL();
+        final url = await ref.getDownloadURL();
         Modular.to.pop(); // fecha progresso
+        return url;
+      } else {
+        dev.log('Ação cancelada pelo usuário', name: 'CarregarPDF');
+        return null;
       }
     } on PlatformException catch (e) {
-      dev.log('Unsupported operation: ${e.toString()}', name: 'log:LoadPDF');
+      dev.log('Operação não suportada: ${e.toString()}', name: 'CarregarPDF');
     } on FirebaseException catch (e) {
-      dev.log('FirebaseException code: ${e.code}', name: 'log:LoadPDF');
+      dev.log('FirebaseException code: ${e.code}', name: 'CarregarPDF');
     } catch (e) {
-      dev.log('Catch Exception: ${e.toString()}', name: 'log:LoadPDF');
+      dev.log('Falha: ${e.toString()}', name: 'CarregarPDF');
     }
-    // Retorno
-    return url;
+    // Retorno após falhas
+    Mensagem.simples(
+      context: context,
+      titulo: 'Falha!',
+      mensagem: 'Não foi possível carregar o arquivo.',
+    );
+    return null;
   }
 
   /* DEPRECAR
