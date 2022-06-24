@@ -16,7 +16,7 @@ const messaging = firebase.messaging(app);
 
 // Tratamento para mensagem recebida em background
 messaging.onBackgroundMessage(function (message) {
-  console.log('Mensagem recebida em background', message);
+  console.log('[FCM] Mensagem recebida em background', message);
   const promiseChain = clients
     .matchAll({
       type: "window",
@@ -38,7 +38,7 @@ messaging.onBackgroundMessage(function (message) {
 
 // Tratamento para clique em mensagem recebida
 self.addEventListener('notificationclick', function (event) {
-  console.log('Clique em notificação: ', event)
+  console.log('[FCM] Clique em notificação: ', event)
   const target = event.notification.data.click_action || '/';
   event.notification.close();
 
