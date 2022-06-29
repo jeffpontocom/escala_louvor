@@ -5,11 +5,11 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 
 import 'modulos.dart';
+import 'resources/animations/bouncing.dart';
 import 'resources/behaviors/app_scroll_behavior.dart';
 import 'resources/temas.dart';
 import 'utils/global.dart';
 import 'views/scaffold_falha.dart';
-import 'widgets/tela_carregamento.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -58,7 +58,17 @@ class AppWidget extends StatelessWidget {
           }
 
           // SPLASH SCREEN
-          return const TelaCarregamento();
+          return Container(
+              padding: const EdgeInsets.all(24),
+              alignment: Alignment.center,
+              color: MediaQueryData.fromWindow(WidgetsBinding.instance.window)
+                          .platformBrightness ==
+                      Brightness.dark
+                  ? const Color(0xFF121212)
+                  : const Color(0xFF2094f3),
+              child: AnimacaoPulando(
+                objectToAnimate: Image.asset('assets/icons/ic_launcher.png'),
+              ));
         });
   }
 }

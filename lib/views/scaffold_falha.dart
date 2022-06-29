@@ -24,7 +24,7 @@ class ViewFalha extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 12),
-              // Texto de carregamento
+              // Título
               const Text(
                 'Falha!',
                 textAlign: TextAlign.center,
@@ -34,6 +34,7 @@ class ViewFalha extends StatelessWidget {
                     color: Colors.redAccent),
               ),
               const SizedBox(height: 12),
+              // Mensagem
               Text(
                 mensagem,
                 textAlign: TextAlign.center,

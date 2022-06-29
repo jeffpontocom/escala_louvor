@@ -9,7 +9,7 @@ import '/models/igreja.dart';
 import '/models/integrante.dart';
 import '/resources/animations/shimmer.dart';
 import '/utils/global.dart';
-import 'cached_circle_avatar.dart';
+import '/widgets/cached_circle_avatar.dart';
 
 class TileCulto extends StatelessWidget {
   final Culto culto;
@@ -41,6 +41,10 @@ class TileCulto extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Slidable(
+      // O Widget é um objeto que pode ser arrastado de um lado ou outro
+      // para executar determinadas ações
+
+      // AÇÕES A ESQUERDA
       startActionPane: _possoSerEscalado
           ? ActionPane(
               motion: const DrawerMotion(),
@@ -56,6 +60,8 @@ class TileCulto extends StatelessWidget {
                     onPressed: null)
               ],
             ),
+
+      // AÇÕES A DIREITA
       endActionPane: _possoSerEscalado
           ? ActionPane(
               motion: const DrawerMotion(),
@@ -71,82 +77,74 @@ class TileCulto extends StatelessWidget {
                     onPressed: null)
               ],
             ),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          return Row(children: [
-            // Coluna 1: Dados Básicos
-            Expanded(
-              child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-                child: Column(
-                  children: [
-                    // Linha 1: Ocasião e Igreja
-                    Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        iconDayNight,
-                        const SizedBox(width: 8),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            ocasiao,
-                            const SizedBox(height: 4),
-                            diaDaSemana,
-                          ],
-                        ),
-                        const Expanded(child: SizedBox()),
-                        igreja,
-                        showResumo && _possoSerEscalado
-                            ? Padding(
-                                padding: const EdgeInsets.only(left: 4, top: 2),
-                                child: avatarDisponibilidade)
-                            : const SizedBox(),
-                      ],
-                    ),
-                    const SizedBox(height: 2),
-                    // Linha 2: Data e Horário
-                    Row(
-                      children: [
-                        const SizedBox(width: 26),
-                        diaDoMes,
-                        const SizedBox(width: 8),
-                        horario,
-                        const Expanded(child: SizedBox()),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    // Linha 3: Escalados e Cânticos
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Expanded(child: culto.emEdicao ? chipEmEdicao : equipe),
-                        const SizedBox(width: 8),
-                        precisaAtencao,
-                        const SizedBox(width: 4),
-                        canticos,
-                      ],
-                    ),
-                    // Linha 4: Resumo
-                    showResumo
-                        ? Row(
-                            children: [
-                              dataEnsaio,
-                            ],
-                          )
-                        : const SizedBox(),
-                  ],
-                ),
+
+      child: LayoutBuilder(builder: (context, constraints) {
+        return Row(children: [
+          // COLUNA 1: Dados Básicos
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              child: Column(
+                children: [
+                  // LINHA 1: Ocasião e Igreja
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      iconDayNight,
+                      const SizedBox(width: 8),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          ocasiao,
+                          const SizedBox(height: 4),
+                          diaDaSemana,
+                        ],
+                      ),
+                      const Expanded(child: SizedBox()),
+                      igreja,
+                      showResumo && _possoSerEscalado
+                          ? Padding(
+                              padding: const EdgeInsets.only(left: 4, top: 2),
+                              child: avatarDisponibilidade)
+                          : const SizedBox(),
+                    ],
+                  ),
+                  const SizedBox(height: 2),
+                  // LINHA 2: Data e Horário
+                  Row(
+                    children: [
+                      const SizedBox(width: 26),
+                      diaDoMes,
+                      const SizedBox(width: 8),
+                      horario,
+                      const Expanded(child: SizedBox()),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  // LINHA 3: Escalados e Cânticos
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Expanded(child: culto.emEdicao ? chipEmEdicao : equipe),
+                      const SizedBox(width: 8),
+                      precisaAtencao,
+                      const SizedBox(width: 4),
+                      canticos,
+                    ],
+                  ),
+                  // LINHA 4: Detalhes em Resumo
+                  showResumo ? Row(children: [dataEnsaio]) : const SizedBox(),
+                ],
               ),
             ),
-            // Coluna 2: Botão
-            Container(
-                child: _possoSerEscalado && !showResumo
-                    ? botaoDisponibilidade
-                    : null),
-          ]);
-        },
-      ),
+          ),
+          // COLUNA 2: Botão
+          Container(
+              child: _possoSerEscalado && !showResumo
+                  ? botaoDisponibilidade
+                  : null),
+        ]);
+      }),
     );
   }
 
@@ -390,24 +388,20 @@ class TileCulto extends StatelessWidget {
     return FutureBuilder<List<Integrante>>(
       future: equipeEscalada(),
       builder: (context, snapshot) {
+        // EM CARREGAMENTO
         if (!snapshot.hasData) {
           return SizedBox(
             height: 24,
             child: Stack(
               children: List.generate(culto.equipe?.length ?? 0, (index) {
-                int c = (Theme.of(context).brightness == Brightness.dark
-                        ? 90
-                        : 190) +
-                    index * 5;
                 return Padding(
                   padding: EdgeInsets.only(left: index * 18),
                   child: CircleAvatar(
                     radius: 12,
                     backgroundColor: Theme.of(context).cardColor,
-                    child: Shimmer.fromColors(
-                      baseColor: Color.fromRGBO(c, c, c, 1),
-                      highlightColor: Color.fromRGBO(c, c, c, 0.5),
-                      child: const CircleAvatar(radius: 10),
+                    child: CircleAvatar(
+                      radius: 10,
+                      backgroundColor: Colors.grey.withOpacity(0.38),
                     ),
                   ),
                 );
@@ -415,12 +409,16 @@ class TileCulto extends StatelessWidget {
             ),
           );
         }
+
+        // SEM NINGUÉM
         if (snapshot.data?.isEmpty ?? true) {
           return Text(
             'Ninguém escalado ainda!',
             style: theme.textTheme.bodySmall,
           );
         }
+
+        // AVATARES
         var escalados = snapshot.data;
         return Stack(
           children: List.generate(escalados?.length ?? 0, (index) {

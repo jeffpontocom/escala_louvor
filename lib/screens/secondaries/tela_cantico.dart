@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -89,6 +90,23 @@ class _TelaCanticoState extends State<TelaCantico> {
                           Global.logado!.ehDirigente ||
                           Global.logado!.ehCoordenador
                       ? PopupMenuButton(
+                          tooltip: 'Menu',
+                          child: kIsWeb
+                              ? Container(
+                                  alignment: Alignment.center,
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 12),
+                                  child: Wrap(
+                                    spacing: 8,
+                                    crossAxisAlignment:
+                                        WrapCrossAlignment.center,
+                                    children: [
+                                      const Text('Menu'),
+                                      Icon(Icons.adaptive.more)
+                                    ],
+                                  ),
+                                )
+                              : null,
                           onSelected: (value) {
                             if (value == 'edit') {
                               Dialogos.editarCantico(

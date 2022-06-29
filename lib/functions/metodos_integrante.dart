@@ -119,7 +119,6 @@ class MetodosIntegrante {
       keyboardType: TextInputType.name,
       textCapitalization: TextCapitalization.words,
       textInputAction: TextInputAction.next,
-      autofillHints: const [AutofillHints.name],
       decoration: const InputDecoration(
         labelText: 'Nome Completo',
         floatingLabelBehavior: FloatingLabelBehavior.always,

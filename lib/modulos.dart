@@ -3,7 +3,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 
-import 'app.dart';
+import 'my_app.dart';
 import 'screens/admin/tela_admin.dart';
 import 'screens/home/pagina_agenda.dart';
 import 'screens/home/pagina_avisos.dart';

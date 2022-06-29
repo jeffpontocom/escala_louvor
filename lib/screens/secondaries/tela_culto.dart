@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'dart:developer' as dev;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:escala_louvor/views/auth_guard.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
@@ -19,11 +18,14 @@ import '/resources/animations/shimmer.dart';
 import '/screens/home/pagina_canticos.dart';
 import '/utils/global.dart';
 import '/utils/mensagens.dart';
-import '../../widgets/cached_circle_avatar.dart';
+import '/views/auth_guard.dart';
+import '/widgets/cached_circle_avatar.dart';
 import '/widgets/dialogos.dart';
 import '/widgets/tela_mensagem.dart';
 import '/widgets/tile_cantico.dart';
 import '/widgets/tile_culto.dart';
+import '/widgets/sliver_header_delegate.dart';
+import '/widgets/sliver_pinned_box.dart';
 
 class TelaDetalhesEscala extends StatefulWidget {
   final String id;
@@ -42,19 +44,13 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
   late DocumentSnapshot<Culto> mSnapshot;
   Integrante? mLogado;
 
-  bool get _ehODirigente {
-    if (mCulto.dirigente == null) {
-      return false;
-    }
-    return (mCulto.dirigente?.id == Global.logadoSnapshot?.id);
-  }
-
-  bool get _ehOCoordenador {
-    if (mCulto.coordenador == null) {
-      return false;
-    }
-    return (mCulto.coordenador?.id == Global.logadoSnapshot?.id);
-  }
+  /* GETTERS */
+  bool get _ehODirigente =>
+      mCulto.dirigente != null &&
+      (mCulto.dirigente!.id == Global.logadoSnapshot?.id);
+  bool get _ehOCoordenador =>
+      mCulto.coordenador != null &&
+      (mCulto.coordenador!.id == Global.logadoSnapshot?.id);
 
   /* SISTEMA */
   @override
@@ -97,185 +93,211 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
 
   /// LAYOUT DA TELA
   get _layout {
-    return OrientationBuilder(builder: (context, orientation) {
-      // MODO RETRATO
-      if (orientation == Orientation.portrait) {
-        return Column(
-          children: [
-            // Cabeçalho
-            _tileCulto,
-            const Divider(height: 1, color: Colors.grey),
-            // Corpo
-            _secaoEnsaio,
-            _secaoLiturgia,
-            // Observações (só aparece se houver alguma)
-            mCulto.obs == null || mCulto.obs!.isEmpty
-                ? const SizedBox()
-                : _rowObservacoes,
-            Expanded(child: _tabs),
-            _secaoOqueFalta,
-          ],
-        );
-      }
-      // MODO PAISAGEM
-      return LayoutBuilder(builder: (context, constraints) {
-        return Wrap(children: [
-          SizedBox(
-            height: constraints.maxHeight,
-            width: constraints.maxWidth * 0.4 - 1,
-            child: Column(
-              children: [
-                _tileCulto,
-                const Divider(height: 1),
-                _secaoEnsaio,
-                _secaoLiturgia,
-                // Observações (só aparece se houver alguma)
-                mCulto.obs == null || mCulto.obs!.isEmpty
-                    ? const SizedBox()
-                    : _rowObservacoes,
-                const Expanded(child: SizedBox()),
-                _secaoOqueFalta,
-              ],
+    return DefaultTabController(
+      length: 2,
+      child: OrientationBuilder(builder: (context, orientation) {
+        // MODO RETRATO
+        if (orientation == Orientation.portrait) {
+          return Flex(
+            direction: Axis.vertical,
+            children: [
+              Expanded(
+                child: NestedScrollView(
+                  headerSliverBuilder:
+                      (BuildContext context, bool innerBoxIsScrolled) {
+                    return [
+                      SliverPinnedBox(child: _tileCulto),
+                      SliverToBoxAdapter(child: _secaoEnsaio),
+                      SliverToBoxAdapter(child: _secaoLiturgia),
+                      // Observações (só aparece se houver alguma)
+                      SliverToBoxAdapter(
+                        child: mCulto.obs == null || mCulto.obs!.isEmpty
+                            ? const SizedBox()
+                            : _rowObservacoes,
+                      ),
+                      SliverPersistentHeader(
+                        pinned: true,
+                        delegate: MySliverAppBarDelegate(_tabBar),
+                      ),
+                    ];
+                  },
+                  body: _tabView,
+                ),
+              ),
+              _secaoOqueFalta,
+            ],
+          );
+        }
+        // MODO PAISAGEM
+        return LayoutBuilder(builder: (context, constraints) {
+          return Wrap(children: [
+            SizedBox(
+              height: constraints.maxHeight,
+              width: constraints.maxWidth * 0.4 - 1,
+              child: Column(
+                children: [
+                  _tileCulto,
+                  const Divider(height: 1),
+                  Expanded(
+                    child: ListView(
+                      children: [
+                        _secaoEnsaio,
+                        _secaoLiturgia,
+                        // Observações (só aparece se houver alguma)
+                        mCulto.obs == null || mCulto.obs!.isEmpty
+                            ? const SizedBox()
+                            : _rowObservacoes,
+                      ],
+                    ),
+                  ),
+                  _secaoOqueFalta,
+                ],
+              ),
             ),
-          ),
-          Container(
-              height: constraints.maxHeight,
-              width: 1,
-              color: Colors.grey.withOpacity(0.38)),
-          SizedBox(
-              height: constraints.maxHeight,
-              width: constraints.maxWidth * 0.6,
-              child: _tabs),
-        ]);
-      });
-    });
+            Container(
+                height: constraints.maxHeight,
+                width: 1,
+                color: Colors.grey.withOpacity(0.38)),
+            SizedBox(
+                height: constraints.maxHeight,
+                width: constraints.maxWidth * 0.6,
+                child: Column(
+                  children: [
+                    _tabBar,
+                    Expanded(child: _tabView),
+                  ],
+                )),
+          ]);
+        });
+      }),
+    );
   }
 
   /* WIDGETS */
 
   get _tileCulto {
-    return TileCulto(
-      culto: mCulto,
-      reference: mSnapshot.reference,
-      theme: Theme.of(context),
+    return Material(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          TileCulto(
+            culto: mCulto,
+            reference: mSnapshot.reference,
+            theme: Theme.of(context),
+          ),
+          const Divider(height: 1, thickness: 1)
+        ],
+      ),
     );
   }
 
-  get _tabs {
-    return DefaultTabController(
-      length: 2,
-      child: Flex(
-        direction: Axis.vertical,
-        children: [
-          Container(
-            color: Colors.grey.withOpacity(0.05),
-            child: TabBar(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                labelPadding: const EdgeInsets.symmetric(horizontal: 16),
-                indicator: BoxDecoration(
-                  borderRadius: BorderRadius.circular(40), // Creates border
-                  color: Theme.of(context).colorScheme.secondary,
-                ),
-                splashBorderRadius: BorderRadius.circular(40),
-                splashFactory: NoSplash.splashFactory,
-                overlayColor: MaterialStateProperty.resolveWith<Color?>(
-                  (Set<MaterialState> states) {
-                    return states.contains(MaterialState.focused)
-                        ? null
-                        : Colors.transparent;
-                  },
-                ),
-                indicatorSize: TabBarIndicatorSize.label,
-                automaticIndicatorColorAdjustment: false,
-                indicatorPadding:
-                    const EdgeInsets.symmetric(horizontal: -16, vertical: 8),
-                unselectedLabelColor:
-                    Theme.of(context).colorScheme.onBackground,
-                tabs: const [
-                  Tab(text: 'ESCALADOS'),
-                  Tab(text: 'CÂNTICOS'),
-                ]),
-          ),
-          //const Divider(height: 1),
-          Flexible(
-            flex: 1,
-            child: TabBarView(children: [
-              // ESCALADOS
-              ListView(
-                shrinkWrap: true,
-                children: [
-                  // Escalados (Responsáveis)
-                  Flex(
-                    direction: Axis.horizontal,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      // Dirigente
-                      Flexible(
-                        child: _secaoResponsavel(
-                          Funcao.dirigente,
-                          mCulto.dirigente,
-                          () => _escalarResponsavel(Funcao.dirigente),
-                        ),
-                      ),
-                      // Coordenador
-                      Flexible(
-                        child: _secaoResponsavel(
-                          Funcao.coordenador,
-                          mCulto.coordenador,
-                          () => _escalarResponsavel(Funcao.coordenador),
-                        ),
-                      ),
-                    ],
-                  ),
-                  // Escalados (Equipe)
-                  _secaoEquipe(
-                    'Equipe',
-                    mCulto.equipe ?? {},
-                    () => _escalarIntegrante(mCulto.equipe),
-                  ),
-                  const SizedBox(height: 16),
-                ],
+  get _tabBar {
+    return TabBar(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        labelPadding: const EdgeInsets.symmetric(horizontal: 16),
+        indicator: BoxDecoration(
+          borderRadius: BorderRadius.circular(40), // Creates border
+          color: Theme.of(context).colorScheme.secondary,
+        ),
+        splashBorderRadius: BorderRadius.circular(40),
+        splashFactory: NoSplash.splashFactory,
+        overlayColor: MaterialStateProperty.resolveWith<Color?>(
+          (Set<MaterialState> states) {
+            return states.contains(MaterialState.focused)
+                ? null
+                : Colors.transparent;
+          },
+        ),
+        indicatorSize: TabBarIndicatorSize.label,
+        automaticIndicatorColorAdjustment: false,
+        indicatorPadding:
+            const EdgeInsets.symmetric(horizontal: -16, vertical: 8),
+        unselectedLabelColor: Theme.of(context).colorScheme.onBackground,
+        tabs: const [
+          Tab(text: 'ESCALADOS'),
+          Tab(text: 'CÂNTICOS'),
+        ]);
+  }
+
+  get _tabView {
+    return TabBarView(children: [
+      _escalados,
+      _canticos,
+    ]);
+  }
+
+  get _escalados {
+    return ListView(
+      //physics: const NeverScrollableScrollPhysics(),
+      children: [
+        // Escalados (Responsáveis)
+        Flex(
+          direction: Axis.horizontal,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Dirigente
+            Flexible(
+              child: _secaoResponsavel(
+                Funcao.dirigente,
+                mCulto.dirigente,
+                () => _escalarResponsavel(Funcao.dirigente),
               ),
-              // CÂNTICOS
-              Flex(
-                direction: Axis.vertical,
-                children: [
-                  (mLogado?.adm ?? false) || _ehODirigente || _ehOCoordenador
-                      ? Container(
-                          width: double.infinity,
-                          color: Colors.grey.withOpacity(0.05),
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 16, vertical: 8),
-                          child: Wrap(
-                            spacing: 8,
-                            runSpacing: 8,
-                            alignment: WrapAlignment.spaceBetween,
-                            crossAxisAlignment: WrapCrossAlignment.center,
-                            children: [
-                              OutlinedButton.icon(
-                                icon: const Icon(Icons.queue_music),
-                                label: const Text('Selecionar canticos'),
-                                onPressed: () => _adicionarCanticos(),
-                              ),
-                              Text(
-                                'Dica: Segure e arraste para reordenar',
-                                textAlign: TextAlign.center,
-                                style: Theme.of(context).textTheme.bodySmall,
-                              ),
-                            ],
-                          ),
-                        )
-                      : const SizedBox(),
-                  Flexible(
-                    child: _listaDeCanticos,
-                  ),
-                ],
+            ),
+            // Coordenador
+            Flexible(
+              child: _secaoResponsavel(
+                Funcao.coordenador,
+                mCulto.coordenador,
+                () => _escalarResponsavel(Funcao.coordenador),
               ),
-              //_listaDeCanticos,
-            ]),
-          ),
-        ],
-      ),
+            ),
+          ],
+        ),
+        // Escalados (Equipe)
+        _secaoEquipe(
+          'Equipe',
+          mCulto.equipe ?? {},
+          () => _escalarIntegrante(mCulto.equipe),
+        ),
+        const SizedBox(height: 16),
+      ],
+    );
+  }
+
+  get _canticos {
+    return Flex(
+      direction: Axis.vertical,
+      children: [
+        (mLogado?.adm ?? false) || _ehODirigente || _ehOCoordenador
+            ? Container(
+                width: double.infinity,
+                color: Colors.grey.withOpacity(0.05),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  alignment: WrapAlignment.spaceBetween,
+                  crossAxisAlignment: WrapCrossAlignment.center,
+                  children: [
+                    OutlinedButton.icon(
+                      icon: const Icon(Icons.queue_music),
+                      label: const Text('Selecionar canticos'),
+                      onPressed: () => _adicionarCanticos(),
+                    ),
+                    Text(
+                      'Dica: Segure e arraste para reordenar',
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ],
+                ),
+              )
+            : const SizedBox(),
+        Flexible(
+          child: _listaDeCanticos,
+        ),
+      ],
     );
   }
 
@@ -469,60 +491,6 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
       ),
     );
   }
-  /* Widget get _secaoLiturgia {
-    return ListTile(
-      dense: true,
-      minLeadingWidth: 64,
-      shape: UnderlineInputBorder(
-          borderSide: BorderSide(color: Colors.grey.withOpacity(0.26))),
-      // Título
-      leading: const Text('LITURGIA'),
-      // Texto de apoio
-      title: mCulto.liturgiaUrl == null
-          ? Text(
-              'Nenhum arquivo carregado',
-              style: Theme.of(context).textTheme.bodySmall,
-            )
-          : Text(
-              'Abrir documento',
-              style: TextStyle(color: Theme.of(context).colorScheme.primary),
-            ),
-      // Botão de edição (somente para dirigente, coordenadores ou liturgos)
-      trailing: (mLogado?.adm ?? false) ||
-              _ehODirigente ||
-              _ehOCoordenador ||
-              (mLogado?.ehLiturgo ?? false)
-          ? mCulto.liturgiaUrl == null
-              ? IconButton(
-                  onPressed: () async {
-                    String? url = await MeuFirebase.carregarArquivoPdf(context,
-                        pasta: 'liturgias');
-                    if (url != null && url.isNotEmpty) {
-                      mSnapshot.reference.update({'liturgiaUrl': url}).then(
-                          (value) => null, onError: (_) {
-                        Mensagem.simples(
-                            context: context,
-                            mensagem: 'Falha ao atualizar o campo');
-                      });
-                    }
-                  },
-                  icon: const Icon(Icons.upload_file),
-                )
-              : IconButton(
-                  onPressed: () =>
-                      mSnapshot.reference.update({'liturgiaUrl': null}),
-                  icon: const Icon(Icons.clear),
-                )
-          : null,
-      // Ação de toque
-      onTap: mCulto.liturgiaUrl == null
-          ? null
-          : () => Modular.to.pushNamed(AppModule.ARQUIVOS,
-              arguments: [mCulto.liturgiaUrl!, 'Liturgia']),
-
-      /* MeuFirebase.abrirArquivosPdf(context, [mCulto.liturgiaUrl!]), */
-    );
-  } */
 
   /// Seção observações
   Widget get _rowObservacoes {
@@ -542,50 +510,54 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
 
   /// Seção o que falta
   Widget get _secaoOqueFalta {
-    return Container(
-      color: Theme.of(context).colorScheme.secondary.withOpacity(0.25),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      child: Row(
-        children: [
-          Expanded(
-            child: FutureBuilder<QuerySnapshot<Instrumento>>(
-                future: MeuFirebase.obterListaInstrumentos(ativo: true),
-                builder: (context, snapshot) {
-                  String resultado = 'Analisando equipe...';
-                  if (mCulto.equipe == null ||
-                      mCulto.equipe!.isEmpty ||
-                      !mCulto.equipe!.values
-                          .any((element) => element.isNotEmpty)) {
-                    resultado = 'Escalar equipe!';
-                  } else if (!snapshot.hasData) {
-                    resultado = 'Analisando equipe...';
-                  } else if (snapshot.hasError) {
-                    resultado = 'Falha ao analisar equipe!';
-                  } else {
-                    resultado = _verificaEquipe(snapshot.data);
-                  }
-                  return Text(resultado,
-                      style: Theme.of(context).textTheme.bodySmall);
-                }),
-          ),
-          (mLogado?.adm ?? false) || (mLogado?.ehRecrutador ?? false)
-              ? mCulto.emEdicao
-                  ? OutlinedButton.icon(
-                      onPressed: () {
-                        mSnapshot.reference.update({'emEdicao': false});
-                      },
-                      icon: const Icon(Icons.lock_outline),
-                      label: const Text('FECHAR ESCALA'),
-                    )
-                  : OutlinedButton.icon(
-                      onPressed: () {
-                        mSnapshot.reference.update({'emEdicao': true});
-                      },
-                      icon: const Icon(Icons.hail),
-                      label: const Text('RECRUTAR'),
-                    )
-              : const SizedBox(height: 36),
-        ],
+    return Material(
+      child: Container(
+        color: Theme.of(context).colorScheme.secondary.withOpacity(0.25),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+        child: Row(
+          children: [
+            Expanded(
+              child: FutureBuilder<QuerySnapshot<Instrumento>>(
+                  future: MeuFirebase.obterListaInstrumentos(ativo: true),
+                  builder: (context, snapshot) {
+                    String resultado;
+                    if (mCulto.equipe == null ||
+                        mCulto.equipe!.isEmpty ||
+                        !mCulto.equipe!.values
+                            .any((element) => element.isNotEmpty)) {
+                      resultado = 'Escalar equipe!';
+                    } else if (!snapshot.hasData) {
+                      resultado = 'Analisando equipe...';
+                    } else if (snapshot.hasError) {
+                      resultado = 'Falha ao analisar equipe!';
+                    } else {
+                      resultado = _verificaEquipe(snapshot.data);
+                    }
+                    return Text(resultado,
+                        style: Theme.of(context).textTheme.bodySmall);
+                  }),
+            ),
+            (mLogado?.adm ?? false) || (mLogado?.ehRecrutador ?? false)
+                ? mCulto.emEdicao
+                    ? ElevatedButton.icon(
+                        icon: const Icon(Icons.lock_outline),
+                        label: const Text('FECHAR'),
+                        style: ElevatedButton.styleFrom(primary: Colors.red),
+                        onPressed: () {
+                          mSnapshot.reference.update({'emEdicao': false});
+                        },
+                      )
+                    : ElevatedButton.icon(
+                        icon: const Icon(Icons.hail),
+                        label: const Text('RECRUTAR'),
+                        style: ElevatedButton.styleFrom(primary: Colors.green),
+                        onPressed: () {
+                          mSnapshot.reference.update({'emEdicao': true});
+                        },
+                      )
+                : const SizedBox(height: 36),
+          ],
+        ),
       ),
     );
   }
@@ -904,14 +876,13 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
   }
 
   Widget get _listaDeCanticos {
-    List<Widget> lista = [];
     if (mCulto.canticos == null || mCulto.canticos!.isEmpty) {
       return const TelaMensagem(
         'Nenhum cântico selecionado',
         icone: Icons.queue_music,
       );
     }
-    lista = List.generate(mCulto.canticos!.length, (index) {
+    List<Widget> lista = List.generate(mCulto.canticos!.length, (index) {
       return FutureBuilder<DocumentSnapshot<Cantico>?>(
           key: Key('Future${mCulto.canticos![index]}'),
           future: MeuFirebase.obterCantico(id: mCulto.canticos![index].id),
@@ -946,7 +917,7 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
           });
     });
     return ReorderableListView(
-      shrinkWrap: true,
+      //shrinkWrap: true,
       //physics: const NeverScrollableScrollPhysics(),
       buildDefaultDragHandles: _ehODirigente || (mLogado?.adm ?? false),
       onReorder: (int old, int current) async {

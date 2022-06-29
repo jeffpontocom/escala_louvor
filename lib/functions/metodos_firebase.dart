@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:developer' as dev;
-import 'package:http/http.dart' as http;
 import 'dart:io';
 
 import 'package:cloud_firestore/cloud_firestore.dart';

@@ -33,6 +33,7 @@ class AuthGuardView extends StatelessWidget {
           dev.log(
               'FirebaseAuth User: ${snapshot.connectionState.name.toUpperCase()}',
               name: 'AuthGuard');
+          () {};
 
           // NÃO LOGADO
           if (!snapshot.hasData &&
@@ -71,13 +72,14 @@ class AuthGuardView extends StatelessWidget {
 
                   // DADOS DO INTEGRANTE CARREGADOS
                   if (logado.hasData) {
+                    // Atualizar snapshot
+                    Global.logadoSnapshot = logado.data;
+
+                    // Debug information
                     if (logado.connectionState == ConnectionState.active) {
                       dev.log(
                           'Interface carregada para ${logado.data?.data()?.nome ?? 'SEM NOME'}',
                           name: 'AuthGuard');
-
-                      // Atualizar snapshot
-                      Global.logadoSnapshot = logado.data;
                     }
 
                     // Verifica se está ativo
@@ -88,6 +90,8 @@ class AuthGuardView extends StatelessWidget {
                       return const ViewUserInativo();
                     }
 
+                    // Verifica se a página e restrita a administradores
+                    // Caso seja, impede o acesso a integrantes regulares
                     if (adminCheck && !(logado.data?.data()?.adm ?? true)) {
                       dev.log('Página restrita a administradores!',
                           name: 'AuthGuard');
@@ -101,13 +105,17 @@ class AuthGuardView extends StatelessWidget {
                   // CARREGAMENTO DA INTERFACE
                   dev.log('Carregando interface do integrante...',
                       name: 'AuthGuard');
-                  return const TelaCarregamento();
+                  return const TelaCarregamento(
+                    mensagem: 'Verificando dados do integrante...',
+                  );
                 });
           }
 
           // CARREGAMENTO DA INTERFACE
           dev.log('Carregando interface do usuário...', name: 'AuthGuard');
-          return const TelaCarregamento();
+          return const TelaCarregamento(
+            mensagem: 'Autenticando...',
+          );
         });
   }
 }

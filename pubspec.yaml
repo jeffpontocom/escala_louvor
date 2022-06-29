@@ -24,7 +24,7 @@ description: Um app para controle da escala da equipe de louvor
 publish_to: 'none'
 
 # VERSÃO DO APP
-version: 0.3.8+15
+version: 0.3.9+16
 
 # VERSÃO DO SDK FLUTTER
 environment:

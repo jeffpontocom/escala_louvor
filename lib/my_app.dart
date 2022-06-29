@@ -32,16 +32,16 @@ class MyApp extends StatelessWidget {
                       .contains(igreja?.reference.toString()) ??
                   false;
 
+              dev.log(
+                  'Igreja selecionada: ${igreja?.data()?.sigla ?? 'NENHUMA'}',
+                  name: 'MyApp');
+
               // Se não está inscrito devolve a tela de seleção de igreja
               if (!inscrito) {
-                dev.log('Nenhuma igreja selecionada', name: 'MyApp');
                 return const TelaContexto();
               }
 
               // Se está inscrito devolve a tela inicial
-              dev.log(
-                  'Igreja selecionada: ${igreja?.data()?.sigla ?? 'NENHUMA'}',
-                  name: 'MyApp');
               return Home(key: Key(igreja?.id ?? ''));
             }),
       ),
