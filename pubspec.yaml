@@ -1,7 +1,8 @@
 name: escala_louvor
 description: Um app para controle da escala da equipe de louvor
 
-# INSTRUÇÕES PARA BUILD 
+# INSTRUÇÕES PARA BUILDS
+
 # Para publicar a versão web no servidor local executar: 
 # - flutter build web --web-renderer canvaskit
 # OU
@@ -18,13 +19,13 @@ description: Um app para controle da escala da equipe de louvor
 #
 # Para gerar a versão para Android tipo appbundle: 
 # - flutter build appbundle --no-shrink
-#
+
 # Remover essa linha para publicar no repositório pub.dev
 # - pub publish
 publish_to: 'none'
 
 # VERSÃO DO APP
-version: 0.3.9+16
+version: 0.3.10+17
 
 # VERSÃO DO SDK FLUTTER
 environment:
@@ -38,37 +39,39 @@ dependencies:
     sdk: flutter
   flutter_localizations:
     sdk: flutter
-  cached_network_image: ^3.2.1 # Economizar banda com imagens em cache
-  carousel_slider: ^4.1.1 # Widget tipo carrosel de imagens
-  cloud_firestore: ^3.1.18 # FIREBASE Firestore
-  connectivity_plus: ^2.3.5 # Verifica conexões
-  easy_mask: ^2.0.1 # Máscara para inputs de texto
-  file_picker: ^4.6.0 # Para seleção de arquivos
-  firebase_auth: ^3.3.20 # FIREBASE Auth
-  firebase_core: ^1.18.0 # FIREBASE Core
-  firebase_messaging: ^11.4.2 # FIREBASE Messaging
-  firebase_storage: ^10.2.18 # FIREBASE Storage
-  flutter_dotenv: ^5.0.2 # Esconder arquivo de chaves
-  flutter_modular: ^5.0.2 # Gerenciador de estados e 
+  ## Bibliotecas FIREBASE  ##
+  firebase_core: ^1.18.0 # Core
+  firebase_auth: ^3.3.20 # Autenticação de usuários
+  firebase_storage: ^10.2.18 # Storage de dados
+  cloud_firestore: ^3.1.18 # Storage de arquivos
+  firebase_messaging: ^11.4.2 # Cloud Messaging
+  ## Ferramentas básicas ##
+  flutter_modular: ^5.0.2 # Gerenciador de estados e navegação
   flutter_local_notifications: ^9.6.1 # Sistema de notificações locais
-  flutter_quill: ^5.0.3 # Para edição de RichText
-  flutter_slidable: ^1.3.0 # Widget tipo arrastar item da lista para opções
-  font_awesome_flutter: ^10.1.0 # Ícones alternativos
   http: ^0.13.4 # Base para web
-  intl: ^0.17.0 # Base para idioma
+  intl: ^0.17.0 # Base para idiomas
+  package_info_plus: ^1.4.2 # Recolhe dados básicos do app
+  shared_preferences: ^2.0.15 # Cache para dados do usuário
+  url_launcher: ^6.1.2 # Base para abrir links
+  ## Ferramentas para imagens e arquivos ##
+  cached_network_image: ^3.2.1 # Economizar banda com imagens em cache
   image_cropper: ^2.0.3 # Para manipulação de imagens
   image_picker: ^0.8.5+3 # Para seleção de imagens
-  package_info_plus: ^1.4.2 # Recolhe dados básicos do app
-  pdf: ^3.8.1 # Gerar PDFs
+  file_picker: ^4.6.0 # Para seleção de arquivos
+  #pdf: ^3.8.1 # Gerar PDFs
   printing: ^5.9.1 # Abrir PDFs
-  shared_preferences: ^2.0.15 # Cache para dados do usuário
+  ## Ferramentas acessórias ##
+  easy_mask: ^2.0.1 # Máscara para inputs de texto
+  flutter_dotenv: ^5.0.2 # Esconder arquivo de chaves
+  flutter_quill: ^5.0.3 # Para edição de RichText
+  upgrader: ^4.4.0 # Verificador de novas versões com notificador
+  wakelock: ^0.6.1+2 # Mantêm a tela sempre ligada
+  ## Widgets especiais ##
+  carousel_slider: ^4.1.1 # Widget tipo carrosel de imagens  
+  flutter_slidable: ^1.3.0 # Widget tipo list tile com função slide para mostrar ações
   stylish_bottom_bar: ^0.1.3 # Widget tipo bottom bar com float button
   table_calendar: ^3.0.6 # Widget tipo calendário
-  upgrader: ^4.2.1 # Verificador de novas versões com notificador
-  url_launcher: ^6.1.2 # Base para links
-  wakelock: ^0.6.1+2 # Mantêm a tela sempre ligada
-
-
+  
 dev_dependencies:
   flutter_test:
     sdk: flutter  

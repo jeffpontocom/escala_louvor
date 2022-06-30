@@ -41,12 +41,13 @@ class TelaAdmin extends StatelessWidget {
           padding: const EdgeInsets.symmetric(vertical: 8),
           children: [
             tituloSecao('Sobre'),
+
             Padding(
               padding: const EdgeInsets.all(16),
               child: Global.versaoDoAppText,
             ),
-
             const Divider(),
+
             tituloSecao('Cadastros'),
 
             // Igrejas
@@ -126,10 +127,7 @@ class TelaAdmin extends StatelessWidget {
   Widget tituloSecao(titulo) {
     return Padding(
       padding: const EdgeInsets.only(top: 16, bottom: 8, left: 16, right: 16),
-      child: Text(
-        titulo,
-        style: Estilo.secaoTitulo,
-      ),
+      child: Text(titulo, style: Estilo.secaoTitulo),
     );
   }
 
@@ -231,7 +229,7 @@ class TelaAdmin extends StatelessWidget {
     }
     Mensagem.bottomDialog(
       context: context,
-      titulo: novoCadastro ? 'Novo cadastro' : 'Editar Cadastro',
+      titulo: novoCadastro ? 'Nova igreja' : 'Editar cadastro',
       conteudo: ListView(
         shrinkWrap: true,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -252,8 +250,12 @@ class TelaAdmin extends StatelessWidget {
                     // Botão para substituir foto
                     CircleAvatar(
                       radius: 16,
-                      child: IconButton(
-                          iconSize: 16,
+                      backgroundColor: Colors.grey,
+                      child: CircleAvatar(
+                        radius: 14,
+                        child: IconButton(
+                          iconSize: 12,
+                          icon: const Icon(Icons.add_a_photo),
                           onPressed: () async {
                             var url = await MeuFirebase.carregarFoto(context);
                             if (url != null && url.isNotEmpty) {
@@ -262,12 +264,13 @@ class TelaAdmin extends StatelessWidget {
                               });
                             }
                           },
-                          icon: const Icon(Icons.add_a_photo)),
+                        ),
+                      ),
                     ),
                   ],
                 );
               }),
-              const SizedBox(width: 12),
+              const SizedBox(width: 16),
               // Dados básicos
               Expanded(
                   child: Column(
@@ -288,7 +291,7 @@ class TelaAdmin extends StatelessWidget {
                       igreja!.nome = value.trim();
                     },
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 8),
                   // Sigla
                   TextFormField(
                     initialValue: igreja.sigla,
@@ -311,7 +314,7 @@ class TelaAdmin extends StatelessWidget {
               )),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
 
           // Endereço
           TextFormField(
@@ -327,7 +330,7 @@ class TelaAdmin extends StatelessWidget {
               igreja!.endereco = value.trim();
             },
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
 
           // Responsável
           FutureBuilder<QuerySnapshot<Integrante>?>(
@@ -565,7 +568,7 @@ class TelaAdmin extends StatelessWidget {
     }
     Mensagem.bottomDialog(
       context: context,
-      titulo: novoCadastro ? 'Novo cadastro' : 'Editar Cadastro',
+      titulo: novoCadastro ? 'Novo instrumento' : 'Editar cadastro',
       conteudo: ListView(
         shrinkWrap: true,
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
@@ -622,7 +625,7 @@ class TelaAdmin extends StatelessWidget {
                   ),
                 );
               }),
-              const SizedBox(width: 12),
+              const SizedBox(width: 16),
 
               // Dados básicos
               Expanded(
@@ -644,7 +647,7 @@ class TelaAdmin extends StatelessWidget {
                         instrumento!.nome = value.trim();
                       },
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 8),
 
                     // Min Composição
                     TextFormField(
@@ -665,7 +668,7 @@ class TelaAdmin extends StatelessWidget {
                             : instrumento!.composMin = int.parse(value);
                       },
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 8),
 
                     // Max Composição
                     TextFormField(
@@ -686,7 +689,7 @@ class TelaAdmin extends StatelessWidget {
                             : instrumento!.composMax = int.parse(value);
                       },
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 8),
 
                     // Permite outros instrumentos
                     StatefulBuilder(builder: (context, innerState) {
@@ -778,10 +781,6 @@ class TelaAdmin extends StatelessWidget {
                       },
                     ),
                     const Expanded(child: SizedBox()),
-                    const SizedBox(
-                      height: 30,
-                      child: VerticalDivider(),
-                    ),
                     ActionChip(
                         avatar: const Icon(Icons.add_circle),
                         label: const Text('NOVO'),
@@ -850,10 +849,10 @@ class TelaAdmin extends StatelessWidget {
     Mensagem.bottomDialog(
       context: context,
       titulo: 'Novo integrante',
-      conteudo: Column(
-        mainAxisSize: MainAxisSize.min,
+      conteudo: ListView(
+        shrinkWrap: true,
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
         children: [
-          const SizedBox(height: 12),
           // Nome
           TextFormField(
             initialValue: novoIntegrante.nome,
@@ -868,7 +867,7 @@ class TelaAdmin extends StatelessWidget {
               novoIntegrante.nome = value.trim();
             },
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 8),
           // Email
           TextFormField(
             initialValue: novoIntegrante.email,
@@ -887,7 +886,6 @@ class TelaAdmin extends StatelessWidget {
               novoIntegrante.email = value;
             },
           ),
-          const SizedBox(height: 24),
         ],
       ),
       rodape: ElevatedButton.icon(

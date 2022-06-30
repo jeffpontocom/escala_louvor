@@ -21,94 +21,96 @@ class TelaContexto extends StatefulWidget {
 
 class _TelaContextoState extends State<TelaContexto> {
   List<QueryDocumentSnapshot<Igreja>> igrejas = [];
+  var carouselController = CarouselController();
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Theme.of(context).primaryColor,
-      body: SafeArea(
-        child: OrientationBuilder(builder: (context, orientation) {
-          var isPortrait = orientation == Orientation.portrait;
-          return Column(
-            children: [
-              // Título
-              const Padding(
-                padding: EdgeInsets.all(16),
-                child: Text(
-                  'Selecione a igreja',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontFamily: 'Offside',
-                    fontSize: 22,
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-              // Corpo
-              const SizedBox(height: 16),
-              Expanded(child: LayoutBuilder(
-                builder: (context, constraints) {
-                  return Wrap(children: [
-                    // Carrossel de opções
-                    Container(
-                      alignment: Alignment.center,
-                      height: isPortrait
-                          ? constraints.maxHeight * 0.7
-                          : constraints.maxHeight,
-                      width: isPortrait
-                          ? constraints.maxWidth
-                          : constraints.maxWidth / 2,
-                      child: carroselOpcoes,
-                    ),
-                    // Divisor
-                    isPortrait
-                        ? const SizedBox()
-                        : Container(
-                            height: constraints.maxHeight,
-                            width: 1,
-                            alignment: Alignment.center,
-                            child: Container(
-                              alignment: Alignment.center,
-                              height: constraints.maxHeight * 0.85,
-                              color: Colors.grey,
-                            ),
-                          ),
-                    // Botões
-                    Container(
-                      alignment: Alignment.center,
-                      height: isPortrait
-                          ? constraints.maxHeight * 0.3
-                          : constraints.maxHeight,
-                      width: isPortrait
-                          ? constraints.maxWidth
-                          : constraints.maxWidth / 2 - 1,
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          botaoInscricao,
-                          opcaoMostrarTudo,
-                        ],
-                      ),
-                    ),
-                  ]);
+      appBar: AppBar(
+        elevation: 0,
+        backgroundColor: Colors.transparent,
+        leading: Modular.routerDelegate.canPop()
+            ? BackButton(
+                onPressed: () async {
+                  if (!await Modular.to.maybePop()) {
+                    Modular.to.pushNamed(Global.rotaInicial);
+                  }
                 },
-              )),
-              const SizedBox(height: 16),
-              // Versão do app
-              Container(
-                alignment: Alignment.center,
-                height: 36,
-                child: Global.versaoDoAppText,
-              ),
-            ],
-          );
-        }),
+              )
+            : null,
+        title: const Text('Selecione a igreja'),
+      ),
+      body: _layout,
+      // Versão do app
+      bottomNavigationBar: Container(
+        alignment: Alignment.center,
+        color: Colors.transparent,
+        height: 40,
+        child: Global.versaoDoAppText,
       ),
     );
   }
 
-  /// Carrossel de opções (Grupos inscritos)
+  /// Corpo
+  get _layout {
+    return OrientationBuilder(builder: (context, orientation) {
+      // MODO RETRATO
+      if (orientation == Orientation.portrait) {
+        return Column(
+          children: [
+            Expanded(
+              flex: 7,
+              child: Column(
+                children: [
+                  Expanded(
+                    child: Container(
+                      alignment: Alignment.center,
+                      child: carroselOpcoes,
+                    ),
+                  ),
+                  opcaoMostrarTudo
+                ],
+              ),
+            ),
+            Flexible(
+              flex: 3,
+              child: Container(
+                alignment: Alignment.center,
+                child: botaoInscricao,
+              ),
+            ),
+          ],
+        );
+      }
+      // MODO PAISAGEM
+      return Row(
+        children: [
+          Expanded(
+            child: Column(
+              children: [
+                Expanded(
+                  child: Container(
+                    alignment: Alignment.center,
+                    child: carroselOpcoes,
+                  ),
+                ),
+                opcaoMostrarTudo,
+              ],
+            ),
+          ),
+          Expanded(
+            child: Container(
+              alignment: Alignment.center,
+              child: botaoInscricao,
+            ),
+          ),
+        ],
+      );
+    });
+  }
+
+  /// Carrossel de opções (Igrejas inscritas)
   get carroselOpcoes {
     return ValueListenableBuilder(
         valueListenable: Global.igrejaSelecionada,
@@ -116,24 +118,24 @@ class _TelaContextoState extends State<TelaContexto> {
           return FutureBuilder<QuerySnapshot<Igreja>>(
               future: MeuFirebase.obterListaIgrejas(ativo: true),
               builder: (context, snapshot) {
-                // Carregamento
+                // RETORNO: Carregamento
                 if (!snapshot.hasData) {
                   return CircularProgressIndicator(
                       color: Theme.of(context).colorScheme.secondary);
                 }
-                // Preenchimento
+
                 igrejas = snapshot.data?.docs ?? [];
-                // Falha ao não encontrar ao menos um grupo
+
+                // RETORNO: Nenhuma igreja encontrada
                 if (igrejas.isEmpty) {
                   return Text(
                     'Nenhuma igreja encontrada na base de dados!\n\nFale com o administrador.',
                     textAlign: TextAlign.center,
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleMedium
-                        ?.copyWith(color: Colors.white),
+                    style: Theme.of(context).textTheme.titleLarge,
                   );
                 }
+
+                // Verificação de inscrições
                 List<QueryDocumentSnapshot<Igreja>> inscritas = [];
                 for (var igreja in igrejas) {
                   if (Global.logado?.igrejas
@@ -143,19 +145,17 @@ class _TelaContextoState extends State<TelaContexto> {
                     inscritas.add(igreja);
                   }
                 }
-                // Retorna interface de aviso para inscrição
+
+                // RETORNO: Nenhuma inscrição encontrada
                 if (inscritas.isEmpty) {
                   return Text(
                     'Inscreva-se em ao menos um igreja.',
                     textAlign: TextAlign.center,
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleMedium
-                        ?.copyWith(color: Colors.white),
+                    style: Theme.of(context).textTheme.titleLarge,
                   );
                 }
-                // Carrossel
-                var carouselController = CarouselController();
+
+                // RETORNO: Carrossel
                 return SizedBox(
                   child: CarouselSlider.builder(
                       carouselController: carouselController,
@@ -170,12 +170,14 @@ class _TelaContextoState extends State<TelaContexto> {
                             inscritas[index].reference.toString() ==
                                 Global.igrejaSelecionada.value?.reference
                                     .toString();
+
                         if (selecionada) {
                           WidgetsBinding.instance
                               .scheduleFrameCallback((duration) {
                             carouselController.animateToPage(index);
                           });
                         }
+
                         // Card da Igreja
                         return Card(
                           clipBehavior: Clip.antiAlias,
@@ -202,7 +204,6 @@ class _TelaContextoState extends State<TelaContexto> {
                               Modular.to.maybePop(true); // fecha dialog
                               Global.prefIgrejaId = id;
                               Global.igrejaSelecionada.value = igreja;
-                              //Global.notificarAlteracaoEmIgrejas();
                             },
                             child: Container(
                               padding: const EdgeInsets.all(16),
@@ -274,9 +275,12 @@ class _TelaContextoState extends State<TelaContexto> {
   get opcaoMostrarTudo {
     return CheckboxListTile(
       value: Global.prefMostrarTodosOsCultos,
-      tristate: false,
+      activeColor: Theme.of(context).colorScheme.secondary,
       contentPadding:
           const EdgeInsets.only(left: 72, right: 16, top: 8, bottom: 8),
+      title: const Text(
+          'Apresentar a agenda de todas as igrejas na lista de escalas',
+          textAlign: TextAlign.center),
       onChanged: (value) {
         setState(() {
           Global.prefMostrarTodosOsCultos = value!;
@@ -284,12 +288,6 @@ class _TelaContextoState extends State<TelaContexto> {
               Global.prefMostrarTodosOsCultos;
         });
       },
-      activeColor: Theme.of(context).colorScheme.secondary,
-      title: const Text(
-        'Apresentar a agenda de todas as igrejas na lista de escalas.',
-        textAlign: TextAlign.center,
-        style: TextStyle(color: Colors.white),
-      ),
     );
   }
 

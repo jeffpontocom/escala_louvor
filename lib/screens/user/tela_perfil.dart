@@ -4,7 +4,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:intl/intl.dart';
 
 import '/functions/metodos_firebase.dart';
@@ -101,7 +100,7 @@ class _TelaPerfilState extends State<TelaPerfil> {
                     backgroundColor: Colors.green,
                     onPressed: () =>
                         MyActions.openWhatsApp(_integrante.telefone!),
-                    child: const FaIcon(FontAwesomeIcons.whatsapp),
+                    child: const Icon(Icons.whatsapp),
                   ),
                 )
               : const SizedBox();

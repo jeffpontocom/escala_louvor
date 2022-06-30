@@ -59,16 +59,17 @@ class AppWidget extends StatelessWidget {
 
           // SPLASH SCREEN
           return Container(
-              padding: const EdgeInsets.all(24),
-              alignment: Alignment.center,
-              color: MediaQueryData.fromWindow(WidgetsBinding.instance.window)
-                          .platformBrightness ==
-                      Brightness.dark
-                  ? const Color(0xFF121212)
-                  : const Color(0xFF2094f3),
-              child: AnimacaoPulando(
-                objectToAnimate: Image.asset('assets/icons/ic_launcher.png'),
-              ));
+            padding: const EdgeInsets.all(24),
+            alignment: Alignment.center,
+            color: MediaQueryData.fromWindow(WidgetsBinding.instance.window)
+                        .platformBrightness ==
+                    Brightness.dark
+                ? const Color(0xFF121212)
+                : const Color(0xFF2094f3),
+            child: AnimacaoPulando(
+              objectToAnimate: Image.asset('assets/icons/ic_launcher.png'),
+            ),
+          );
         });
   }
 }

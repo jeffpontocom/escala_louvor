@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 import 'package:wakelock/wakelock.dart';
 
@@ -170,7 +169,8 @@ class _TelaCanticoState extends State<TelaCantico> {
                                       decoration: BoxDecoration(
                                           borderRadius:
                                               BorderRadius.circular(8),
-                                          color: Colors.grey.withOpacity(0.38)),
+                                          color:
+                                              Colors.green.withOpacity(0.38)),
                                       child: IconButton(
                                         icon: const Icon(Icons.queue_music),
                                         padding: EdgeInsets.zero,
@@ -182,8 +182,6 @@ class _TelaCanticoState extends State<TelaCantico> {
                                           Modular.to.pushNamed(
                                               AppModule.ARQUIVOS,
                                               arguments: [url, name]);
-                                          /* MeuFirebase.abrirArquivosPdf(
-                                          context, [mCantico.cifraUrl!]); */
                                         },
                                       ),
                                     ),
@@ -207,11 +205,9 @@ class _TelaCanticoState extends State<TelaCantico> {
                                       decoration: BoxDecoration(
                                           borderRadius:
                                               BorderRadius.circular(8),
-                                          color: Colors.grey.withOpacity(0.38)),
+                                          color: Colors.red.withOpacity(0.38)),
                                       child: IconButton(
-                                        icon: const FaIcon(
-                                            FontAwesomeIcons.youtube,
-                                            color: Colors.red),
+                                        icon: const Icon(Icons.ondemand_video),
                                         padding: EdgeInsets.zero,
                                         visualDensity: VisualDensity.compact,
                                         onPressed: () async {

@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 
 class Temas {
   static ThemeData _base(Brightness brightness) {
@@ -16,6 +17,8 @@ class Temas {
             fontSize: 20,
             fontWeight: FontWeight.bold,
             color: Colors.white),
+        systemOverlayStyle:
+            SystemUiOverlayStyle(statusBarColor: Colors.transparent),
       ),
       // Botões
       elevatedButtonTheme: ElevatedButtonThemeData(
