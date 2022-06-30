@@ -48,14 +48,20 @@ class _PaginaEquipeState extends State<PaginaEquipe> {
       builder: (context, orientation) {
         // MODO RETRATO
         if (orientation == Orientation.portrait) {
-          return Column(children: [
-            Container(
-              color: Colors.grey.withOpacity(0.12),
-              height: 300,
-              child: _cabecalho,
-            ),
-            Expanded(child: _dados),
-          ]);
+          return NestedScrollView(
+            headerSliverBuilder:
+                (BuildContext context, bool innerBoxIsScrolled) {
+              return [
+                SliverToBoxAdapter(
+                  child: Container(
+                      color: Colors.grey.withOpacity(0.12),
+                      height: 300,
+                      child: _cabecalho),
+                ),
+              ];
+            },
+            body: _dados,
+          );
         }
         // MODO PAISAGEM
         return LayoutBuilder(builder: (context, constraints) {

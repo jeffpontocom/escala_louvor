@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:escala_louvor/widgets/sliver_pinned_box.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 
@@ -33,20 +34,31 @@ class _PaginaCanticosState extends State<PaginaCanticos> {
   List<DocumentReference<Cantico>>? _selecionados;
 
   /// Filtro de Repertório
-  ValueNotifier<FiltroRepertorio> filtroRepertorio =
+  final ValueNotifier<FiltroRepertorio> filtroRepertorio =
       ValueNotifier(FiltroRepertorio.todos);
 
   /// Controlador do campo de busca
-  TextEditingController searchInputController = TextEditingController();
+  final TextEditingController searchInputController = TextEditingController();
 
   /// Notificador do campo de busca
   final ValueNotifier<String> buscaFiltro = ValueNotifier('');
+
+  /// Notificador de total de itens encontrados
+  final ValueNotifier<int> totalItens = ValueNotifier(0);
 
 /* SISTEMA  */
   @override
   void initState() {
     _selecionados = widget.culto?.data()?.canticos;
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    filtroRepertorio.dispose();
+    buscaFiltro.dispose();
+    totalItens.dispose();
+    super.dispose();
   }
 
   @override
@@ -60,17 +72,21 @@ class _PaginaCanticosState extends State<PaginaCanticos> {
       // MODO RETRATO
       if (orientation == Orientation.portrait) {
         return Column(children: [
-          Container(
-            color: Colors.grey.withOpacity(0.12),
-            child: Column(
-              children: [
-                _rowAcoes,
-                _rowBusca,
-              ],
+          Expanded(
+            child: NestedScrollView(
+              floatHeaderSlivers: true,
+              headerSliverBuilder:
+                  (BuildContext context, bool innerBoxIsScrolled) {
+                return [
+                  SliverToBoxAdapter(child: _rowAcoes),
+                  SliverPinnedBox(child: Material(child: _rowBusca)),
+                  const SliverPinnedBox(
+                      child: Divider(height: 1, thickness: 1)),
+                ];
+              },
+              body: _listaCanticos,
             ),
           ),
-          const Divider(height: 1, thickness: 1),
-          Flexible(child: _listaCanticos),
           _rowSelecao
         ]);
       }
@@ -167,24 +183,28 @@ class _PaginaCanticosState extends State<PaginaCanticos> {
   get _rowBusca {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      child: TextField(
-        controller: searchInputController,
-        decoration: InputDecoration(
-          isDense: true,
-          fillColor: Theme.of(context).colorScheme.background,
-          prefixIcon: const Icon(Icons.search),
-          suffixIcon: IconButton(
-              icon: const Icon(Icons.clear),
-              onPressed: () {
-                searchInputController.clear();
-                buscaFiltro.value = '';
-              }),
-          hintText: 'Buscar...',
-        ),
-        onChanged: (value) {
-          buscaFiltro.value = value;
-        },
-      ),
+      child: ValueListenableBuilder(
+          valueListenable: totalItens,
+          builder: (context, total, _) {
+            return TextField(
+              controller: searchInputController,
+              decoration: InputDecoration(
+                  isDense: true,
+                  fillColor: Theme.of(context).colorScheme.background,
+                  prefixIcon: const Icon(Icons.search),
+                  suffixIcon: IconButton(
+                      icon: const Icon(Icons.clear),
+                      onPressed: () {
+                        searchInputController.clear();
+                        buscaFiltro.value = '';
+                      }),
+                  hintText: 'Buscar... ',
+                  helperText: '$total itens na lista'),
+              onChanged: (value) {
+                buscaFiltro.value = value;
+              },
+            );
+          }),
     );
   }
 
@@ -273,7 +293,7 @@ class _PaginaCanticosState extends State<PaginaCanticos> {
                     valueListenable: buscaFiltro,
                     builder: (_, filtro, child) {
                       listaFiltrada.clear();
-                      if (filtro.isEmpty || filtro.length < 4) {
+                      if (filtro.isEmpty || filtro.length < 3) {
                         listaFiltrada
                             .addAll(listaOriginal.where((element) => true));
                       } else {
@@ -284,6 +304,9 @@ class _PaginaCanticosState extends State<PaginaCanticos> {
                             MyStrings.hasContain(
                                 element.data().letra ?? '', filtro)));
                       }
+                      WidgetsBinding.instance.scheduleFrameCallback((duration) {
+                        totalItens.value = listaFiltrada.length;
+                      });
                       if (listaFiltrada.isEmpty) {
                         return TelaMensagem(
                           'Nenhum ${somenteHinos == null ? "cântico ou hino" : somenteHinos == true ? "hino" : "cântico"} encontrado na busca',
