@@ -2,12 +2,12 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 
+import 'cached_circle_avatar.dart';
 import '/functions/metodos_firebase.dart';
 import '/models/instrumento.dart';
 import '/models/integrante.dart';
-import '../modulos.dart';
+import '/modulos.dart';
 import '/utils/utils.dart';
-import 'cached_circle_avatar.dart';
 
 class TileIntegrante extends StatelessWidget {
   final DocumentSnapshot<Integrante> snapshot;
@@ -16,6 +16,7 @@ class TileIntegrante extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     var integrante = snapshot.data()!;
+
     return ListTile(
       isThreeLine: true,
 
