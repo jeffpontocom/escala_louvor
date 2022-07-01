@@ -39,7 +39,7 @@
 
     @media (prefers-color-scheme: dark) {
       body {
-        background: #121212;
+        background: #303030;
         color: #eee;
       }
     }
@@ -66,34 +66,43 @@
 <body>
   <!-- Interface de carregamento  -->
   <div class="centered">
-    <img src="icons/Icon-192.png" width="128" />
-    <span></br></span>
-    <span></br></span>
-    <span style="font-size: 32px; font-weight: bold; font-family: 'Offside', 'Ubuntu', 'Trebuchet MS'">Escala do
-      Louvor</br></span>
-    <span></br></span>
-    <span style="font-size: 14px; opacity: 0.5;" id="mStatus"></span>
+    <img src="icons/Icon-192.png" width="64" />
+    <p></p>
+    <p></p>
+    <p><span style="font-size: 28px; font-weight: bold; font-family: 'Offside', 'Ubuntu', 'Trebuchet MS'; color:rgb(255, 255, 255);">
+      Escala do Louvor</span></p>
+    <p></p>
+    <p><span style="font-size: 14px; color:rgb(158, 158, 158);" id="mStatus">Bem-vindo!</span></p>
   </div>
 
   <!-- Verifica se a internet está disponível
       Impede a tela branca caso o script mainDartJs não seja baixado -->
   <script>
     console.log('Verificando conexão com a internet...');
+
+    setTimeout(() => {
+      status = 'Está um pouco lento?\nVerifique sua conexão com a internet';
+      document.getElementById('mStatus').style.color = '#FF8F00';
+      document.getElementById('mStatus').innerText = status;
+    }, 10000); 
+
     fetch('https://static-global-s-msn-com.akamaized.net/hp-neu/sc/2b/a5ea21.ico?d=' + Date.now())
       .then(function (response) {
-        console.log('Status de conexão com a internet = %d %s', response.status, response.statusText);
+        console.log('Status da conexão: %d - %s', response.status, response.statusText);
         if (response.status >= 200 && response.status < 300) {
-          document.getElementById('mStatus').innerText = 'Carregando app...';
+          //console.log('Sucesso!');
+          document.getElementById('mStatus').innerText = 'Carregando o app...';
         } else {
-          document.getElementById('mStatus').innerText = 'Não é possível acessar o sistema!\nVerifique sua conexão com a Internet ou tente em outro navegador mais atualizado.';
-          document.getElementById('mStatus').style.color = 'red';
+          //console.log('Falha!');
+          document.getElementById('mStatus').style.color = '#FF0000';
+          document.getElementById('mStatus').innerText = 'Não é possível acessar o sistema!\nVerifique sua conexão com a internet ou tente em outro navegador';
         }
       })
       .catch(function (error) {
         console.log('Conexão falhou', error)
-        status = 'Não é possível acessar o sistema!\nVerifique sua conexão com a Internet.';
+        status = 'Não é possível acessar o sistema!\nVerifique sua conexão com a internet';
+        document.getElementById('mStatus').style.color = '#FF0000';
         document.getElementById('mStatus').innerText = status;
-        document.getElementById('mStatus').style.color = 'red';
       });
   </script>
 
@@ -101,10 +110,13 @@
        application. For more information, see:
        https://developers.google.com/web/fundamentals/primers/service-workers -->
   <script>
-    var serviceWorkerVersion = '1745455270';
+    var serviceWorkerVersion = '1325028324';
     var scriptLoaded = false;
+
     function loadMainDartJs() {
       if (scriptLoaded) {
+        document.getElementById('mStatus').style.color = '#9E9E9E';
+        document.getElementById('mStatus').innerText = 'Abrindo interface...';
         return;
       }
       scriptLoaded = true;
@@ -136,7 +148,7 @@
             function waitForActivation(serviceWorker) {
               serviceWorker.addEventListener('statechange', () => {
                 if (serviceWorker.state == 'activated') {
-                  console.log('Novo service worker instalado.');
+                  console.log('Novo service worker instalado');
                   loadMainDartJs();
                 }
               });
@@ -148,12 +160,12 @@
             } else if (!reg.active.scriptURL.endsWith(serviceWorkerVersion)) {
               // When the app updates the serviceWorkerVersion changes, so we
               // need to ask the service worker to update.
-              console.log('Novo service worker disponível.');
+              console.log('Novo service worker disponível');
               reg.update();
               waitForActivation(reg.installing);
             } else {
               // Existing service worker is still good.
-              console.log('Carregando app pelo service worker.');
+              console.log('Carregando app pelo service worker');
               loadMainDartJs();
             }
           });
@@ -163,7 +175,7 @@
         setTimeout(() => {
           if (!scriptLoaded) {
             console.warn(
-              'Falha ao carregar o app pelo service worker. Voltando à tag <script> comum.',
+              'Falha ao carregar o app pelo service worker. Voltando à tag <script> comum',
             );
             loadMainDartJs();
           }
