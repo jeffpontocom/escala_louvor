@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 import 'package:url_launcher/url_launcher_string.dart';
 
+import '../utils/mensagens.dart';
 import '/models/cantico.dart';
 import '../modulos.dart';
 
@@ -97,7 +98,11 @@ class TileCantico extends StatelessWidget {
                       padding: EdgeInsets.zero,
                       visualDensity: VisualDensity.compact,
                       onPressed: () async {
-                        if (!await launchUrlString(cantico.youTubeUrl ?? '')) {
+                        if (!await launchUrlString(cantico.youTubeUrl ?? '',
+                            mode: LaunchMode.externalApplication)) {
+                          Mensagem.simples(
+                              context: context,
+                              mensagem: 'Não foi possível abrir o link');
                           throw 'Could not launch youTubeUrl';
                         }
                       },

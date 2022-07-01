@@ -63,7 +63,7 @@ class MyActions {
     } else {
       url = 'https://wa.me/55$value';
     }
-    if (!await launchUrlString(url)) {
+    if (!await launchUrlString(url, mode: LaunchMode.externalApplication)) {
       throw 'Não é possível abrir o Whatsapp';
     }
   }
@@ -72,7 +72,7 @@ class MyActions {
   static void openPhoneCall(String value) async {
     var url = 'tel:$value';
     if (await canLaunchUrlString(url)) {
-      await launchUrlString(url);
+      await launchUrlString(url, mode: LaunchMode.externalApplication);
     } else {
       throw 'Não é possível realizar ligações nesse aparelho';
     }
@@ -80,7 +80,7 @@ class MyActions {
 
   /// Iniciar Site ou App web
   static void openSite(String url) async {
-    if (!await launchUrlString(url)) {
+    if (!await launchUrlString(url, mode: LaunchMode.externalApplication)) {
       throw 'Não foi possível abrir o site';
     }
   }
@@ -211,11 +211,13 @@ class MapsLauncher {
   }
 
   static Future<bool> launchQuery(String query) {
-    return launchUrlString(createQueryUrl(query));
+    return launchUrlString(createQueryUrl(query),
+        mode: LaunchMode.externalApplication);
   }
 
   static Future<bool> launchCoordinates(double latitude, double longitude,
       [String? label]) {
-    return launchUrlString(createCoordinatesUrl(latitude, longitude, label));
+    return launchUrlString(createCoordinatesUrl(latitude, longitude, label),
+        mode: LaunchMode.externalApplication);
   }
 }

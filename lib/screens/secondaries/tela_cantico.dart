@@ -212,7 +212,9 @@ class _TelaCanticoState extends State<TelaCantico> {
                                         visualDensity: VisualDensity.compact,
                                         onPressed: () async {
                                           if (!await launchUrlString(
-                                              mCantico.youTubeUrl!)) {
+                                              mCantico.youTubeUrl!,
+                                              mode: LaunchMode
+                                                  .externalApplication)) {
                                             Mensagem.simples(
                                                 context: context,
                                                 mensagem:
