@@ -69,10 +69,10 @@
     <img src="icons/Icon-192.png" width="64" />
     <p></p>
     <p></p>
-    <p><span style="font-size: 28px; font-weight: bold; font-family: 'Offside', 'Ubuntu', 'Trebuchet MS'; color:rgb(255, 255, 255);">
+    <p><span style="font-size: 2em; font-weight: bold; font-family: 'Offside', 'Ubuntu', 'Trebuchet MS'; color:#FFFFFF;">
       Escala do Louvor</span></p>
     <p></p>
-    <p><span style="font-size: 14px; color:rgb(158, 158, 158);" id="mStatus">Bem-vindo!</span></p>
+    <p><span style="font-size: 1em; font-family: 'Ubuntu', 'Trebuchet MS'; color:#E0E0E0;" id="mStatus">Bem-vindo!</span></p>
   </div>
 
   <!-- Verifica se a internet está disponível
@@ -82,7 +82,8 @@
 
     setTimeout(() => {
       status = 'Está um pouco lento?\nVerifique sua conexão com a internet';
-      document.getElementById('mStatus').style.color = '#FF8F00';
+      document.getElementById('mStatus').style.color = '#FFD54F';
+      document.getElementById('mStatus').style.backgroundColor = 'unset';
       document.getElementById('mStatus').innerText = status;
     }, 10000); 
 
@@ -94,14 +95,16 @@
           document.getElementById('mStatus').innerText = 'Carregando o app...';
         } else {
           //console.log('Falha!');
-          document.getElementById('mStatus').style.color = '#FF0000';
+          document.getElementById('mStatus').style.color = '#E0E0E0';
+          document.getElementById('mStatus').style.backgroundColor = '#d32f2f';
           document.getElementById('mStatus').innerText = 'Não é possível acessar o sistema!\nVerifique sua conexão com a internet ou tente em outro navegador';
         }
       })
       .catch(function (error) {
         console.log('Conexão falhou', error)
         status = 'Não é possível acessar o sistema!\nVerifique sua conexão com a internet';
-        document.getElementById('mStatus').style.color = '#FF0000';
+        document.getElementById('mStatus').style.color = '#E0E0E0';
+        document.getElementById('mStatus').style.backgroundColor = '#d32f2f';
         document.getElementById('mStatus').innerText = status;
       });
   </script>
@@ -115,7 +118,8 @@
 
     function loadMainDartJs() {
       if (scriptLoaded) {
-        document.getElementById('mStatus').style.color = '#9E9E9E';
+        document.getElementById('mStatus').style.color = '#E0E0E0';
+        document.getElementById('mStatus').style.backgroundColor = 'unset';
         document.getElementById('mStatus').innerText = 'Abrindo interface...';
         return;
       }

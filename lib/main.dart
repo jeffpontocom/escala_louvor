@@ -83,7 +83,7 @@ class AppWidget extends StatelessWidget {
                     textDirection: TextDirection.ltr,
                     child: Text(
                       'Acessando base e preferências...',
-                      style: TextStyle(color: Color.fromRGBO(158, 158, 158, 1)),
+                      style: TextStyle(color: Color(0xFFE0E0E0)),
                     ),
                   ),
                 ]),

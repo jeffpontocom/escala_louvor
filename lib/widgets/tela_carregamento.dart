@@ -36,7 +36,8 @@ class TelaCarregamento extends StatelessWidget {
               child: Column(children: [
                 Text(
                   mensagem,
-                  style: const TextStyle(color: Colors.grey),
+                  style:
+                      TextStyle(color: Theme.of(context).colorScheme.tertiary),
                 ),
               ]),
             ),
