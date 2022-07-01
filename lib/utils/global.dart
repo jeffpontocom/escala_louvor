@@ -89,6 +89,10 @@ class Global {
           await MeuFirebase.obterIgreja(id: prefIgrejaId!);
     }
 
+    if (kDebugMode) {
+      await Future.delayed(const Duration(seconds: 2), () {});
+    }
+
     print('[Global] Dados carregados com sucesso');
     return true;
   }

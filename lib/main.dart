@@ -64,11 +64,31 @@ class AppWidget extends StatelessWidget {
             color: MediaQueryData.fromWindow(WidgetsBinding.instance.window)
                         .platformBrightness ==
                     Brightness.dark
-                ? const Color(0xFF121212)
+                ? const Color(0xFF303030)
                 : const Color(0xFF2094f3),
-            child: AnimacaoPulando(
-              objectToAnimate: Image.asset('assets/icons/ic_launcher.png'),
-            ),
+            child: Column(children: [
+              const Expanded(child: SizedBox()),
+              Expanded(
+                child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      AnimacaoPulando(
+                          objectToAnimate:
+                              Image.asset('assets/icons/ic_launcher.png')),
+                    ]),
+              ),
+              Expanded(
+                child: Column(children: const [
+                  Directionality(
+                    textDirection: TextDirection.ltr,
+                    child: Text(
+                      'Acessando base e preferências...',
+                      style: TextStyle(color: Color.fromRGBO(158, 158, 158, 1)),
+                    ),
+                  ),
+                ]),
+              ),
+            ]),
           );
         });
   }

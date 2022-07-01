@@ -106,7 +106,7 @@ class AuthGuardView extends StatelessWidget {
                   dev.log('Carregando interface do integrante...',
                       name: 'AuthGuard');
                   return const TelaCarregamento(
-                    mensagem: 'Verificando dados do integrante...',
+                    mensagem: 'Verificando integrante...',
                   );
                 });
           }

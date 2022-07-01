@@ -19,16 +19,29 @@ class TelaCarregamento extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            const SizedBox(height: 36),
             const Expanded(child: SizedBox()),
             // Icone da aplicação
-            AnimacaoPulando(
-                objectToAnimate: Image.asset('assets/icons/ic_launcher.png')),
-            const SizedBox(height: 12),
+            Expanded(
+              child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    AnimacaoPulando(
+                        objectToAnimate:
+                            Image.asset('assets/icons/ic_launcher.png')),
+                  ]),
+            ),
             // Mensagem
-            Text(mensagem),
-            const Expanded(child: SizedBox()),
+            Expanded(
+              child: Column(children: [
+                Text(
+                  mensagem,
+                  style: const TextStyle(color: Colors.grey),
+                ),
+              ]),
+            ),
             // Versão
-            Global.versaoDoAppText,
+            SizedBox(height: 36, child: Global.versaoDoAppText),
           ],
         ),
       ),
