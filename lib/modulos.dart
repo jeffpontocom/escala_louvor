@@ -116,7 +116,7 @@ class AppModule extends Module {
           ARQUIVOS,
           child: (_, args) => TelaPdfView(
             fileUrl: args.data[0],
-            fileName: args.data[1],
+            name: args.data[1],
           ),
           transition: TransitionType.downToUp,
         ),

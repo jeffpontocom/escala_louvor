@@ -249,6 +249,7 @@ class _PaginaAgendaState extends State<PaginaAgenda> {
                     var culto = Culto(
                       dataCulto: Timestamp.fromDate(dataInicial),
                       igreja: Global.igrejaSelecionada.value!.reference,
+                      emEdicao: true,
                     );
                     Dialogos.editarCulto(context, culto: culto);
                   })
