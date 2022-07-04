@@ -2,6 +2,8 @@ import 'dart:convert';
 import 'dart:developer' as dev;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:escala_louvor/widgets/card_integrante_instrumento.dart';
+import 'package:escala_louvor/widgets/card_integrante_responsavel.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
@@ -14,7 +16,6 @@ import '/models/culto.dart';
 import '/models/instrumento.dart';
 import '/models/integrante.dart';
 import '/modulos.dart';
-import '/resources/animations/shimmer.dart';
 import '/screens/home/pagina_canticos.dart';
 import '/utils/global.dart';
 import '/utils/mensagens.dart';
@@ -101,19 +102,27 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
           return Flex(
             direction: Axis.vertical,
             children: [
+              _tileCulto,
               Expanded(
                 child: NestedScrollView(
                   headerSliverBuilder:
                       (BuildContext context, bool innerBoxIsScrolled) {
                     return [
-                      SliverPinnedBox(child: _tileCulto),
-                      SliverToBoxAdapter(child: _secaoEnsaio),
-                      SliverToBoxAdapter(child: _secaoLiturgia),
-                      // Observações (só aparece se houver alguma)
-                      SliverToBoxAdapter(
-                        child: mCulto.obs == null || mCulto.obs!.isEmpty
-                            ? const SizedBox()
-                            : _rowObservacoes,
+                      SliverOverlapAbsorber(
+                        handle: NestedScrollView.sliverOverlapAbsorberHandleFor(
+                            context),
+                        sliver: SliverToBoxAdapter(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              _secaoEnsaio,
+                              _secaoLiturgia,
+                              // Observações (só aparece se houver alguma)
+                              if (mCulto.obs != null && mCulto.obs!.isNotEmpty)
+                                _rowObservacoes,
+                            ],
+                          ),
+                        ),
                       ),
                       SliverPersistentHeader(
                         pinned: true,
@@ -163,7 +172,7 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
                 width: constraints.maxWidth * 0.6,
                 child: Column(
                   children: [
-                    _tabBar,
+                    Material(child: _tabBar),
                     Expanded(child: _tabView),
                   ],
                 )),
@@ -227,40 +236,45 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
   }
 
   get _escalados {
-    return ListView(
-      //physics: const NeverScrollableScrollPhysics(),
-      children: [
-        // Escalados (Responsáveis)
-        Flex(
-          direction: Axis.horizontal,
-          crossAxisAlignment: CrossAxisAlignment.start,
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return ListView(
+          padding: const EdgeInsets.all(16),
           children: [
-            // Dirigente
-            Flexible(
-              child: _secaoResponsavel(
-                Funcao.dirigente,
-                mCulto.dirigente,
-                () => _escalarResponsavel(Funcao.dirigente),
-              ),
+            // Escalados (Responsáveis)
+            Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Dirigente
+                Expanded(
+                  child: _secaoResponsavel(
+                    Funcao.dirigente,
+                    mCulto.dirigente,
+                    () => _escalarResponsavel(Funcao.dirigente),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                // Coordenador
+                Expanded(
+                  child: _secaoResponsavel(
+                    Funcao.coordenador,
+                    mCulto.coordenador,
+                    () => _escalarResponsavel(Funcao.coordenador),
+                  ),
+                ),
+              ],
             ),
-            // Coordenador
-            Flexible(
-              child: _secaoResponsavel(
-                Funcao.coordenador,
-                mCulto.coordenador,
-                () => _escalarResponsavel(Funcao.coordenador),
-              ),
+            const SizedBox(height: 16),
+            // Escalados (Equipe)
+            _secaoEquipe(
+              'Equipe',
+              mCulto.equipe ?? {},
+              constraints,
+              () => _escalarIntegrante(mCulto.equipe),
             ),
           ],
-        ),
-        // Escalados (Equipe)
-        _secaoEquipe(
-          'Equipe',
-          mCulto.equipe ?? {},
-          () => _escalarIntegrante(mCulto.equipe),
-        ),
-        const SizedBox(height: 16),
-      ],
+        );
+      },
     );
   }
 
@@ -282,7 +296,7 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
                   children: [
                     OutlinedButton.icon(
                       icon: const Icon(Icons.queue_music),
-                      label: const Text('Selecionar canticos'),
+                      label: const Text('Selecionar cânticos'),
                       onPressed: () => _adicionarCanticos(),
                     ),
                     Text(
@@ -603,46 +617,43 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
   /// Seção escalados
   Widget _secaoResponsavel(
     Funcao funcao,
-    DocumentReference<Integrante>? integrante,
+    DocumentReference<Integrante>? integranteRef,
     Function()? funcaoEditar,
   ) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Cabeçalho
-          Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              // Icone
-              Icon(funcaoGetIcon(funcao), size: 20),
-              const SizedBox(width: 4),
-              // Título
-              Flexible(
-                child: Text(
-                  funcaoGetString(funcao).toUpperCase(),
-                  overflow: TextOverflow.ellipsis,
-                ),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Cabeçalho
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Icone
+            Icon(funcaoGetIcon(funcao), size: 20),
+            const SizedBox(width: 4),
+            // Título
+            Flexible(
+              child: Text(
+                funcaoGetString(funcao).toUpperCase(),
+                overflow: TextOverflow.ellipsis,
               ),
-              // Botão de edição (somente para recrutadores)
-              ((mLogado?.adm ?? false) || (mLogado?.ehRecrutador ?? false)) &&
-                      mCulto.emEdicao
-                  ? IconButton(
-                      onPressed: funcaoEditar,
-                      icon: const Icon(Icons.edit_note,
-                          color: Colors.grey, size: 16),
-                    )
-                  : SizedBox(height: ButtonTheme.of(context).height),
-            ],
-          ),
-          // Responsável
-          integrante == null
-              ? const SizedBox()
-              : _cardIntegranteResponsavel(integrante, funcao.name)
-        ],
-      ),
+            ),
+            // Botão de edição (somente para recrutadores)
+            ((mLogado?.adm ?? false) || (mLogado?.ehRecrutador ?? false)) &&
+                    mCulto.emEdicao
+                ? IconButton(
+                    onPressed: funcaoEditar,
+                    icon: const Icon(Icons.edit_note,
+                        color: Colors.grey, size: 16),
+                  )
+                : SizedBox(height: ButtonTheme.of(context).height),
+          ],
+        ),
+        // Responsável
+        integranteRef == null
+            ? const SizedBox()
+            : CardIntegranteResponsavel(integranteRef: integranteRef)
+      ],
     );
   }
 
@@ -650,6 +661,7 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
   Widget _secaoEquipe(
     String titulo,
     Map<String?, List<DocumentReference<Integrante>?>?> dados,
+    BoxConstraints constraints,
     Function()? funcaoEditar,
   ) {
     return FutureBuilder<QuerySnapshot<Instrumento>>(
@@ -658,220 +670,47 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
           List<Widget> escalados = [];
           if (snapshot.hasData && !snapshot.hasError) {
             var instrumentos = snapshot.data!.docs;
-            var i = 0;
             for (var instrumento in instrumentos) {
               var instrumentoId = instrumento.id;
               if (dados.containsKey(instrumentoId)) {
                 for (var integranteRef in dados[instrumentoId]!) {
-                  escalados.add(_cardIntegranteInstrumento(integranteRef,
-                      instrumentoId, '${i++}_${integranteRef!.id}'));
+                  if (integranteRef != null) {
+                    var widget = SizedBox(
+                        width: (constraints.maxWidth / 2) - 16 - 4,
+                        child: CardIntegranteInstrumento(
+                            integranteRef: integranteRef,
+                            instrumento: instrumento.data()));
+                    escalados.add(widget);
+                  }
                 }
               }
             }
           }
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Cabeçalho
-                  Row(children: [
-                    // Icone
-                    Icon(funcaoGetIcon(Funcao.membro), size: 20),
-                    const SizedBox(width: 4),
-                    // Título
-                    Text(titulo.toUpperCase()),
-                    // Botão de edição
-                    ((mLogado?.adm ?? false) ||
-                                (mLogado?.ehRecrutador ?? false)) &&
-                            mCulto.emEdicao
-                        ? IconButton(
-                            onPressed: funcaoEditar,
-                            icon: const Icon(Icons.edit_note,
-                                color: Colors.grey, size: 16),
-                          )
-                        : SizedBox(height: ButtonTheme.of(context).height),
-                  ]),
-                  // Integrantes
-                  Wrap(spacing: 8, runSpacing: 8, children: escalados),
+          return Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Cabeçalho
+                Row(children: [
+                  // Icone
+                  Icon(funcaoGetIcon(Funcao.membro), size: 20),
+                  const SizedBox(width: 4),
+                  // Título
+                  Text(titulo.toUpperCase()),
+                  // Botão de edição
+                  ((mLogado?.adm ?? false) ||
+                              (mLogado?.ehRecrutador ?? false)) &&
+                          mCulto.emEdicao
+                      ? IconButton(
+                          onPressed: funcaoEditar,
+                          icon: const Icon(Icons.edit_note,
+                              color: Colors.grey, size: 16),
+                        )
+                      : SizedBox(height: ButtonTheme.of(context).height),
                 ]),
-          );
-        });
-  }
-
-  Widget _cardIntegranteResponsavel(
-      DocumentReference<Integrante> refIntegrante, String hero) {
-    return FutureBuilder<DocumentSnapshot<Integrante>>(
-        future: refIntegrante.get(),
-        builder: (_, snapIntegrante) {
-          if (!snapIntegrante.hasData) return const SizedBox();
-          var integrante = snapIntegrante.data;
-          var nomeIntegrante = integrante?.data()?.nome ?? '[Sem nome]';
-          var nomePrimeiro = nomeIntegrante.split(' ').first;
-          var nomeSegundo = nomeIntegrante.split(' ').last;
-          nomeIntegrante = nomePrimeiro == nomeSegundo
-              ? nomePrimeiro
-              : '$nomePrimeiro $nomeSegundo';
-          return InkWell(
-            onTap: () => Modular.to.pushNamed(
-                '${AppModule.PERFIL}?id=${integrante?.id}&hero=$hero',
-                arguments: integrante),
-            child: Container(
-              width: 128,
-              padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 8),
-              decoration: BoxDecoration(
-                border: Border.all(
-                  width: 1,
-                  color: Colors.grey.withOpacity(0.5),
-                ),
-                borderRadius: BorderRadius.circular(12),
-                color: (Global.logadoSnapshot != null &&
-                        integrante?.id == Global.logadoSnapshot?.id)
-                    ? Theme.of(context).colorScheme.secondary.withOpacity(0.25)
-                    : null,
-              ),
-              // Pilha
-              child: Column(children: [
-                // Foto do integrante
-                Hero(
-                  tag: hero,
-                  child: CachedAvatar(
-                    nome: integrante?.data()?.nome,
-                    url: integrante?.data()?.fotoUrl,
-                    maxRadius: 24,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                // Nome do integrante
-                Center(
-                  child: Text(
-                    nomeIntegrante,
-                    textAlign: TextAlign.center,
-                    overflow: TextOverflow.ellipsis,
-                    style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                  ),
-                ),
-              ]),
-            ),
-          );
-        });
-  }
-
-  Widget _cardIntegranteInstrumento(
-      DocumentReference<Integrante>? refIntegrante,
-      String? instrumentoId,
-      String hero) {
-    return FutureBuilder<DocumentSnapshot<Integrante>>(
-        future: refIntegrante?.get(),
-        builder: (_, snapIntegrante) {
-          // Recolhe dados do integrante
-          if (!snapIntegrante.hasData) {
-            // TODO: Tile de carregamento
-            return const SizedBox();
-          }
-          var integrante = snapIntegrante.data;
-          var nome = integrante?.data()?.nome ?? '';
-          var nomePrimeiro = nome.split(' ').first;
-          var nomeUltimo = nome.split(' ').last;
-          nome = nomePrimeiro == nomeUltimo
-              ? nomePrimeiro
-              : '$nomePrimeiro $nomeUltimo';
-          // Recolhe dados do instrumento
-          return FutureBuilder<DocumentSnapshot<Instrumento>?>(
-              future: instrumentoId == null || instrumentoId.isEmpty
-                  ? null
-                  : MeuFirebase.obterInstrumento(id: instrumentoId),
-              builder: (_, instr) {
-                Instrumento? instrumento;
-                if (!instr.hasError) {
-                  instrumento = instr.data?.data();
-                }
-                // Box
-                return InkWell(
-                  onTap: () => Modular.to.pushNamed(
-                      '${AppModule.PERFIL}?id=${integrante?.id}&hero=$hero',
-                      arguments: integrante),
-                  child: Container(
-                    // Tamanho
-                    width: 172,
-                    height: kToolbarHeight,
-                    // Margens
-                    padding: const EdgeInsets.all(4),
-                    alignment: Alignment.centerLeft,
-                    // Bordas
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                          width: 1, color: Colors.grey.withOpacity(0.5)),
-                      borderRadius: BorderRadius.circular(12),
-                      color: (Global.logadoSnapshot != null &&
-                              integrante?.id == Global.logadoSnapshot?.id)
-                          ? Theme.of(context)
-                              .colorScheme
-                              .secondary
-                              .withOpacity(0.25)
-                          : null,
-                    ),
-                    // Pilha
-                    child: Stack(alignment: Alignment.topLeft, children: [
-                      Row(
-                        children: [
-                          // Espaço para icone do instrumento
-                          const SizedBox(width: 12),
-                          // Foto do integrante
-                          Hero(
-                            tag: hero,
-                            child: CachedAvatar(
-                              nome: integrante?.data()?.nome,
-                              url: integrante?.data()?.fotoUrl,
-                              maxRadius: 24,
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Flexible(
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                // Nome do integrante
-                                Text(
-                                  nome,
-                                  maxLines: 1,
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .bodyLarge!
-                                      .copyWith(
-                                        fontWeight: FontWeight.bold,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                ),
-                                // Instrumento para o qual está escalado
-                                Text(
-                                  instrumento?.nome ?? '',
-                                  textAlign: TextAlign.center,
-                                  style: Theme.of(context).textTheme.bodySmall,
-                                ),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                      // Icone do instrumento
-                      instrumento?.iconAsset == null
-                          ? const SizedBox()
-                          : CircleAvatar(
-                              backgroundColor: Colors.white.withOpacity(0.75),
-                              radius: 10,
-                              child: Image.asset(instrumento!.iconAsset,
-                                  width: 16),
-                            ),
-                    ]),
-                  ),
-                );
-              });
+                // Integrantes
+                Wrap(spacing: 8, runSpacing: 8, children: escalados),
+              ]);
         });
   }
 
@@ -882,31 +721,22 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
         icone: Icons.queue_music,
       );
     }
+
+    // Em listas reordenáveis todos os itens devem possuir uma chave
     List<Widget> lista = List.generate(mCulto.canticos!.length, (index) {
-      return FutureBuilder<DocumentSnapshot<Cantico>?>(
-          key: Key('Future${mCulto.canticos![index]}'),
-          future: MeuFirebase.obterCantico(id: mCulto.canticos![index].id),
+      var doc = mCulto.canticos![index];
+      return StreamBuilder<DocumentSnapshot<Cantico>?>(
+          key: Key('Future${doc.id}'),
+          stream: MeuFirebase.ouvinteCantico(id: doc.id),
           builder: (context, snapshot) {
             if (!snapshot.hasData) {
               return ListTile(
-                title: Shimmer.fromColors(
-                  baseColor: Colors.grey.withOpacity(0.38),
-                  highlightColor: Colors.grey.withOpacity(0.12),
-                  child: const SizedBox(width: 72, height: 16),
-                ),
-                subtitle: Shimmer.fromColors(
-                  baseColor: Colors.grey.withOpacity(0.38),
-                  highlightColor: Colors.grey.withOpacity(0.12),
-                  child: const SizedBox(width: 64, height: 10),
-                ),
-              );
+                  subtitle: Text('Carregando cântico ${index + 1}...'));
             }
             if (snapshot.hasError || snapshot.data?.data() == null) {
-              return Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                child: Text(
-                    'Falha ao carregar dados do cântico\nID:  ${snapshot.data?.id ?? '[nulo]'}'),
+              return ListTile(
+                title: const Text('Falha ao carregar cântico!'),
+                subtitle: Text('ID:  ${snapshot.data?.id ?? '[nulo]'}'),
               );
             }
             return TileCantico(
@@ -916,9 +746,8 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
             );
           });
     });
+
     return ReorderableListView(
-      //shrinkWrap: true,
-      //physics: const NeverScrollableScrollPhysics(),
       buildDefaultDragHandles: _ehODirigente || (mLogado?.adm ?? false),
       onReorder: (int old, int current) async {
         dev.log('${old.toString()} | ${current.toString()}');
