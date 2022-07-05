@@ -81,6 +81,11 @@ android {
             ndk {
                 debugSymbolLevel 'SYMBOL_TABLE'
             }
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile(
+                    'proguard-android-optimize.txt'),
+                    'proguard-rules.pro'
         }
         debug {
             signingConfig signingConfigs.debug
