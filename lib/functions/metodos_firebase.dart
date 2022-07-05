@@ -31,6 +31,15 @@ import 'cropper/ui_helper.dart'
     if (dart.library.html) 'cropper/web_ui_helper.dart';
 
 class MeuFirebase {
+  /// Identifica o total de cadastros de determinada coleção, conforme filtro de cadastros ativo ou não
+  static Future<int> totalCadastros(String colecao, {bool? ativo}) async {
+    var snap = await FirebaseFirestore.instance
+        .collection(colecao)
+        .where('ativo', isEqualTo: ativo)
+        .get();
+    return snap.docs.length;
+  }
+
   /*
   *** STREAMS ***
   */
@@ -624,14 +633,5 @@ class MeuFirebase {
           toFirestore: (model, _) => model.toJson(),
         )
         .snapshots();
-  }
-
-  /// Identifica o total de cadastros de determinada coleção, conforme filtro de cadastros ativo ou não
-  static Future<int> totalCadastros(String colecao, {bool? ativo}) async {
-    var snap = await FirebaseFirestore.instance
-        .collection(colecao)
-        .where('ativo', isEqualTo: ativo)
-        .get();
-    return snap.docs.length;
   }
 }

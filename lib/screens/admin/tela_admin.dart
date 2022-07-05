@@ -1,7 +1,6 @@
 import 'dart:developer' as dev;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:escala_louvor/modulos.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_modular/flutter_modular.dart';
@@ -10,6 +9,7 @@ import '/functions/metodos_firebase.dart';
 import '/models/igreja.dart';
 import '/models/instrumento.dart';
 import '/models/integrante.dart';
+import '/modulos.dart';
 import '/resources/estilos.dart';
 import '/utils/global.dart';
 import '/utils/mensagens.dart';
@@ -758,88 +758,87 @@ class TelaAdmin extends StatelessWidget {
         titulo: 'Integrantes da equipe',
         conteudo: StatefulBuilder(builder: (innerContext, innerState) {
           return Column(
-            //mainAxisSize: MainAxisSize.min,
-            children: [
-              Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
-                child: Row(
-                  children: [
-                    const Text('Exibindo:'),
-                    const SizedBox(width: 8),
-                    ChoiceChip(
-                      label: Text(verAtivos
-                          ? 'Cadastros ativos'
-                          : 'Cadastros inativos'),
-                      selected: verAtivos,
-                      selectedColor: Colors.green,
-                      backgroundColor: Colors.red,
-                      onSelected: (value) {
-                        innerState((() {
-                          verAtivos = !verAtivos;
-                        }));
-                      },
-                    ),
-                    const Expanded(child: SizedBox()),
-                    ActionChip(
-                        avatar: const Icon(Icons.add_circle),
-                        label: const Text('NOVO'),
-                        onPressed: () {
-                          _criarIntegrante(context);
-                        }),
-                  ],
+              //mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 0),
+                  child: Row(
+                    children: [
+                      const Text('Exibindo:'),
+                      const SizedBox(width: 8),
+                      ChoiceChip(
+                        label: Text(verAtivos
+                            ? 'Cadastros ativos'
+                            : 'Cadastros inativos'),
+                        selected: verAtivos,
+                        selectedColor: Colors.green,
+                        backgroundColor: Colors.red,
+                        onSelected: (value) {
+                          innerState((() {
+                            verAtivos = !verAtivos;
+                          }));
+                        },
+                      ),
+                      const Expanded(child: SizedBox()),
+                      ActionChip(
+                          avatar: const Icon(Icons.add_circle),
+                          label: const Text('NOVO'),
+                          onPressed: () {
+                            _criarIntegrante(context);
+                          }),
+                    ],
+                  ),
                 ),
-              ),
-              StreamBuilder<QuerySnapshot<Integrante>>(
-                stream: MeuFirebase.escutarIntegrantes(ativos: verAtivos),
-                builder: ((context, snapshot) {
-                  if (!snapshot.hasData) {
-                    return const Center(
-                      heightFactor: 4,
-                      child: CircularProgressIndicator(),
-                    );
-                  }
-                  return snapshot.data!.docs.isEmpty
-                      ? const Center(
-                          heightFactor: 10,
-                          child: Text('Nenhum integrante cadastrado'),
-                        )
-                      : Expanded(
-                          child: ListView(
-                            shrinkWrap: true,
-                            children:
-                                List.generate(snapshot.data!.size, (index) {
-                              DocumentSnapshot<Integrante> snap =
-                                  snapshot.data!.docs[index];
-                              Integrante integrante =
-                                  snapshot.data!.docs[index].data();
-                              return ListTile(
-                                leading: CachedAvatar(
-                                  nome: integrante.nome,
-                                  url: integrante.fotoUrl,
-                                ),
-                                title: Text(integrante.nome),
-                                subtitle: Text(integrante.email),
-                                trailing: integrante.telefone == null ||
-                                        integrante.telefone!.isEmpty
-                                    ? null
-                                    : IconButton(
-                                        onPressed: () => MyActions.openWhatsApp(
-                                            integrante.telefone!),
-                                        icon: const Icon(Icons.whatsapp,
-                                            color: Colors.green),
-                                      ),
-                                onTap: () => Modular.to.pushNamed(
-                                    '${AppModule.PERFIL}?id=${snap.id}&hero=${snap.id}',
-                                    arguments: snap),
-                              );
-                            }),
-                          ),
+                StreamBuilder<QuerySnapshot<Integrante>>(
+                    stream: MeuFirebase.escutarIntegrantes(ativos: verAtivos),
+                    builder: (context, snapshot) {
+                      if (!snapshot.hasData) {
+                        return const Center(
+                          heightFactor: 4,
+                          child: CircularProgressIndicator(),
                         );
-                }),
-              ),
-            ],
-          );
+                      }
+                      return snapshot.data!.docs.isEmpty
+                          ? const Center(
+                              heightFactor: 10,
+                              child: Text('Nenhum integrante cadastrado'),
+                            )
+                          : Expanded(
+                              child: ListView(
+                                shrinkWrap: true,
+                                children:
+                                    List.generate(snapshot.data!.size, (index) {
+                                  DocumentSnapshot<Integrante> snap =
+                                      snapshot.data!.docs[index];
+                                  Integrante integrante =
+                                      snapshot.data!.docs[index].data();
+                                  return ListTile(
+                                    leading: CachedAvatar(
+                                      nome: integrante.nome,
+                                      url: integrante.fotoUrl,
+                                    ),
+                                    title: Text(integrante.nome),
+                                    subtitle: Text(integrante.email),
+                                    trailing: integrante.telefone == null ||
+                                            integrante.telefone!.isEmpty
+                                        ? null
+                                        : IconButton(
+                                            onPressed: () =>
+                                                MyActions.openWhatsApp(
+                                                    integrante.telefone!),
+                                            icon: const Icon(Icons.whatsapp,
+                                                color: Colors.green),
+                                          ),
+                                    onTap: () => Modular.to.pushNamed(
+                                        '${AppModule.PERFIL}?id=${snap.id}&hero=${snap.id}',
+                                        arguments: snap),
+                                  );
+                                }),
+                              ),
+                            );
+                    }),
+              ]);
         }));
   }
 

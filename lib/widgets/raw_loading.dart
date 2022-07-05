@@ -14,30 +14,29 @@ class RawLoading extends StatelessWidget {
       color: MediaQueryData.fromWindow(WidgetsBinding.instance.window)
                   .platformBrightness ==
               Brightness.dark
-          ? const Color(0xFF121212)
+          ? const Color(0xFF303030)
           : const Color(0xFF2094f3),
-      // Animação
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // Icone da aplicação
-          AnimacaoPulando(
-            objectToAnimate: Image.asset(
-              'assets/icons/ic_launcher.png',
-              fit: BoxFit.contain,
+      child: Column(children: [
+        const Expanded(child: SizedBox()),
+        Expanded(
+          child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
+            AnimacaoPulando(
+                objectToAnimate: Image.asset('assets/icons/ic_launcher.png')),
+          ]),
+        ),
+        Expanded(
+          child: Column(children: [
+            Directionality(
+              textDirection: TextDirection.ltr,
+              child: Text(
+                mensagem,
+                style: const TextStyle(
+                    color: Color(0xFFE0E0E0), fontFamily: 'Ubuntu'),
+              ),
             ),
-          ),
-          const SizedBox(height: 12),
-          // Mensagem
-          Directionality(
-            textDirection: TextDirection.ltr,
-            child: Text(
-              mensagem,
-              style: const TextStyle(color: Color.fromRGBO(255, 255, 255, 0.5)),
-            ),
-          ),
-        ],
-      ),
+          ]),
+        ),
+      ]),
     );
   }
 }

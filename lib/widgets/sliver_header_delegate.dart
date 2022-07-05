@@ -13,7 +13,7 @@ class MySliverAppBarDelegate extends SliverPersistentHeaderDelegate {
   @override
   Widget build(
       BuildContext context, double shrinkOffset, bool overlapsContent) {
-    return Material(elevation: 1, child: _widget);
+    return Material(elevation: 2, child: _widget);
   }
 
   @override

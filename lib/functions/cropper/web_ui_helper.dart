@@ -10,7 +10,7 @@ List<PlatformUiSettings>? buildUiSettings(BuildContext context) {
       context: context,
       presentStyle: CropperPresentStyle.dialog,
       boundary: Boundary(width: size, height: size),
-      viewPort: ViewPort(width: size - 4, height: size - 4, type: 'circle'),
+      viewPort: ViewPort(width: size - 4, height: size - 4, type: 'square'),
       enableExif: true,
       enableZoom: true,
     ),

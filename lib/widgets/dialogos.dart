@@ -21,9 +21,9 @@ class Dialogos {
     required Culto culto,
     DocumentReference<Culto>? reference,
   }) async {
-    var titulo = 'Editar Culto';
+    var titulo = 'Editar culto';
     if (reference == null) {
-      titulo = 'Novo Culto';
+      titulo = 'Novo culto';
     }
     List<String> ocasioes = ['EBD', 'Culto vespertino', 'Evento especial'];
 
@@ -234,7 +234,7 @@ class Dialogos {
     }
     return Mensagem.bottomDialog(
       context: context,
-      titulo: 'Editar Liturgia',
+      titulo: 'Editar liturgia',
       arrasteParaFechar: false,
       conteudo: StatefulBuilder(builder: (context, innerState) {
         return Column(
@@ -301,9 +301,9 @@ class Dialogos {
     required Cantico cantico,
     DocumentReference<Cantico>? reference,
   }) async {
-    var titulo = 'Editar Cântico';
+    var titulo = 'Editar cântico';
     if (reference == null) {
-      titulo = 'Novo Cântico';
+      titulo = 'Novo cântico';
     }
     return Mensagem.bottomDialog(
       context: context,

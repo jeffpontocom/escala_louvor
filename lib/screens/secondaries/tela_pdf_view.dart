@@ -2,11 +2,9 @@ import 'dart:developer' as dev;
 
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_modular/flutter_modular.dart';
 import 'package:printing/printing.dart';
 import 'package:wakelock/wakelock.dart';
 
-import '/utils/mensagens.dart';
 import '/views/scaffold_falha.dart';
 
 class TelaPdfView extends StatefulWidget {
@@ -41,37 +39,13 @@ class _TelaPdfViewState extends State<TelaPdfView> {
     return SafeArea(
       child: Scaffold(
         body: PdfPreview(
-          padding: EdgeInsets.zero,
-          previewPageMargin: const EdgeInsets.all(8),
           canDebug: false,
-          canChangeOrientation: false,
           canChangePageFormat: false,
           pdfFileName: '${widget.name}.pdf',
           dpi: 200,
           shouldRepaint: true,
-          actions: const [
-            BackButton(),
-            /* O sistema já limpa o cache após fechar o app
-            IconButton(
-                tooltip: 'Limpar memória cache de arquivos',
-                onPressed: () {
-                  Mensagem.decisao(
-                      context: context,
-                      titulo: 'Atenção!',
-                      mensagem:
-                          'Deseja limpar todos os arquivos PDF da memória do aparelho?',
-                      onPressed: (ok) async {
-                        if (ok) {
-                          Mensagem.aguardar(
-                              context: context, mensagem: 'Limpando cache...');
-                          await PdfBaseCache.defaultCache.clear();
-                          Modular.to.pop();
-                          setState(() {});
-                        }
-                      });
-                },
-                icon: const Icon(Icons.memory)), */
-          ],
+          actions: const [BackButton()],
+          scrollViewDecoration: const BoxDecoration(color: Colors.transparent),
           build: (format) async {
             var token = Uri.parse(widget.fileUrl).queryParameters['token'];
             dev.log('File token: $token');

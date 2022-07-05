@@ -2,8 +2,6 @@ import 'dart:convert';
 import 'dart:developer' as dev;
 
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:escala_louvor/widgets/card_integrante_instrumento.dart';
-import 'package:escala_louvor/widgets/card_integrante_responsavel.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_modular/flutter_modular.dart';
@@ -15,18 +13,17 @@ import '/models/cantico.dart';
 import '/models/culto.dart';
 import '/models/instrumento.dart';
 import '/models/integrante.dart';
-import '/modulos.dart';
 import '/screens/home/pagina_canticos.dart';
 import '/utils/global.dart';
 import '/utils/mensagens.dart';
 import '/views/auth_guard.dart';
-import '/widgets/cached_circle_avatar.dart';
+import '/views/scaffold_falha.dart';
+import '/widgets/card_integrante_instrumento.dart';
+import '/widgets/card_integrante_responsavel.dart';
 import '/widgets/dialogos.dart';
 import '/widgets/tela_mensagem.dart';
 import '/widgets/tile_cantico.dart';
 import '/widgets/tile_culto.dart';
-import '/widgets/sliver_header_delegate.dart';
-import '/widgets/sliver_pinned_box.dart';
 
 class TelaDetalhesEscala extends StatefulWidget {
   final String id;
@@ -77,11 +74,13 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
               if (!snapshot.hasData) {
                 return const Center(child: CircularProgressIndicator());
               }
+
               // Erro
               if (snapshot.hasError || snapshot.data?.data() == null) {
-                return const Center(
-                    child: Text('Falha ao carregar dados do culto.'));
+                return const ViewFalha(
+                    mensagem: 'Falha ao carregar dados do culto');
               }
+
               // Conteúdo
               mSnapshot = snapshot.data!;
               mCulto = mSnapshot.data()!;
@@ -99,68 +98,69 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
       child: OrientationBuilder(builder: (context, orientation) {
         // MODO RETRATO
         if (orientation == Orientation.portrait) {
-          return Flex(
-            direction: Axis.vertical,
+          return Column(
             children: [
               _tileCulto,
               Expanded(
                 child: NestedScrollView(
-                  headerSliverBuilder:
-                      (BuildContext context, bool innerBoxIsScrolled) {
-                    return [
-                      SliverOverlapAbsorber(
-                        handle: NestedScrollView.sliverOverlapAbsorberHandleFor(
-                            context),
-                        sliver: SliverToBoxAdapter(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              _secaoEnsaio,
-                              _secaoLiturgia,
-                              // Observações (só aparece se houver alguma)
-                              if (mCulto.obs != null && mCulto.obs!.isNotEmpty)
-                                _rowObservacoes,
-                            ],
+                    headerSliverBuilder:
+                        (BuildContext context, bool innerBoxIsScrolled) {
+                      return [
+                        SliverOverlapAbsorber(
+                          handle:
+                              NestedScrollView.sliverOverlapAbsorberHandleFor(
+                                  context),
+                          sliver: SliverToBoxAdapter(
+                            child: Column(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  _secaoEnsaio,
+                                  _secaoLiturgia,
+                                  if (mCulto.obs != null &&
+                                      mCulto.obs!.isNotEmpty)
+                                    _rowObservacoes,
+                                ]),
                           ),
                         ),
-                      ),
-                      SliverPersistentHeader(
-                        pinned: true,
-                        delegate: MySliverAppBarDelegate(_tabBar),
-                      ),
-                    ];
-                  },
-                  body: _tabView,
-                ),
+                      ];
+                    },
+                    body: Column(
+                      children: [
+                        _tabBar,
+                        Expanded(child: _tabView),
+                      ],
+                    )
+                    //_tabView,
+                    ),
               ),
-              _secaoOqueFalta,
+              _rodape,
             ],
           );
         }
+
         // MODO PAISAGEM
         return LayoutBuilder(builder: (context, constraints) {
           return Wrap(children: [
             SizedBox(
               height: constraints.maxHeight,
               width: constraints.maxWidth * 0.4 - 1,
-              child: Column(
-                children: [
-                  _tileCulto,
-                  const Divider(height: 1),
-                  Expanded(
-                    child: ListView(
-                      children: [
-                        _secaoEnsaio,
-                        _secaoLiturgia,
-                        // Observações (só aparece se houver alguma)
-                        mCulto.obs == null || mCulto.obs!.isEmpty
-                            ? const SizedBox()
-                            : _rowObservacoes,
-                      ],
+              child: Material(
+                child: Column(
+                  children: [
+                    _tileCulto,
+                    Expanded(
+                      child: ListView(
+                        children: [
+                          _secaoEnsaio,
+                          _secaoLiturgia,
+                          if (mCulto.obs != null && mCulto.obs!.isNotEmpty)
+                            _rowObservacoes,
+                        ],
+                      ),
                     ),
-                  ),
-                  _secaoOqueFalta,
-                ],
+                    _rodape,
+                  ],
+                ),
               ),
             ),
             Container(
@@ -172,7 +172,7 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
                 width: constraints.maxWidth * 0.6,
                 child: Column(
                   children: [
-                    Material(child: _tabBar),
+                    _tabBar,
                     Expanded(child: _tabView),
                   ],
                 )),
@@ -186,46 +186,43 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
 
   get _tileCulto {
     return Material(
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          TileCulto(
-            culto: mCulto,
-            reference: mSnapshot.reference,
-            theme: Theme.of(context),
-          ),
-          const Divider(height: 1, thickness: 1)
-        ],
+      child: TileCulto(
+        culto: mCulto,
+        reference: mSnapshot.reference,
+        theme: Theme.of(context),
       ),
     );
   }
 
   get _tabBar {
-    return TabBar(
-        padding: const EdgeInsets.symmetric(horizontal: 16),
-        labelPadding: const EdgeInsets.symmetric(horizontal: 16),
-        indicator: BoxDecoration(
-          borderRadius: BorderRadius.circular(40), // Creates border
-          color: Theme.of(context).colorScheme.secondary,
-        ),
-        splashBorderRadius: BorderRadius.circular(40),
-        splashFactory: NoSplash.splashFactory,
-        overlayColor: MaterialStateProperty.resolveWith<Color?>(
-          (Set<MaterialState> states) {
-            return states.contains(MaterialState.focused)
-                ? null
-                : Colors.transparent;
-          },
-        ),
-        indicatorSize: TabBarIndicatorSize.label,
-        automaticIndicatorColorAdjustment: false,
-        indicatorPadding:
-            const EdgeInsets.symmetric(horizontal: -16, vertical: 8),
-        unselectedLabelColor: Theme.of(context).colorScheme.onBackground,
-        tabs: const [
-          Tab(text: 'ESCALADOS'),
-          Tab(text: 'CÂNTICOS'),
-        ]);
+    return Material(
+      elevation: 2,
+      child: TabBar(
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          labelPadding: const EdgeInsets.symmetric(horizontal: 16),
+          indicator: BoxDecoration(
+            borderRadius: BorderRadius.circular(40), // Creates border
+            color: Theme.of(context).colorScheme.secondary,
+          ),
+          splashBorderRadius: BorderRadius.circular(40),
+          splashFactory: NoSplash.splashFactory,
+          overlayColor: MaterialStateProperty.resolveWith<Color?>(
+            (Set<MaterialState> states) {
+              return states.contains(MaterialState.focused)
+                  ? null
+                  : Colors.transparent;
+            },
+          ),
+          indicatorSize: TabBarIndicatorSize.label,
+          automaticIndicatorColorAdjustment: false,
+          indicatorPadding:
+              const EdgeInsets.symmetric(horizontal: -16, vertical: 8),
+          unselectedLabelColor: Theme.of(context).colorScheme.onBackground,
+          tabs: const [
+            Tab(text: 'ESCALADOS'),
+            Tab(text: 'CÂNTICOS'),
+          ]),
+    );
   }
 
   get _tabView {
@@ -253,7 +250,7 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
                     () => _escalarResponsavel(Funcao.dirigente),
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 24),
                 // Coordenador
                 Expanded(
                   child: _secaoResponsavel(
@@ -384,7 +381,7 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
 
   /// Dados sobre data e hora do ensaio
   Widget get _secaoEnsaio {
-    var dataFormatada = 'Sem horário definido';
+    var dataFormatada = 'Solicite ao dirigente';
     if (mCulto.dataEnsaio != null) {
       dataFormatada = DateFormat("EEE, d/MM/yyyy 'às' HH:mm", 'pt_BR')
           .format(mCulto.dataEnsaio!.toDate());
@@ -392,17 +389,17 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
     return ListTile(
       dense: true,
       minLeadingWidth: 64,
-      shape: UnderlineInputBorder(
-          borderSide: BorderSide(color: Colors.grey.withOpacity(0.26))),
       // Título
       leading: const Text('ENSAIO'),
       // Texto de apoio
       title: Text(
         dataFormatada,
-        style: Theme.of(context)
-            .textTheme
-            .labelLarge!
-            .copyWith(fontWeight: FontWeight.bold),
+        style: mCulto.dataEnsaio != null
+            ? Theme.of(context)
+                .textTheme
+                .labelLarge!
+                .copyWith(fontWeight: FontWeight.bold)
+            : Theme.of(context).textTheme.bodySmall,
       ),
       // Botão de edição (somente para dirigentes e coordenadores)
       trailing: (mLogado?.adm ?? false) || _ehODirigente || _ehOCoordenador
@@ -446,21 +443,20 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
     return ListTile(
       dense: true,
       minLeadingWidth: 64,
-      shape: UnderlineInputBorder(
-          borderSide: BorderSide(color: Colors.grey.withOpacity(0.26))),
       // Título
       leading: const Text('LITURGIA'),
       // Texto de apoio
       title: mCulto.liturgia == null || mCulto.liturgia!.isEmpty
           ? Text(
-              'Nenhuma informação no momento',
+              'Solicite ao liturgo',
               style: Theme.of(context).textTheme.bodySmall,
             )
-          : OutlinedButton(
+          : OutlinedButton.icon(
               onPressed: _verLiturgia,
               style: OutlinedButton.styleFrom(
                   visualDensity: VisualDensity.compact),
-              child: const Text('Abrir'),
+              icon: const Icon(Icons.subtitles),
+              label: const Text('Abrir'),
             ),
       // Botão de edição (somente para dirigente, coordenadores ou liturgos)
       trailing: (mLogado?.adm ?? false) ||
@@ -468,12 +464,12 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
               _ehOCoordenador ||
               (mLogado?.ehLiturgo ?? false)
           ? IconButton(
+              icon: const Icon(Icons.edit_note),
               onPressed: () async {
                 Dialogos.editarLiturgia(context,
                     reference: mSnapshot.reference,
                     texto: mCulto.liturgia ?? '');
               },
-              icon: const Icon(Icons.edit),
             )
           : null,
     );
@@ -507,6 +503,7 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
   }
 
   /// Seção observações
+  /// (só deve aparece se houver alguma)
   Widget get _rowObservacoes {
     return ListTile(
       dense: true,
@@ -522,11 +519,13 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
     );
   }
 
-  /// Seção o que falta
-  Widget get _secaoOqueFalta {
+  /// Rodapé
+  ///
+  /// Exibe analise da equipe e botão para abrir ou fechar a escala
+  Widget get _rodape {
     return Material(
       child: Container(
-        color: Theme.of(context).colorScheme.secondary.withOpacity(0.25),
+        color: Colors.grey.withOpacity(0.38),
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
         child: Row(
           children: [
@@ -545,10 +544,10 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
                     } else if (snapshot.hasError) {
                       resultado = 'Falha ao analisar equipe!';
                     } else {
-                      resultado = _verificaEquipe(snapshot.data);
+                      resultado = _analisarEquipe(snapshot.data);
                     }
                     return Text(resultado,
-                        style: Theme.of(context).textTheme.bodySmall);
+                        style: Theme.of(context).textTheme.caption);
                   }),
             ),
             (mLogado?.adm ?? false) || (mLogado?.ehRecrutador ?? false)
@@ -556,7 +555,8 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
                     ? ElevatedButton.icon(
                         icon: const Icon(Icons.lock_outline),
                         label: const Text('FECHAR'),
-                        style: ElevatedButton.styleFrom(primary: Colors.red),
+                        style: ElevatedButton.styleFrom(
+                            primary: Theme.of(context).colorScheme.secondary),
                         onPressed: () {
                           mSnapshot.reference.update({'emEdicao': false});
                         },
@@ -564,7 +564,8 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
                     : ElevatedButton.icon(
                         icon: const Icon(Icons.hail),
                         label: const Text('RECRUTAR'),
-                        style: ElevatedButton.styleFrom(primary: Colors.green),
+                        style: ElevatedButton.styleFrom(
+                            primary: Theme.of(context).colorScheme.primary),
                         onPressed: () {
                           mSnapshot.reference.update({'emEdicao': true});
                         },
@@ -577,17 +578,23 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
   }
 
   /// Verifica se há o mínimo de instrumentos para compor a equipe
-  String _verificaEquipe(QuerySnapshot<Instrumento>? mInstrumentos) {
+  String _analisarEquipe(QuerySnapshot<Instrumento>? mInstrumentos) {
+    // Precisa de instrumentos cadastrados na base de dados
     if (mInstrumentos == null) {
       return 'Sem instrumentos cadastrados na base de dados';
     }
+
+    // Lista de instrumentos com integrantes escalados
     List<String> instrumentosEscalados = mCulto.equipe?.keys.toList() ?? [];
+
     // Lista de instrumentos faltantes
     Map<String, int> faltantes = {};
+
     // No mínimo 1 dirigente
     if (mCulto.dirigente == null) {
       faltantes.putIfAbsent(funcaoGetString(Funcao.dirigente), () => 1);
     }
+
     // Analise dos mínimos para cada instrumento conforme regra da base de dados
     for (var instrumentoSnap in mInstrumentos.docs) {
       int minimo = instrumentoSnap.data().composMin;
@@ -602,7 +609,8 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
             instrumentoSnap.data().nome, () => minimo - qtdEscalados);
       }
     }
-    // Resultado
+
+    // Resultado 1: Faltam instrumentos
     if (faltantes.isNotEmpty) {
       var resultado = 'Precisamos de: ';
       for (var falta in faltantes.entries) {
@@ -611,10 +619,12 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
       resultado = '${resultado.substring(0, resultado.length - 2)}.';
       return resultado;
     }
+
+    // Resultado 2: Equipe mínima completa
     return 'Equipe mínima completa!';
   }
 
-  /// Seção escalados
+  /// Seção responsável
   Widget _secaoResponsavel(
     Funcao funcao,
     DocumentReference<Integrante>? integranteRef,
@@ -629,12 +639,15 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
           mainAxisSize: MainAxisSize.min,
           children: [
             // Icone
-            Icon(funcaoGetIcon(funcao), size: 20),
-            const SizedBox(width: 4),
+            SizedBox.square(
+              dimension: ButtonTheme.of(context).height,
+              child: Icon(funcaoGetIcon(funcao), size: 20),
+            ),
             // Título
-            Flexible(
+            Expanded(
               child: Text(
                 funcaoGetString(funcao).toUpperCase(),
+                textAlign: TextAlign.center,
                 overflow: TextOverflow.ellipsis,
               ),
             ),
@@ -643,30 +656,42 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
                     mCulto.emEdicao
                 ? IconButton(
                     onPressed: funcaoEditar,
-                    icon: const Icon(Icons.edit_note,
-                        color: Colors.grey, size: 16),
+                    icon: const Icon(
+                      Icons.playlist_add_circle,
+                      color: Colors.grey,
+                    ),
                   )
-                : SizedBox(height: ButtonTheme.of(context).height),
+                : SizedBox.square(dimension: ButtonTheme.of(context).height),
           ],
         ),
         // Responsável
         integranteRef == null
-            ? const SizedBox()
+            ? const ListTile(
+                subtitle: Text(
+                  '♫',
+                  textAlign: TextAlign.center,
+                ),
+              )
             : CardIntegranteResponsavel(integranteRef: integranteRef)
       ],
     );
   }
 
-  /// Seção escalados
+  /// Seção equipe escalada
   Widget _secaoEquipe(
     String titulo,
     Map<String?, List<DocumentReference<Integrante>?>?> dados,
     BoxConstraints constraints,
     Function()? funcaoEditar,
   ) {
+    final int colunas = (constraints.maxWidth / 192).floor();
+    final double cardWidth =
+        (constraints.maxWidth - (colunas * 8 + 24)) / colunas;
+
     return FutureBuilder<QuerySnapshot<Instrumento>>(
         future: MeuFirebase.obterListaInstrumentos(ativo: true),
         builder: (context, snapshot) {
+          // Montar widgets dos escalados
           List<Widget> escalados = [];
           if (snapshot.hasData && !snapshot.hasError) {
             var instrumentos = snapshot.data!.docs;
@@ -676,7 +701,7 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
                 for (var integranteRef in dados[instrumentoId]!) {
                   if (integranteRef != null) {
                     var widget = SizedBox(
-                        width: (constraints.maxWidth / 2) - 16 - 4,
+                        width: cardWidth,
                         child: CardIntegranteInstrumento(
                             integranteRef: integranteRef,
                             instrumento: instrumento.data()));
@@ -686,6 +711,8 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
               }
             }
           }
+
+          // Retorna interface
           return Column(
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -693,20 +720,30 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
                 // Cabeçalho
                 Row(children: [
                   // Icone
-                  Icon(funcaoGetIcon(Funcao.membro), size: 20),
-                  const SizedBox(width: 4),
+                  SizedBox.square(
+                    dimension: ButtonTheme.of(context).height,
+                    child: Icon(funcaoGetIcon(Funcao.membro), size: 20),
+                  ),
                   // Título
-                  Text(titulo.toUpperCase()),
+                  Expanded(
+                    child: Text(
+                      titulo.toUpperCase(),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
                   // Botão de edição
                   ((mLogado?.adm ?? false) ||
                               (mLogado?.ehRecrutador ?? false)) &&
                           mCulto.emEdicao
                       ? IconButton(
                           onPressed: funcaoEditar,
-                          icon: const Icon(Icons.edit_note,
-                              color: Colors.grey, size: 16),
+                          icon: const Icon(
+                            Icons.playlist_add_circle,
+                            color: Colors.grey,
+                          ),
                         )
-                      : SizedBox(height: ButtonTheme.of(context).height),
+                      : SizedBox.square(
+                          dimension: ButtonTheme.of(context).height),
                 ]),
                 // Integrantes
                 Wrap(spacing: 8, runSpacing: 8, children: escalados),

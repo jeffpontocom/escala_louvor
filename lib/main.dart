@@ -1,11 +1,11 @@
 //import 'dart:developer' as dev;
 
+import 'package:escala_louvor/widgets/raw_loading.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_modular/flutter_modular.dart';
 
 import 'modulos.dart';
-import 'resources/animations/bouncing.dart';
 import 'resources/behaviors/app_scroll_behavior.dart';
 import 'resources/temas.dart';
 import 'utils/global.dart';
@@ -58,38 +58,7 @@ class AppWidget extends StatelessWidget {
           }
 
           // SPLASH SCREEN
-          return Container(
-            padding: const EdgeInsets.all(24),
-            alignment: Alignment.center,
-            color: MediaQueryData.fromWindow(WidgetsBinding.instance.window)
-                        .platformBrightness ==
-                    Brightness.dark
-                ? const Color(0xFF303030)
-                : const Color(0xFF2094f3),
-            child: Column(children: [
-              const Expanded(child: SizedBox()),
-              Expanded(
-                child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      AnimacaoPulando(
-                          objectToAnimate:
-                              Image.asset('assets/icons/ic_launcher.png')),
-                    ]),
-              ),
-              Expanded(
-                child: Column(children: const [
-                  Directionality(
-                    textDirection: TextDirection.ltr,
-                    child: Text(
-                      'Acessando base e preferências...',
-                      style: TextStyle(color: Color(0xFFE0E0E0)),
-                    ),
-                  ),
-                ]),
-              ),
-            ]),
-          );
+          return const RawLoading(mensagem: 'Acessando base de dados...');
         });
   }
 }

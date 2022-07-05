@@ -58,7 +58,8 @@ class CardIntegranteInstrumento extends StatelessWidget {
 
             selected: integranteRef.id == Global.logadoReference?.id,
             selectedTileColor:
-                Theme.of(context).colorScheme.secondary.withOpacity(0.25),
+                Theme.of(context).colorScheme.secondary.withOpacity(0.18),
+            selectedColor: Theme.of(context).textTheme.titleLarge?.color,
 
             // Foto
             leading: Stack(alignment: Alignment.topLeft, children: [

@@ -55,7 +55,9 @@ class TileIntegrante extends StatelessWidget {
                 builder: (context, snapshot) {
                   if (!snapshot.hasData ||
                       snapshot.data?.data()?.iconAsset == null) {
-                    return const SizedBox();
+                    return CircleAvatar(
+                        backgroundColor: Colors.grey.withOpacity(0.12),
+                        radius: 10);
                   }
                   return CircleAvatar(
                     backgroundColor: Colors.grey.withOpacity(0.12),
