@@ -37,17 +37,22 @@ const RESOURCES = {
 "assets/packages/flutter_inappwebview/assets/t_rex_runner/t-rex.html": "16911fcc170c8af1c5457940bd0bf055",
 "assets/packages/wakelock_web/assets/no_sleep.js": "7748a45cd593f33280669b29c2c8919a",
 "assets/packages/youtube_player_flutter/assets/speedometer.webp": "50448630e948b5b3998ae5a5d112622b",
+"canvaskit/canvaskit.js": "c2b4e5f3d7a3d82aed024e7249a78487",
+"canvaskit/canvaskit.wasm": "4b83d89d9fecbea8ca46f2f760c5a9ba",
+"canvaskit/profiling/canvaskit.js": "ae2949af4efc61d28a4a80fffa1db900",
+"canvaskit/profiling/canvaskit.wasm": "95e736ab31147d1b2c7b25f11d4c32cd",
 "favicon.png": "d9f0bfa8d2610aa0c02ab61c04f57df6",
 "firebase-messaging-sw.js": "1fd770b18aa67c966e0059f2cedaafda",
+"flutter.js": "eb2682e33f25cd8f1fc59011497c35f8",
 "icons/Icon-192.png": "701e43ae3eb8ad390c9b65537bc8a169",
 "icons/Icon-512.png": "51cbe3b1cb0ac7ddd62f3833cba6f39a",
 "icons/Icon-maskable-192.png": "701e43ae3eb8ad390c9b65537bc8a169",
 "icons/Icon-maskable-512.png": "51cbe3b1cb0ac7ddd62f3833cba6f39a",
-"index.html": "cbb2a1bd0679f7f3c16758167be87668",
-"/": "cbb2a1bd0679f7f3c16758167be87668",
-"main.dart.js": "56434dac4fdaad0934c1d905223f10bd",
+"index.html": "350dbcde8343fc23f949d7c730feb296",
+"/": "350dbcde8343fc23f949d7c730feb296",
+"main.dart.js": "13cb65f127994f342b723541e894a680",
 "manifest.json": "39bf9732e51c1eb4172a281b86856a32",
-"version.json": "c85f3fd1f81b0c3e0501650226ca1dfe"
+"version.json": "54c6fc5af116db467a90971cdc0f4291"
 };
 
 // The application shell files that are downloaded before a service worker can
