@@ -78,10 +78,16 @@ class _PaginaCanticosState extends State<PaginaCanticos> {
               headerSliverBuilder:
                   (BuildContext context, bool innerBoxIsScrolled) {
                 return [
-                  SliverToBoxAdapter(child: _rowAcoes),
-                  SliverPinnedBox(child: Material(child: _rowBusca)),
-                  const SliverPinnedBox(
-                      child: Divider(height: 1, thickness: 1)),
+                  SliverOverlapAbsorber(
+                    handle: NestedScrollView.sliverOverlapAbsorberHandleFor(
+                        context),
+                    sliver: SliverToBoxAdapter(
+                        child: Material(elevation: 0, child: _rowAcoes)),
+                  ),
+                  SliverPinnedBox(
+                      child: Material(elevation: 2, child: _rowBusca)),
+                  //const SliverPinnedBox(
+                  //    child: Divider(height: 1, thickness: 1)),
                 ];
               },
               body: _listaCanticos,
@@ -212,17 +218,14 @@ class _PaginaCanticosState extends State<PaginaCanticos> {
   get _rowSelecao {
     return widget.culto != null
         ? Container(
-            width: double.infinity,
+            //width: double.infinity,
             color: Theme.of(context).colorScheme.secondary.withOpacity(0.25),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            child: Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              alignment: WrapAlignment.spaceBetween,
-              crossAxisAlignment: WrapCrossAlignment.center,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Row(
               children: [
                 // Seleção
-                _selecionadosToString,
+                Expanded(child: _selecionadosToString),
+                const SizedBox(width: 8),
                 // Botão adicionar/atualizar canticos do evento
                 ElevatedButton(
                   child: const Text('CONCLUIR'),
@@ -242,15 +245,26 @@ class _PaginaCanticosState extends State<PaginaCanticos> {
   /// TEXTO DE CÂNTICOS SELECIONADOS
   Widget get _selecionadosToString {
     if (_selecionados == null || _selecionados!.isEmpty) {
-      return const Text('Nenhum cântico selecionado.');
+      return Text(
+        'Nenhum cântico selecionado.',
+        style: Theme.of(context).textTheme.bodySmall,
+      );
     }
     return Wrap(
       children: List.generate(_selecionados!.length, (index) {
         return FutureBuilder<DocumentSnapshot<Cantico>?>(
             future: MeuFirebase.obterCantico(id: _selecionados![index].id),
             builder: (context, snapshot) {
+              if (!snapshot.hasData) {
+                return Text(
+                  '...',
+                  style: Theme.of(context).textTheme.bodySmall,
+                );
+              }
               return Text(
-                  '${index + 1} - ${snapshot.data?.data()?.nome ?? '[erro]'}${index < _selecionados!.length - 1 ? "; " : ""}');
+                '${index + 1} - ${snapshot.data?.data()?.nome ?? '[erro]'}${index < _selecionados!.length - 1 ? "; " : "."}',
+                style: Theme.of(context).textTheme.bodySmall,
+              );
             });
       }),
     );

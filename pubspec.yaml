@@ -25,7 +25,7 @@ description: Um app para controle da escala da equipe de louvor
 publish_to: 'none'
 
 # VERSÃO DO APP
-version: 0.3.12+19
+version: 0.3.13+20
 
 # VERSÃO DO SDK FLUTTER
 environment:
@@ -40,11 +40,11 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   ## Bibliotecas FIREBASE  ##
-  firebase_core: ^1.18.0 # Core
-  firebase_auth: ^3.3.20 # Autenticação de usuários
-  firebase_storage: ^10.2.18 # Storage de dados
-  cloud_firestore: ^3.1.18 # Storage de arquivos
-  firebase_messaging: ^11.4.2 # Cloud Messaging
+  firebase_core: ^1.19.1 # Core
+  firebase_auth: ^3.4.1 # Autenticação de usuários
+  firebase_storage: ^10.3.1 # Storage de dados
+  cloud_firestore: ^3.2.1 # Storage de arquivos
+  firebase_messaging: ^11.4.4 # Cloud Messaging
   ## Ferramentas básicas ##
   flutter_modular: ^5.0.2 # Gerenciador de estados e navegação
   flutter_local_notifications: ^9.6.1 # Sistema de notificações locais

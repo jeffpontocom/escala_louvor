@@ -179,13 +179,14 @@ class MeuFirebase {
     bool ativo = true,
     int? funcao,
     DocumentReference<Igreja>? igreja,
+    String ordem = 'nome',
   }) async {
     return FirebaseFirestore.instance
         .collection(Integrante.collection)
         .where('ativo', isEqualTo: ativo)
         .where('funcoes', arrayContains: funcao)
         .where('igrejas', arrayContains: igreja)
-        .orderBy('nome')
+        .orderBy(ordem)
         .withConverter<Integrante>(
           fromFirestore: (snapshot, _) => Integrante.fromJson(snapshot.data()!),
           toFirestore: (model, _) => model.toJson(),

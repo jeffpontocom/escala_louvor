@@ -432,7 +432,7 @@ class _PaginaAgendaState extends State<PaginaAgenda> {
     return Column(children: [
       // Mês e ano
       Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.only(top: 56, left: 16, right: 16, bottom: 8),
         child: Text(
           mesAno,
           textAlign: TextAlign.center,
@@ -486,6 +486,12 @@ class _PaginaAgendaState extends State<PaginaAgenda> {
                         style: Theme.of(context).textTheme.bodySmall),
                   );
                 }
+                // Ordenação
+                aniversariantes.sort(((a, b) {
+                  var diaA = a.data().dataNascimento!.toDate().day;
+                  var diaB = b.data().dataNascimento!.toDate().day;
+                  return diaA.compareTo(diaB);
+                }));
                 // Preenchimento
                 return ListView.separated(
                   shrinkWrap: true,

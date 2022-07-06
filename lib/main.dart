@@ -1,6 +1,5 @@
 //import 'dart:developer' as dev;
 
-import 'package:escala_louvor/widgets/raw_loading.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_modular/flutter_modular.dart';
@@ -10,6 +9,7 @@ import 'resources/behaviors/app_scroll_behavior.dart';
 import 'resources/temas.dart';
 import 'utils/global.dart';
 import 'views/scaffold_falha.dart';
+import '/widgets/raw_loading.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();

@@ -111,15 +111,17 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
                               NestedScrollView.sliverOverlapAbsorberHandleFor(
                                   context),
                           sliver: SliverToBoxAdapter(
-                            child: Column(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  _secaoEnsaio,
-                                  _secaoLiturgia,
-                                  if (mCulto.obs != null &&
-                                      mCulto.obs!.isNotEmpty)
-                                    _rowObservacoes,
-                                ]),
+                            child: Material(
+                              child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    _secaoEnsaio,
+                                    _secaoLiturgia,
+                                    if (mCulto.obs != null &&
+                                        mCulto.obs!.isNotEmpty)
+                                      _rowObservacoes,
+                                  ]),
+                            ),
                           ),
                         ),
                       ];
@@ -186,6 +188,7 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
 
   get _tileCulto {
     return Material(
+      elevation: 4,
       child: TileCulto(
         culto: mCulto,
         reference: mSnapshot.reference,
@@ -196,7 +199,7 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
 
   get _tabBar {
     return Material(
-      elevation: 2,
+      elevation: 4,
       child: TabBar(
           padding: const EdgeInsets.symmetric(horizontal: 16),
           labelPadding: const EdgeInsets.symmetric(horizontal: 16),
@@ -293,13 +296,13 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
                   children: [
                     OutlinedButton.icon(
                       icon: const Icon(Icons.queue_music),
-                      label: const Text('Selecionar cânticos'),
+                      label: const Text('Selecionar'),
                       onPressed: () => _adicionarCanticos(),
                     ),
                     Text(
-                      'Dica: Segure e arraste para reordenar',
+                      'Segure e arraste para reordenar',
                       textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodySmall,
+                      style: Theme.of(context).textTheme.caption,
                     ),
                   ],
                 ),
@@ -524,9 +527,10 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
   /// Exibe analise da equipe e botão para abrir ou fechar a escala
   Widget get _rodape {
     return Material(
+      elevation: 0,
       child: Container(
         color: Colors.grey.withOpacity(0.38),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
         child: Row(
           children: [
             Expanded(
@@ -556,6 +560,7 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
                         icon: const Icon(Icons.lock_outline),
                         label: const Text('FECHAR'),
                         style: ElevatedButton.styleFrom(
+                            visualDensity: VisualDensity.compact,
                             primary: Theme.of(context).colorScheme.secondary),
                         onPressed: () {
                           mSnapshot.reference.update({'emEdicao': false});
@@ -565,6 +570,7 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
                         icon: const Icon(Icons.hail),
                         label: const Text('RECRUTAR'),
                         style: ElevatedButton.styleFrom(
+                            visualDensity: VisualDensity.compact,
                             primary: Theme.of(context).colorScheme.primary),
                         onPressed: () {
                           mSnapshot.reference.update({'emEdicao': true});
@@ -688,67 +694,95 @@ class _TelaDetalhesEscalaState extends State<TelaDetalhesEscala> {
     final double cardWidth =
         (constraints.maxWidth - (colunas * 8 + 24)) / colunas;
 
-    return FutureBuilder<QuerySnapshot<Instrumento>>(
-        future: MeuFirebase.obterListaInstrumentos(ativo: true),
-        builder: (context, snapshot) {
-          // Montar widgets dos escalados
-          List<Widget> escalados = [];
-          if (snapshot.hasData && !snapshot.hasError) {
-            var instrumentos = snapshot.data!.docs;
-            for (var instrumento in instrumentos) {
-              var instrumentoId = instrumento.id;
-              if (dados.containsKey(instrumentoId)) {
-                for (var integranteRef in dados[instrumentoId]!) {
-                  if (integranteRef != null) {
-                    var widget = SizedBox(
-                        width: cardWidth,
-                        child: CardIntegranteInstrumento(
-                            integranteRef: integranteRef,
-                            instrumento: instrumento.data()));
-                    escalados.add(widget);
+    return Column(
+        //mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Cabeçalho
+          Row(children: [
+            // Icone
+            SizedBox.square(
+              dimension: ButtonTheme.of(context).height,
+              child: Icon(funcaoGetIcon(Funcao.membro), size: 20),
+            ),
+            // Título
+            Expanded(
+              child: Text(
+                titulo.toUpperCase(),
+                textAlign: TextAlign.center,
+              ),
+            ),
+            // Botão de edição
+            ((mLogado?.adm ?? false) || (mLogado?.ehRecrutador ?? false)) &&
+                    mCulto.emEdicao
+                ? IconButton(
+                    onPressed: funcaoEditar,
+                    icon: const Icon(
+                      Icons.playlist_add_circle,
+                      color: Colors.grey,
+                    ),
+                  )
+                : SizedBox.square(dimension: ButtonTheme.of(context).height),
+          ]),
+          // Integrantes
+          FutureBuilder<QuerySnapshot<Instrumento>>(
+              future: MeuFirebase.obterListaInstrumentos(ativo: true),
+              builder: (context, snapshot) {
+                // Em caso de falha
+                if (snapshot.hasError) {
+                  return const SizedBox(
+                    height: 256,
+                    child:
+                        ViewFalha(mensagem: 'Falha ao carregar instrumentos'),
+                  );
+                }
+
+                // Retorno principal
+                List<Widget> escalados = [];
+                if (snapshot.hasData) {
+                  var instrumentos = snapshot.data!.docs;
+                  // Montar cards dos escalados
+                  for (var instrumento in instrumentos) {
+                    var instrumentoId = instrumento.id;
+                    if (dados.containsKey(instrumentoId)) {
+                      for (var integranteRef in dados[instrumentoId]!) {
+                        if (integranteRef != null) {
+                          var widget = SizedBox(
+                              width: cardWidth,
+                              child: CardIntegranteInstrumento(
+                                  integranteRef: integranteRef,
+                                  instrumento: instrumento.data()));
+                          escalados.add(widget);
+                        }
+                      }
+                    }
+                  }
+                  // Interface vazia
+                  if (escalados.isEmpty) {
+                    return const SizedBox(
+                      height: 256,
+                      child: TelaMensagem('Ninguém escalado'),
+                    );
+                  }
+                  // Interface com equipe
+                  else {
+                    return Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: escalados,
+                    );
                   }
                 }
-              }
-            }
-          }
 
-          // Retorna interface
-          return Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Cabeçalho
-                Row(children: [
-                  // Icone
-                  SizedBox.square(
-                    dimension: ButtonTheme.of(context).height,
-                    child: Icon(funcaoGetIcon(Funcao.membro), size: 20),
-                  ),
-                  // Título
-                  Expanded(
-                    child: Text(
-                      titulo.toUpperCase(),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  // Botão de edição
-                  ((mLogado?.adm ?? false) ||
-                              (mLogado?.ehRecrutador ?? false)) &&
-                          mCulto.emEdicao
-                      ? IconButton(
-                          onPressed: funcaoEditar,
-                          icon: const Icon(
-                            Icons.playlist_add_circle,
-                            color: Colors.grey,
-                          ),
-                        )
-                      : SizedBox.square(
-                          dimension: ButtonTheme.of(context).height),
-                ]),
-                // Integrantes
-                Wrap(spacing: 8, runSpacing: 8, children: escalados),
-              ]);
-        });
+                // Carregamento
+                return Container(
+                  alignment: Alignment.center,
+                  height: 256,
+                  padding: const EdgeInsets.all(16),
+                  child: const CircularProgressIndicator(),
+                );
+              }),
+        ]);
   }
 
   Widget get _listaDeCanticos {
